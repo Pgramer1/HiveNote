@@ -1,14 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { incrementViewCount } from "@/app/resources/actions/incrementView";
 
 type Props = {
   fileUrl: string;
   type: "PDF" | "LINK";
+  resourceId: string;
 };
 
-export default function ResourcePreview({ fileUrl, type }: Props) {
+export default function ResourcePreview({ fileUrl, type, resourceId }: Props) {
   const [showPreview, setShowPreview] = useState(false);
+
+  useEffect(() => {
+    // Check if user viewed this resource recently (within 5 minutes)
+    const viewKey = `viewed_${resourceId}`;
+    const lastViewed = localStorage.getItem(viewKey);
+    const now = Date.now();
+    const cooldownMs = 5 * 60 * 1000; // 5 minutes
+
+    if (!lastViewed || now - parseInt(lastViewed) > cooldownMs) {
+      // Increment view count
+      incrementViewCount(resourceId);
+      // Store current timestamp
+      localStorage.setItem(viewKey, now.toString());
+    }
+  }, [resourceId]);
 
   if (type === "LINK") {
     return (

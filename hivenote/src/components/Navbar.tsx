@@ -17,6 +17,8 @@ export default async function Navbar() {
           <>
             <Link href="/resources/upload">Upload</Link>
             <Link href="/my-uploads">My Uploads</Link>
+            <Link href="/me" className="text-sm">My Profile</Link>
+
             <span className="text-sm text-gray-600">
               {session.user?.email}
             </span>

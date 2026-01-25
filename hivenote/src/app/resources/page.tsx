@@ -60,7 +60,7 @@ export default async function ResourcesPage({
   },
   include: {
     user: {
-      select: { email: true },
+      select: { id: true ,email: true },
     },
     votes: {
       select: { value: true ,userId: true},
@@ -205,7 +205,14 @@ const sortedResources = [...resourcesWithScore].sort((a, b) => {
               </Link>
 
               <p className="text-sm text-gray-500 mt-1">
-                {resource.type} • uploaded by {resource.user.email} • {resource.viewCount} views
+                {resource.type} • uploaded by{" "}
+                  <Link
+                    href={`/users/${resource.user.id}`}
+                    className="underline hover:text-black"
+                  >
+                    {resource.user.email}
+                  </Link>
+                  • {resource.viewCount} views
               </p>
               <VoteButtons resourceId={resource.id} score={resource.score} userVote={resource.userVote} isLoggedIn={!!currentUser} />
             </li>
