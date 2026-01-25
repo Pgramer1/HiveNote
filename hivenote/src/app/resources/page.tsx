@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import VoteButtons from "@/components/VoteButtons";
+import { getSession } from "@/lib/auth";
+
 
 
 /**
@@ -11,6 +13,7 @@ import VoteButtons from "@/components/VoteButtons";
 type SearchParams = Promise<{
   query?: string;
   type?: string;
+  sort?: string;
 }>;
 
 export default async function ResourcesPage({
@@ -19,7 +22,17 @@ export default async function ResourcesPage({
   searchParams: SearchParams;
 }) {
   // Await searchParams to extract values
-  const { query = "", type = "" } = await searchParams;
+  const { query = "", type = "", sort = "new" } = await searchParams;
+  const session = await getSession();
+  const userEmail = session?.user?.email ?? null;
+
+  // Get current user's ID if logged in
+  const currentUser = userEmail
+    ? await prisma.user.findUnique({
+        where: { email: userEmail },
+        select: { id: true },
+      })
+    : null;
 
   /**
    * Prisma query:
@@ -50,7 +63,7 @@ export default async function ResourcesPage({
       select: { email: true },
     },
     votes: {
-      select: { value: true },
+      select: { value: true ,userId: true},
     },
   },
   orderBy: {
@@ -65,16 +78,68 @@ const resourcesWithScore = resources.map((resource) => {
     0
   );
 
+  const userVote =
+    currentUser
+      ? resource.votes.find(
+          (v) => v.userId === currentUser.id
+        )?.value ?? 0
+      : 0;
+
   return {
     ...resource,
     score,
+    userVote,
   };
+});
+
+
+// 3️⃣ Sort resources based on selected option
+const sortedResources = [...resourcesWithScore].sort((a, b) => {
+  if (sort === "popular") {
+    // Primary: score DESC
+    if (b.score !== a.score) {
+      return b.score - a.score;
+    }
+
+    // Fallback: createdAt DESC
+    return (
+      new Date(b.createdAt).getTime() -
+      new Date(a.createdAt).getTime()
+    );
+  }
+
+  // Default: newest first
+  return (
+    new Date(b.createdAt).getTime() -
+    new Date(a.createdAt).getTime()
+  );
 });
 
   return (
     <section className="p-6">
       {/* Page title */}
       <h1 className="text-3xl font-bold mb-6">Resources</h1>
+
+      {/* Sort buttons */}
+      <div className="flex gap-4 mb-6">
+        <Link
+          href={`/resources?query=${query}&type=${type}&sort=new`}
+          className={`underline ${
+            sort === "new" ? "font-semibold" : ""
+          }`}
+        >
+          Newest
+        </Link>
+
+        <Link
+          href={`/resources?query=${query}&type=${type}&sort=popular`}
+          className={`underline ${
+            sort === "popular" ? "font-semibold" : ""
+          }`}
+        >
+          Most Popular
+        </Link>
+      </div>
 
       {/* Search + Filter Form
           - GET method so values appear in URL
@@ -127,7 +192,7 @@ const resourcesWithScore = resources.map((resource) => {
         </p>
       ) : (
         <ul className="space-y-4">
-          {resourcesWithScore.map((resource) => (
+          {sortedResources.map((resource) => (
             <li
               key={resource.id}
               className="border rounded p-4 hover:bg-gray-50 transition"
@@ -140,9 +205,9 @@ const resourcesWithScore = resources.map((resource) => {
               </Link>
 
               <p className="text-sm text-gray-500 mt-1">
-                {resource.type} • uploaded by {resource.user.email}
+                {resource.type} • uploaded by {resource.user.email} • {resource.viewCount} views
               </p>
-              <VoteButtons resourceId={resource.id} score={resource.score} />
+              <VoteButtons resourceId={resource.id} score={resource.score} userVote={resource.userVote} isLoggedIn={!!currentUser} />
             </li>
           ))}
         </ul>

@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
+import { incrementViewCount } from "@/app/resources/actions/incrementView";
+import ResourcePreview from "@/components/ResourcePreview";
 
 type Props = {
   params: Promise<{
@@ -27,13 +29,18 @@ export default async function ResourceDetailPage({ params }: Props) {
     notFound();
   }
 
+  // Increment view count when page is loaded
+  await incrementViewCount(id);
+
   return (
     <section className="p-6">
       <h1 className="text-3xl font-bold">{resource.title}</h1>
       <p className="text-gray-600">{resource.description}</p>
       <p className="text-sm text-gray-500 mt-2">
-        Uploaded by {resource.user.name}
+        Uploaded by {resource.user.name} • {resource.viewCount} views
       </p>
+
+      <ResourcePreview fileUrl={resource.fileUrl} type={resource.type} />
     </section>
   );
 }
