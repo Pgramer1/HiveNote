@@ -1,5 +1,7 @@
 import "./globals.css";
 import Link from "next/link";
+import { Providers } from "./providers";
+
 
 export const metadata = {
   title: "HiveNote",
@@ -25,8 +27,9 @@ export default function RootLayout({
             </Link>
           </div>
         </nav>
-
-        <main className="max-w-4xl mx-auto">{children}</main>
+        <Providers>
+          <main className="max-w-4xl mx-auto">{children}</main>
+        </Providers>
       </body>
     </html>
   );
