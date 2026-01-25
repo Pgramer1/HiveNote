@@ -1,8 +1,15 @@
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth";
 import { createResource } from "./actions";
 
 export const runtime = "nodejs";
 
-export default function UploadPage() {
+export default async function UploadPage() {
+  const session = await getSession();
+
+  if (!session) {
+    redirect("/api/auth/signin");
+  }
   return (
     <section className="p-6 max-w-xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Upload Resource</h1>
