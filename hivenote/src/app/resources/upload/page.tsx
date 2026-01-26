@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { createResource } from "./actions";
+import UploadForm from "./UploadForm";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 export const runtime = "nodejs";
 
@@ -10,51 +11,16 @@ export default async function UploadPage() {
   if (!session) {
     redirect("/api/auth/signin");
   }
+
   return (
-    <section className="p-6 max-w-xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Upload Resource</h1>
-
-      <form action={createResource} className="space-y-4">
-        <input
-          name="title"
-          placeholder="Title"
-          required
-          className="w-full border p-2 rounded"
-        />
-
-        <textarea
-          name="description"
-          placeholder="Description (optional)"
-          className="w-full border p-2 rounded"
-        />
-
-        <select
-          name="type"
-          required
-          className="w-full border p-2 rounded"
-        >
-          <option value="PDF">PDF</option>
-          <option value="LINK">Link</option>
-        </select>
-
-        <input
-          type="file"
-          name="file"
-          accept=".pdf"
-          className="w-full"
-        />
-
-        <input
-          type="url"
-          name="link"
-          placeholder="External link (if type is LINK)"
-          className="w-full border p-2 rounded"
-        />
-
-        <button className="bg-black text-white px-4 py-2 rounded">
-          Upload
-        </button>
-      </form>
+    <section className="p-8 min-h-screen bg-white dark:bg-gray-900">
+      <div className="max-w-2xl mx-auto">
+        <Breadcrumbs items={[{ label: "Resources", href: "/resources" }, { label: "Upload" }]} />
+        <h1 className="text-4xl font-bold mb-8 dark:text-white">Upload Resource</h1>
+        <div className="bg-gray-50 dark:bg-gray-800 p-8 rounded-xl border border-gray-200 dark:border-gray-700">
+          <UploadForm />
+        </div>
+      </div>
     </section>
   );
 }

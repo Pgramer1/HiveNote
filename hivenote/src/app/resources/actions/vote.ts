@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { revalidatePath } from "next/cache";
 
 /**
  * Cast or update a vote on a resource
@@ -79,4 +80,7 @@ export async function voteResource(
       value,
     },
   });
+
+  // Revalidate to show live updates
+  revalidatePath("/resources");
 }

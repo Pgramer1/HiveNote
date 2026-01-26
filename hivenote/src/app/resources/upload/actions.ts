@@ -64,9 +64,9 @@ export async function createResource(formData: FormData) {
       description,
       type,
       fileUrl: finalUrl,
-      uploadedBy: user.id, // ✅ REAL USER
+      uploadedBy: user.id,
     },
   });
 
-  redirect("/resources");
+  return { success: true };
 }
