@@ -119,71 +119,59 @@ const sortedResources = [...resourcesWithScore].sort((a, b) => {
   return (
     <section className="p-8 min-h-screen bg-white dark:bg-gray-900">
       <div className="max-w-6xl mx-auto">
-        {/* Page title */}
+        <Breadcrumbs items={[{ label: "Resources" }]} />
         <h1 className="text-4xl font-bold mb-8 dark:text-white">Resources</h1>
-
-        {/* Sort buttons */}
-        <div className="flex gap-4 mb-8">
-          <Link
-            href={`/resources?query=${query}&type=${type}&sort=new`}
-            className={`px-4 py-2 rounded-lg transition ${
-              sort === "new" 
-                ? "bg-black dark:bg-white text-white dark:text-black font-semibold shadow-md" 
-                : "border-2 border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 dark:text-gray-300"
-            }`}
-          >
-            ✨ Newest
-          </Link>
-
-          <Link
-            href={`/resources?query=${query}&type=${type}&sort=popular`}
-            className={`px-4 py-2 rounded-lg transition ${
-              sort === "popular" 
-                ? "bg-black dark:bg-white text-white dark:text-black font-semibold shadow-md" 
-                : "border-2 border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 dark:text-gray-300"
-            }`}
-          >
-            🔥 Most Popular
-          </Link>
-        </div>
 
         {/* Search + Filter Form */}
         <form
           method="GET"
-          className="flex flex-col md:flex-row gap-4 mb-10 p-6 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
+          className="flex flex-col gap-4 mb-10 p-6 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
         >
-          {/* Search input */}
-          <input
-            type="text"
-            name="query"
-            placeholder="Search resources by title..."
-            defaultValue={query}
-            className="border-2 border-gray-300 dark:border-gray-600 p-3 rounded-lg w-full focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition bg-white dark:bg-gray-900 dark:text-white"
-          />
+          {/* Top Row: Search + Type + Sort */}
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search input */}
+            <input
+              type="text"
+              name="query"
+              placeholder="Search resources by title..."
+              defaultValue={query}
+              className="border-2 border-gray-300 dark:border-gray-600 p-3 rounded-lg flex-1 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition bg-white dark:bg-gray-900 dark:text-white"
+            />
 
-          {/* Type filter */}
-          <select
-            name="type"
-            defaultValue={type}
-            className="border-2 border-gray-300 dark:border-gray-600 p-3 rounded-lg w-full md:w-48 bg-white dark:bg-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-          >
-            <option value="">All Types</option>
-            <option value="PDF">📄 PDF</option>
-            <option value="LINK">🔗 Link</option>
-          </select>
+            {/* Type filter */}
+            <select
+              name="type"
+              defaultValue={type}
+              className="border-2 border-gray-300 dark:border-gray-600 p-3 rounded-lg w-full md:w-48 bg-white dark:bg-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+            >
+              <option value="">All Types</option>
+              <option value="PDF">📄 PDF</option>
+              <option value="LINK">🔗 Link</option>
+            </select>
 
-          {/* Submit */}
-          <button className="bg-blue-600 dark:bg-blue-500 text-white px-8 py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition font-medium shadow-md">
-            Search
-          </button>
+            {/* Sort filter */}
+            <select
+              name="sort"
+              defaultValue={sort}
+              className="border-2 border-gray-300 dark:border-gray-600 p-3 rounded-lg w-full md:w-48 bg-white dark:bg-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+            >
+              <option value="new">✨ Newest</option>
+              <option value="popular">🔥 Most Popular</option>
+            </select>
+
+            {/* Submit */}
+            <button className="bg-blue-600 dark:bg-blue-500 text-white px-8 py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition font-medium shadow-md whitespace-nowrap">
+              Apply
+            </button>
+          </div>
 
           {/* Clear filters */}
           {(query || type) && (
             <Link
               href="/resources"
-              className="text-sm text-gray-500 dark:text-gray-400 underline self-center hover:text-gray-700 dark:hover:text-gray-300"
+              className="text-sm text-gray-500 dark:text-gray-400 underline hover:text-gray-700 dark:hover:text-gray-300"
             >
-              Clear
+              Clear all filters
             </Link>
           )}
         </form>
@@ -244,7 +232,7 @@ const sortedResources = [...resourcesWithScore].sort((a, b) => {
                     </p>
                   </div>
                   
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <VoteButtons resourceId={resource.id} score={resource.score} userVote={resource.userVote} isLoggedIn={!!currentUser} />
                   </div>
                 </div>
