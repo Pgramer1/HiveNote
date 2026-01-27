@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { createResource } from "./actions";
-import { useToast } from "@/components/ToastProvider";
+import { createResource } from "@/actions/resources";
+import { useToast } from "@/components/ui/ToastProvider";
 import { useRouter } from "next/navigation";
 
 export default function UploadForm() {
@@ -26,31 +26,31 @@ export default function UploadForm() {
   return (
     <form action={handleSubmit} className="space-y-6">
       <div>
-        <label className="block text-sm font-semibold mb-2 dark:text-white">
+        <label className="block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2">
           Resource Title *
         </label>
         <input
           name="title"
           placeholder="e.g., Data Structures Notes"
           required
-          className="w-full border-2 border-gray-300 dark:border-gray-600 p-3 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition bg-white dark:bg-gray-900 dark:text-white"
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold mb-2 dark:text-white">
+        <label className="block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2">
           Description
         </label>
         <textarea
           name="description"
           placeholder="Brief description of the resource (optional)"
           rows={3}
-          className="w-full border-2 border-gray-300 dark:border-gray-600 p-3 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition bg-white dark:bg-gray-900 dark:text-white"
+          className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold mb-2 dark:text-white">
+        <label className="block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2">
           Resource Type *
         </label>
         <select
@@ -58,7 +58,7 @@ export default function UploadForm() {
           required
           value={resourceType}
           onChange={(e) => setResourceType(e.target.value as "PDF" | "LINK")}
-          className="w-full border-2 border-gray-300 dark:border-gray-600 p-3 rounded-lg bg-white dark:bg-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+          className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <option value="PDF">📄 PDF</option>
           <option value="LINK">🔗 Link</option>
@@ -67,7 +67,7 @@ export default function UploadForm() {
 
       {resourceType === "PDF" ? (
         <div>
-          <label className="block text-sm font-semibold mb-2 dark:text-white">
+          <label className="block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2">
             Upload PDF File *
           </label>
           <input
@@ -75,12 +75,12 @@ export default function UploadForm() {
             name="file"
             accept=".pdf"
             required
-            className="w-full border-2 border-gray-300 dark:border-gray-600 p-3 rounded-lg bg-white dark:bg-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-blue-50 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 file:cursor-pointer hover:file:bg-blue-100 dark:hover:file:bg-blue-800"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
           />
         </div>
       ) : (
         <div>
-          <label className="block text-sm font-semibold mb-2 dark:text-white">
+          <label className="block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2">
             External Link URL *
           </label>
           <input
@@ -88,14 +88,14 @@ export default function UploadForm() {
             name="link"
             placeholder="https://example.com/resource"
             required
-            className="w-full border-2 border-gray-300 dark:border-gray-600 p-3 rounded-lg focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition bg-white dark:bg-gray-900 dark:text-white"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>
       )}
 
       <button 
         disabled={isPending}
-        className="w-full bg-black dark:bg-white text-white dark:text-black px-6 py-4 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition font-semibold text-lg shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full mt-4"
       >
         {isPending ? "Uploading..." : "Upload Resource"}
       </button>

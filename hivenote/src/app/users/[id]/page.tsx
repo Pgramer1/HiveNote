@@ -2,7 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
-import Breadcrumbs from "@/components/Breadcrumbs";
+import Breadcrumbs from "@/components/layout/Breadcrumbs";
+import { ChevronUp } from "lucide-react";
 
 
 type Props = {
@@ -57,106 +58,129 @@ export default async function UserProfilePage({ params }: Props) {
     const isOwner = session?.user?.email === user.email;
 
   return (
-    <section className="p-8 min-h-screen bg-white dark:bg-gray-900">
-      <div className="max-w-4xl mx-auto">
+    <div className="flex flex-col min-h-screen bg-background text-foreground animate-in fade-in duration-500">
+      <div className="container mx-auto px-6 py-10 max-w-4xl">
         <Breadcrumbs items={[{ label: user.name ?? "User" }]} />
-        {/* Profile Header */}
-        <div className="mb-10 pb-8 border-b border-gray-200 dark:border-gray-800">
-          <h1 className="text-4xl font-bold dark:text-white">
-            {user.name ?? "Anonymous User"}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">{user.email}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-            Joined on {user.createdAt.toDateString()}
-          </p>
-          {user.bio && (
-            <p className="mt-6 text-gray-700 dark:text-gray-300 text-lg bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-              {user.bio}
-            </p>
-          )}
-          {isOwner && (
-            <Link
-              href="/me/edit"
-              className="inline-block mt-6 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition font-medium"
-            >
-              Edit profile
-            </Link>
-          )}
+        
+        {/* Profile Header & Stats */}
+        <div className="mb-10 mt-6 pb-8 border-b">
+            <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+                
+                {/* User Info */}
+                <div className="flex-1 min-w-0">
+                     <div className="flex items-center gap-4 mb-4">
+                        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center text-3xl font-bold text-foreground shrink-0">
+                            {user.name?.[0] || "U"}
+                        </div>
+                        <div className="min-w-0">
+                             <h1 className="text-3xl font-extrabold tracking-tight lg:text-4xl text-foreground truncate">
+                                {user.name ?? "Anonymous User"}
+                            </h1>
+                             <p className="text-muted-foreground truncate">{user.email}</p>
+                        </div>
+                     </div>
+                     
+                     <p className="text-sm text-muted-foreground mt-2 mb-4">
+                        Joined on {user.createdAt.toDateString()}
+                    </p>
+
+                     {badges.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {badges.map((badge) => (
+                          <span
+                            key={badge}
+                            className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-200"
+                          >
+                            🏆 {badge}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {user.bio && (
+                        <div className="mt-2 text-sm text-muted-foreground">
+                           <p className="leading-relaxed">
+                             {user.bio}
+                           </p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Right Side: Stats & Actions */}
+                <div className="flex flex-row md:flex-col items-center md:items-end gap-6 w-full md:w-auto mt-2 md:mt-0 shrink-0">
+                    {/* Edit Button */}
+                     {isOwner && (
+                        <Link
+                        href="/me/edit"
+                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+                        >
+                        Edit profile
+                        </Link>
+                    )}
+
+                    {/* Stats - Minimalist */}
+                    <div className="flex gap-8 ml-auto md:ml-0">
+                        <div className="text-right">
+                             <div className="text-2xl md:text-3xl font-bold text-foreground">{totalUploads}</div>
+                             <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Resources</div>
+                        </div>
+                        <div className="text-right">
+                             <div className="text-2xl md:text-3xl font-bold text-foreground">{totalScore}</div>
+                             <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Score</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+        
+        {/* Uploaded Resources */}
+         <div className="space-y-6">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">
+             Uploaded Resources
+            </h2>
+            
+             {user.resources.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 bg-muted/30 rounded-xl border border-dashed text-center">
+                    <p className="text-muted-foreground">This user hasn't uploaded any resources yet.</p>
+                </div>
+             ) : (
+                 <div className="grid gap-4">
+                     {user.resources.map((resource) => {
+                         const score = resource.votes.reduce(
+                            (s, v) => s + v.value,
+                            0
+                          );
+                          return (
+                            <Link
+                             key={resource.id}
+                             href={`/resources/${resource.id}`}
+                             className="group flex flex-col md:flex-row justify-between p-6 bg-card border rounded-xl hover:shadow-md hover:border-primary/20 transition-all duration-200 gap-4"
+                            >
+                                <div className="space-y-2">
+                                     <div className="flex items-center gap-2 mb-1">
+                                         <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold transition-colors ${resource.type === 'PDF' ? 'border-transparent bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'border-transparent bg-green-500/10 text-green-600 dark:text-green-400'}`}>
+                                            {resource.type}
+                                        </span>
+                                    </div>
+                                    <h3 className="text-lg font-semibold group-hover:text-primary transition-colors text-card-foreground">
+                                        {resource.title}
+                                    </h3>
+                                     <p className="text-sm text-muted-foreground line-clamp-2">
+                                        {resource.description || "No description provided."}
+                                     </p>
+                                </div>
+                                <div className="flex items-center gap-2 text-muted-foreground text-sm self-start md:self-center bg-muted/50 px-3 py-1 rounded-full">
+                                    <ChevronUp className="w-4 h-4" />
+                                    <span className="font-medium">{score}</span>
+                                </div>
+                            </Link>
+                          )
+                     })}
+                 </div>
+             )}
+         </div>
 
-        {/* badge  */}
-        {badges.length > 0 && (
-          <div className="flex gap-2 mb-10">
-            {badges.map((badge) => (
-              <span
-                key={badge}
-                className="px-3 py-1.5 text-sm bg-linear-to-r from-yellow-100 to-yellow-200 dark:from-yellow-900 dark:to-yellow-800 border border-yellow-300 dark:border-yellow-700 rounded-lg font-medium dark:text-yellow-100"
-              >
-                🏆 {badge}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Stats */}
-        <div className="flex gap-8 mb-12 pb-8 border-b border-gray-200 dark:border-gray-800">
-          <div className="bg-blue-50 dark:bg-blue-950 px-8 py-6 rounded-xl border border-blue-200 dark:border-blue-800">
-            <p className="text-4xl font-bold text-blue-900 dark:text-blue-100">{totalUploads}</p>
-            <p className="text-gray-700 dark:text-gray-300 text-sm mt-2">Uploads</p>
-          </div>
-
-          <div className="bg-green-50 dark:bg-green-950 px-8 py-6 rounded-xl border border-green-200 dark:border-green-800">
-            <p className="text-4xl font-bold text-green-900 dark:text-green-100">{totalScore}</p>
-            <p className="text-gray-700 dark:text-gray-300 text-sm mt-2">Total Score</p>
-          </div>
-        </div>
-
-      {/* Uploaded Resources */}
-      <div>
-        <h2 className="text-3xl font-bold mb-8 dark:text-white">
-          Uploaded Resources
-        </h2>
-
-        {user.resources.length === 0 ? (
-          <div className="text-center py-16 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <p className="text-gray-500 dark:text-gray-400 text-lg">
-              This user hasn't uploaded any resources yet.
-            </p>
-          </div>
-        ) : (
-          <ul className="space-y-6">
-            {user.resources.map((resource) => {
-              const score = resource.votes.reduce(
-                (s, v) => s + v.value,
-                0
-              );
-
-              return (
-                <li
-                  key={resource.id}
-                  className="border-2 border-gray-200 dark:border-gray-700 rounded-xl p-6 bg-white dark:bg-gray-800 hover:shadow-lg transition hover:border-blue-400 dark:hover:border-blue-500"
-                >
-                  <Link
-                    href={`/resources/${resource.id}`}
-                    className="text-xl font-semibold hover:text-blue-600 dark:hover:text-blue-400 transition dark:text-white"
-                  >
-                    {resource.title}
-                  </Link>
-
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 flex items-center gap-2">
-                    <span className="inline-block px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium dark:text-gray-300">
-                      {resource.type}
-                    </span>
-                    <span>•</span>
-                    <span>⬆️ {score}</span>
-                  </p>
-                </li>
-              );
-            })}
-          </ul>
-        )}
       </div>
-      </div>
-    </section>
+    </div>
   );
 }

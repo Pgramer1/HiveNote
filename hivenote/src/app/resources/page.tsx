@@ -1,8 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import VoteButtons from "@/components/VoteButtons";
+import VoteButtons from "@/components/features/VoteButtons";
 import { getSession } from "@/lib/auth";
-import Breadcrumbs from "@/components/Breadcrumbs";
+import Breadcrumbs from "@/components/layout/Breadcrumbs";
+import { calculateResourceScore, sortResources } from "@/utils/resources";
+import type { ResourceSortOption } from "@/types";
+import { FileText, Link2, Sparkles, Flame, Eye } from "lucide-react";
 
 
 
@@ -72,175 +75,153 @@ export default async function ResourcesPage({
   },
 });
 
-// 2️⃣ Compute score for each resource 
-const resourcesWithScore = resources.map((resource) => {
-  const score = resource.votes.reduce(
-    (sum, vote) => sum + vote.value,
-    0
-  );
+// 2️⃣ Compute score for each resource using utility function
+const resourcesWithScore = resources.map((resource) => 
+  calculateResourceScore(resource, currentUser?.id)
+);
 
-  const userVote =
-    currentUser
-      ? resource.votes.find(
-          (v) => v.userId === currentUser.id
-        )?.value ?? 0
-      : 0;
-
-  return {
-    ...resource,
-    score,
-    userVote,
-  };
-});
-
-
-// 3️⃣ Sort resources based on selected option
-const sortedResources = [...resourcesWithScore].sort((a, b) => {
-  if (sort === "popular") {
-    // Primary: score DESC
-    if (b.score !== a.score) {
-      return b.score - a.score;
-    }
-
-    // Fallback: createdAt DESC
-    return (
-      new Date(b.createdAt).getTime() -
-      new Date(a.createdAt).getTime()
-    );
-  }
-
-  // Default: newest first
-  return (
-    new Date(b.createdAt).getTime() -
-    new Date(a.createdAt).getTime()
-  );
-});
+// 3️⃣ Sort resources based on selected option using utility function
+const sortedResources = sortResources(
+  resourcesWithScore, 
+  sort as ResourceSortOption
+);
 
   return (
-    <section className="p-8 min-h-screen bg-white dark:bg-gray-900">
-      <div className="max-w-6xl mx-auto">
+    <div className="flex flex-col min-h-screen bg-background text-foreground animate-in fade-in duration-500">
+      <div className="container mx-auto px-6 py-10 max-w-5xl">
         <Breadcrumbs items={[{ label: "Resources" }]} />
-        <h1 className="text-4xl font-bold mb-8 dark:text-white">Resources</h1>
-
-        {/* Search + Filter Form */}
-        <form
-          method="GET"
-          className="flex flex-col gap-4 mb-10 p-6 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
-        >
-          {/* Top Row: Search + Type + Sort */}
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search input */}
-            <input
-              type="text"
-              name="query"
-              placeholder="Search resources by title..."
-              defaultValue={query}
-              className="border-2 border-gray-300 dark:border-gray-600 p-3 rounded-lg flex-1 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition bg-white dark:bg-gray-900 dark:text-white"
-            />
-
-            {/* Type filter */}
-            <select
-              name="type"
-              defaultValue={type}
-              className="border-2 border-gray-300 dark:border-gray-600 p-3 rounded-lg w-full md:w-48 bg-white dark:bg-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-            >
-              <option value="">All Types</option>
-              <option value="PDF">📄 PDF</option>
-              <option value="LINK">🔗 Link</option>
-            </select>
-
-            {/* Sort filter */}
-            <select
-              name="sort"
-              defaultValue={sort}
-              className="border-2 border-gray-300 dark:border-gray-600 p-3 rounded-lg w-full md:w-48 bg-white dark:bg-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
-            >
-              <option value="new">✨ Newest</option>
-              <option value="popular">🔥 Most Popular</option>
-            </select>
-
-            {/* Submit */}
-            <button className="bg-blue-600 dark:bg-blue-500 text-white px-8 py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition font-medium shadow-md whitespace-nowrap">
-              Apply
-            </button>
-          </div>
-
-          {/* Clear filters */}
-          {(query || type) && (
+        
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 mt-4">
+           <h1 className="text-3xl font-bold tracking-tight">Resources</h1>
+           {(query || type) && (
             <Link
               href="/resources"
-              className="text-sm text-gray-500 dark:text-gray-400 underline hover:text-gray-700 dark:hover:text-gray-300"
+              className="text-sm text-muted-foreground hover:text-primary underline-offset-4 hover:underline transition-colors"
             >
-              Clear all filters
+              Clear filters
             </Link>
           )}
-        </form>
+        </div>
+
+        {/* Search + Filter Form */}
+        <div className="bg-card border rounded-xl p-4 shadow-sm mb-10">
+            <form
+            method="GET"
+            className="flex flex-col md:flex-row gap-4"
+            >
+            {/* Search input */}
+            <div className="flex-1 relative">
+                <input
+                    type="text"
+                    name="query"
+                    placeholder="Search resources..."
+                    defaultValue={query}
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+            </div>
+
+            <div className="flex gap-4">
+                {/* Type filter */}
+                <select
+                name="type"
+                defaultValue={type}
+                className="h-10 px-3 py-2 rounded-md border border-input bg-background text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                    <option value="">All Types</option>
+                    <option value="PDF">PDF</option>
+                    <option value="LINK">Link</option>
+                </select>
+
+                {/* Sort filter */}
+                <select
+                name="sort"
+                defaultValue={sort}
+                className="h-10 px-3 py-2 rounded-md border border-input bg-background text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                    <option value="new">Newest</option>
+                    <option value="popular">Most Popular</option>
+                </select>
+
+                {/* Submit */}
+                <button className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
+                    Apply
+                </button>
+            </div>
+            </form>
+        </div>
 
         {/* Results */}
         {resources.length === 0 ? (
-          <div className="text-center py-20 bg-gray-50 dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600">
-            <div className="text-6xl mb-6">🔍</div>
-            <h3 className="text-2xl font-bold mb-3 dark:text-white">No resources found</h3>
-            <p className="text-gray-600 dark:text-gray-400 text-lg mb-6">
-              Try adjusting your search or filter criteria
+          <div className="flex flex-col items-center justify-center py-20 bg-muted/30 rounded-xl border border-dashed text-center">
+            <div className="p-4 bg-muted rounded-full mb-4">
+                <Sparkles className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">No resources found</h3>
+            <p className="text-muted-foreground mb-6 max-w-sm">
+              We couldn't find any resources matching your criteria. Try adjusting your filters.
             </p>
             <Link
               href="/resources"
-              className="inline-block bg-blue-600 dark:bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition font-medium"
+              className="inline-flex h-9 items-center justify-center rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground shadow-sm hover:bg-secondary/80 transition-colors"
             >
-              Clear all filters
+              Clear filters
             </Link>
           </div>
         ) : (
-          <ul className="space-y-5">
+          <div className="grid gap-4">
             {sortedResources.map((resource) => (
-              <li
+              <div
                 key={resource.id}
-                className="border-2 border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:bg-gray-50 dark:hover:bg-gray-850 hover:shadow-lg transition bg-white dark:bg-gray-800"
+                className="group relative flex flex-col sm:flex-row items-start gap-4 p-5 bg-card border rounded-xl hover:border-primary/40 hover:shadow-sm transition-all duration-200"
               >
-                <div className="flex justify-between items-start gap-4">
-                  <div className="flex-1">
+                {/* Icon Box */}
+                <div className="shrink-0 mt-1">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-xs ${resource.type === 'PDF' ? 'bg-blue-500/10 border-blue-200/50 text-blue-600 dark:border-blue-500/20 dark:text-blue-400' : 'bg-emerald-500/10 border-emerald-200/50 text-emerald-600 dark:border-emerald-500/20 dark:text-emerald-400'}`}>
+                        {resource.type === 'PDF' ? (
+                            <FileText className="w-6 h-6" />
+                        ) : (
+                            <Link2 className="w-6 h-6" />
+                        )}
+                    </div>
+                </div>
+
+                <div className="flex-1 min-w-0 space-y-1.5">
                     <Link
                       href={`/resources/${resource.id}`}
-                      className="text-xl font-semibold hover:text-blue-600 dark:hover:text-blue-400 transition dark:text-white block"
+                      className="block group-hover:text-primary transition-colors"
                     >
-                      {resource.title}
+                      <h3 className="text-lg font-bold leading-tight tracking-tight pr-8">
+                        {resource.title}
+                      </h3>
                     </Link>
                     
-                    {resource.description && (
-                      <p className="text-gray-600 dark:text-gray-300 mt-2 line-clamp-2">
-                        {resource.description}
-                      </p>
-                    )}
-
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 flex items-center gap-2 flex-wrap">
-                      <span className="inline-block px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium dark:text-gray-300">
-                        {resource.type}
-                      </span>
-                      <span>•</span>
-                      <span>
-                        uploaded by{" "}
-                        <Link
-                          href={`/users/${resource.user.id}`}
-                          className="underline hover:text-black dark:hover:text-white font-medium"
-                        >
-                          {resource.user.name || "Anonymous"}
-                        </Link>
-                      </span>
-                      <span>•</span>
-                      <span>👁️ {resource.viewCount} views</span>
+                    <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                        {resource.description || "No description provided."}
                     </p>
-                  </div>
-                  
-                  <div className="shrink-0">
-                    <VoteButtons resourceId={resource.id} score={resource.score} userVote={resource.userVote} isLoggedIn={!!currentUser} />
-                  </div>
+
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground pt-1">
+                        <Link href={`/users/${resource.user.id}`} className="flex items-center gap-1.5 font-medium hover:text-foreground transition-colors bg-muted/50 rounded-full pl-0.5 pr-2 py-0.5 border border-transparent hover:border-border">
+                             <div className="w-4 h-4 rounded-full bg-background flex items-center justify-center text-[9px] font-bold border">
+                                {resource.user.name?.[0] || "A"}
+                             </div>
+                             {resource.user.name || "Anonymous"}
+                        </Link>
+                        <span className="text-muted-foreground/40">•</span>
+                        <span>
+                            {new Date(resource.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
+                    </div>
                 </div>
-              </li>
+                
+                {/* Vote Actions */}
+                <div className="flex items-center self-start sm:self-center mt-2 sm:mt-0">
+                    <VoteButtons resourceId={resource.id} score={resource.score} userVote={resource.userVote} isLoggedIn={!!currentUser} />
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
-    </section>
+    </div>
   );
 }

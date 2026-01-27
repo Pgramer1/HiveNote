@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import HomeSearchBar from "@/components/HomeSearchBar";
+import HomeSearchBar from "@/components/features/HomeSearchBar";
+import { Button, buttonVariants } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/Card";
+import { Hexagon, FileText, Link2, ChevronUp, Flame, Sparkles, FolderOpen } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default async function Home() {
   const session = await getSession();
@@ -52,187 +56,201 @@ export default async function Home() {
   }));
 
   return (
-    <section className="min-h-screen bg-linear-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
+    <div className="flex flex-col min-h-screen bg-background text-foreground selection:bg-primary/10">
+      
       {/* Hero Section */}
-      <div className="max-w-5xl mx-auto text-center pt-20 pb-20 px-6 border-b border-gray-200 dark:border-gray-800">
-        <h1 className="text-6xl font-bold mb-6 bg-linear-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">
-          🐝 Welcome to HiveNote
-        </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-          Centralized learning resources for students - find notes, PDFs, and curated links uploaded by your peers
-        </p>
-
-        {/* Search Bar */}
-        <HomeSearchBar />
-
-        {/* CTAs */}
-        <div className="flex flex-wrap gap-4 justify-center mt-10">
-          <Link
-            href="/resources"
-            className="bg-black dark:bg-white text-white dark:text-black px-8 py-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition text-lg font-medium shadow-lg hover:shadow-xl"
-          >
-            Browse All Resources
-          </Link>
-          {session ? (
-            <Link
-              href="/resources/upload"
-              className="bg-blue-600 dark:bg-blue-500 text-white px-8 py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition text-lg font-medium shadow-lg hover:shadow-xl"
-            >
-              Upload Resource
-            </Link>
-          ) : (
-            <form action="/api/auth/signin" method="post">
-              <button className="bg-linear-to-r from-blue-600 to-blue-500 dark:from-blue-500 dark:to-blue-400 text-white px-8 py-3 rounded-lg hover:from-blue-700 hover:to-blue-600 dark:hover:from-blue-600 dark:hover:to-blue-500 transition text-lg font-medium shadow-lg hover:shadow-xl">
-                Login to Upload
-              </button>
-            </form>
-          )}
-        </div>
-      </div>
-
-      {/* Stats Section */}
-      <div className="max-w-5xl mx-auto px-6 py-20 border-b border-gray-200 dark:border-gray-800">
-        <h2 className="text-3xl font-bold mb-10 text-center dark:text-white">Platform Stats</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 p-10 rounded-xl border border-blue-200 dark:border-blue-800 shadow-md hover:shadow-xl transition">
-            <div className="flex items-center gap-4">
-              <span className="text-5xl">📚</span>
-              <div>
-                <p className="text-5xl font-bold text-blue-900 dark:text-blue-100">{totalResources}</p>
-                <p className="text-gray-700 dark:text-gray-300 mt-2 text-lg">Learning Resources</p>
-              </div>
-            </div>
+      <section className="relative px-6 pt-10 pb-8 lg:pt-16 lg:pb-12 overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/5 rounded-[100%] blur-3xl -z-10 pointer-events-none" />
+        
+        <div className="container mx-auto max-w-4xl text-center space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-muted/50 text-sm font-medium text-muted-foreground animate-fade-in-up">
+            <span className="relative flex h-2 w-2">
+			  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+			  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+			</span>
+            Open Source Learning Platform
           </div>
-          <div className="bg-linear-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 p-10 rounded-xl border border-green-200 dark:border-green-800 shadow-md hover:shadow-xl transition">
-            <div className="flex items-center gap-4">
-              <span className="text-5xl">👥</span>
-              <div>
-                <p className="text-5xl font-bold text-green-900 dark:text-green-100">{totalUsers}</p>
-                <p className="text-gray-700 dark:text-gray-300 mt-2 text-lg">Contributors</p>
-              </div>
-            </div>
+
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-primary">
+            Collaborative Learning <br className="hidden sm:block" />
+            <span className="text-muted-foreground">Made Simple.</span>
+          </h1>
+          
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Discover, share, and discuss learning materials with a community of students. 
+            All your notes, PDFs, and links in one Hive.
+          </p>
+
+          <div className="pt-1 pb-4">
+            <HomeSearchBar />
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-4">
+             <Link href="/resources" className={buttonVariants({ size: "lg", className: "rounded-full h-12 px-8 text-base shadow-lg hover:shadow-xl transition-all" })}>
+               Browse Resources
+             </Link>
+             
+             {!session && (
+               <form action="/api/auth/signin" method="post">
+                 <Button variant="outline" size="lg" className="rounded-full h-12 px-8 text-base">
+                   Join the Hive
+                 </Button>
+               </form>
+             )}
+              {session && (
+               <Link href="/resources/upload" className={buttonVariants({ variant: "outline", size: "lg", className: "rounded-full h-12 px-8 text-base" })}>
+                  Upload Resource
+               </Link>
+              )}
+          </div>
+          
+          {/* Quick Stats */}
+          <div className="pt-12 flex items-center justify-center gap-8 text-muted-foreground text-sm font-medium">
+             <div className="flex flex-col items-center">
+                <span className="text-2xl font-bold text-foreground">{totalResources}+</span>
+                <span>Resources</span>
+             </div>
+             <div className="w-px h-10 bg-border"></div>
+             <div className="flex flex-col items-center">
+                <span className="text-2xl font-bold text-foreground">{totalUsers}+</span>
+                <span>Students</span>
+             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Quick Links by Type */}
-      <div className="max-w-5xl mx-auto px-6 py-20 border-b border-gray-200 dark:border-gray-800 bg-linear-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
-        <h2 className="text-3xl font-bold mb-10 text-center dark:text-white">Browse by Type</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Link
-            href="/resources?type=PDF"
-            className="group bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-10 rounded-xl hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-xl transition text-center"
-          >
-            <span className="text-6xl mb-4 block">📄</span>
-            <h3 className="text-2xl font-semibold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition dark:text-white">PDF Documents</h3>
-            <p className="text-gray-600 dark:text-gray-400 mt-3 text-lg">Notes, books, study materials</p>
-          </Link>
-          <Link
-            href="/resources?type=LINK"
-            className="group bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-10 rounded-xl hover:border-green-500 dark:hover:border-green-400 hover:shadow-xl transition text-center"
-          >
-            <span className="text-6xl mb-4 block">🔗</span>
-            <h3 className="text-2xl font-semibold group-hover:text-green-600 dark:group-hover:text-green-400 transition dark:text-white">External Links</h3>
-            <p className="text-gray-600 dark:text-gray-400 mt-3 text-lg">Videos, articles, websites</p>
-          </Link>
-        </div>
-      </div>
-
-      {/* Trending & Recent Resources */}
-      <div className="max-w-5xl mx-auto px-6 py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-          {/* Trending Resources */}
-          {trendingWithScore.length > 0 && (
-            <div>
-              <h2 className="text-3xl font-bold mb-8 flex items-center gap-2 dark:text-white">
-                🔥 Trending Resources
-              </h2>
-              <div className="space-y-5">
-                {trendingWithScore.map((resource, index) => (
-                  <div
-                    key={resource.id}
-                    className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-xl hover:border-orange-400 dark:hover:border-orange-500 transition"
-                  >
-                    <div className="flex items-start gap-4">
-                      <span className="text-3xl font-bold text-gray-300 dark:text-gray-600">
-                        #{index + 1}
-                      </span>
-                      <div className="flex-1">
-                        <Link
-                          href={`/resources/${resource.id}`}
-                          className="text-lg font-semibold hover:text-blue-600 dark:hover:text-blue-400 transition block mb-3 dark:text-white"
-                        >
-                          {resource.title}
-                        </Link>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          <span className="inline-block px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs mr-2 font-medium dark:text-gray-300">
-                            {resource.type}
-                          </span>
-                          by{" "}
-                          <Link
-                            href={`/users/${resource.user.id}`}
-                            className="underline hover:text-black dark:hover:text-white font-medium"
-                          >
-                            {resource.user.name || "Anonymous"}
-                          </Link>
-                          {" "}• ⬆️ {resource.score}
-                        </p>
-                      </div>
+      {/* Main Content Area */}
+      <section className="container mx-auto px-6 py-12 space-y-16">
+        
+        {/* Categories */}
+        <div className="grid md:grid-cols-2 gap-6">
+           <Link href="/resources?type=PDF" className="block group">
+              <Card className="h-full border-muted hover:border-primary/50 transition-colors cursor-pointer hover:shadow-md bg-muted/40 hover:bg-muted/60">
+                 <CardHeader>
+                    <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4 text-blue-600 dark:text-blue-400">
+                       <FileText className="w-6 h-6" />
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Recent Resources */}
-          {recentWithScore.length > 0 && (
-            <div>
-              <h2 className="text-3xl font-bold mb-8 flex items-center gap-2 dark:text-white">
-                ✨ Recently Added
-              </h2>
-              <div className="space-y-5">
-                {recentWithScore.map((resource) => (
-                  <div
-                    key={resource.id}
-                    className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-xl hover:border-blue-400 dark:hover:border-blue-500 transition"
-                  >
-                    <Link
-                      href={`/resources/${resource.id}`}
-                      className="text-lg font-semibold hover:text-blue-600 dark:hover:text-blue-400 transition block mb-3 dark:text-white"
-                    >
-                      {resource.title}
-                    </Link>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      <span className="inline-block px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs mr-2 font-medium dark:text-gray-300">
-                        {resource.type}
-                      </span>
-                      by{" "}
-                      <Link
-                        href={`/users/${resource.user.id}`}
-                        className="underline hover:text-black dark:hover:text-white font-medium"
-                      >
-                        {resource.user.name || "Anonymous"}
-                      </Link>
-                      {" "}• ⬆️ {resource.score}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+                    <CardTitle className="text-2xl">PDF Documents</CardTitle>
+                    <CardDescription className="text-base mt-2">
+                       Access lecture notes, textbooks, and research papers shared by the community.
+                    </CardDescription>
+                 </CardHeader>
+              </Card>
+           </Link>
+           <Link href="/resources?type=LINK" className="block group">
+              <Card className="h-full border-muted hover:border-primary/50 transition-colors cursor-pointer hover:shadow-md bg-muted/40 hover:bg-muted/60">
+                 <CardHeader>
+                    <div className="w-12 h-12 rounded-lg bg-green-500/10 flex items-center justify-center mb-4 text-green-600 dark:text-green-400">
+                       <Link2 className="w-6 h-6" />
+                    </div>
+                    <CardTitle className="text-2xl">External Links</CardTitle>
+                    <CardDescription className="text-base mt-2">
+                       Curated collections of video tutorials, articles, and useful websites.
+                    </CardDescription>
+                 </CardHeader>
+              </Card>
+           </Link>
         </div>
 
-        {/* View All Link */}
-        <div className="text-center mt-16 pt-12 border-t border-gray-200 dark:border-gray-800">
-          <Link
-            href="/resources"
-            className="inline-block text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-semibold text-xl hover:underline"
-          >
-            View all resources →
-          </Link>
-        </div>
-      </div>
-    </section>
+        {/* Trending Section */}
+        {trendingWithScore.length > 0 && (
+          <div className="space-y-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-orange-500/10 rounded-lg">
+                  <Flame className="w-6 h-6 text-orange-500" />
+                </div>
+                <h2 className="text-3xl font-bold tracking-tight">Trending Now</h2>
+              </div>
+              <Link href="/resources?sort=trending" className={buttonVariants({ variant: "ghost", className: "group" })}>
+                View all <ChevronUp className="ml-2 w-4 h-4 rotate-90 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {trendingWithScore.map((resource) => (
+                <ResourceCard key={resource.id} resource={resource} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recent Section */}
+        {recentWithScore.length > 0 && (
+          <div className="space-y-8">
+             <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-purple-500/10 rounded-lg">
+                  <Sparkles className="w-6 h-6 text-purple-500" />
+                </div>
+                <h2 className="text-3xl font-bold tracking-tight">Fresh from the Hive</h2>
+              </div>
+              <Link href="/resources?sort=newest" className={buttonVariants({ variant: "ghost", className: "group" })}>
+                View all <ChevronUp className="ml-2 w-4 h-4 rotate-90 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {recentWithScore.map((resource) => (
+                <ResourceCard key={resource.id} resource={resource} />
+              ))}
+            </div>
+          </div>
+        )}
+
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t py-12 bg-muted/30">
+         <div className="container mx-auto px-6 flex flex-col items-center justify-center gap-6">
+            <div className="flex items-center gap-2 font-bold text-xl">
+               <Hexagon className="w-6 h-6 text-primary" />
+               <span>HiveNote</span>
+            </div>
+            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} HiveNote. Built for students.</p>
+         </div>
+      </footer>
+    </div>
   );
+}
+
+// Helper component for resource cards
+function ResourceCard({ resource }: { resource: any }) {
+  return (
+    <Card className="flex flex-col hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full group">
+      <CardHeader className="pb-3 px-5 pt-5">
+        <div className="flex justify-between items-start gap-4 mb-2">
+           <div className={cn(
+             "px-2.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wide uppercase border",
+             resource.type === 'PDF' 
+                ? 'bg-blue-500/5 text-blue-600 border-blue-500/20 dark:text-blue-400' 
+                : 'bg-green-500/5 text-green-600 border-green-500/20 dark:text-green-400'
+           )}>
+              {resource.type}
+           </div>
+        </div>
+        <CardTitle className="text-lg line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+           <Link href={`/resources/${resource.id}`} className="absolute inset-0 z-10" />
+           {resource.title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pb-4 grow px-5">
+         <p className="text-sm text-muted-foreground line-clamp-2">
+            {resource.description || "No description provided."}
+         </p>
+      </CardContent>
+      <CardFooter className="pt-4 pb-5 px-5 text-xs text-muted-foreground border-t mt-auto flex justify-between items-center bg-muted/10">
+         <div className="flex items-center gap-2 z-20">
+            <span className="font-medium hover:text-foreground transition-colors truncate max-w-[100px]">
+               {resource.user.name || "Anonymous"}
+            </span>
+         </div>
+         <div className="flex items-center gap-3">
+             <span className="flex items-center gap-1 font-medium text-foreground bg-background px-2 py-0.5 rounded border shadow-sm">
+                <ChevronUp className="w-3 h-3" />
+                {resource.score}
+             </span>
+         </div>
+      </CardFooter>
+    </Card>
+  )
 }

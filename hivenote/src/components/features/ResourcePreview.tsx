@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { incrementViewCount } from "@/app/resources/actions/incrementView";
+import { incrementViewCount } from "@/actions/incrementView";
 
 type Props = {
   fileUrl: string;

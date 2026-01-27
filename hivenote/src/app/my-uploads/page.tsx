@@ -2,6 +2,7 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { FileText, Link2 } from "lucide-react";
 
 export default async function MyUploadsPage() {
   const session = await getSession();
@@ -22,52 +23,81 @@ export default async function MyUploadsPage() {
     where: {
       uploadedBy: user.id,
     },
+    include: {
+        votes: {
+            select: { value: true }
+        }
+    },
     orderBy: {
       createdAt: "desc",
     },
   });
 
   return (
-    <section className="p-8 min-h-screen bg-white dark:bg-gray-900">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold mb-10 dark:text-white">My Uploads</h1>
+    <div className="flex flex-col min-h-screen bg-background text-foreground animate-in fade-in duration-500">
+      <div className="container mx-auto px-6 py-10 max-w-4xl">
+        <h1 className="text-3xl font-extrabold tracking-tight lg:text-4xl mb-10 mt-6">My Uploads</h1>
 
         {resources.length === 0 ? (
-          <div className="text-center py-16 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <p className="text-gray-500 dark:text-gray-400 text-lg mb-4">
+          <div className="flex flex-col items-center justify-center py-20 bg-muted/30 rounded-xl border border-dashed text-center">
+            <p className="text-muted-foreground text-lg mb-6">
               You haven't uploaded any resources yet.
             </p>
             <Link
               href="/resources/upload"
-              className="inline-block bg-blue-600 dark:bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition font-medium"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
             >
               Upload your first resource
             </Link>
             </div>
         ) : (
-          <ul className="space-y-6">
-            {resources.map((resource) => (
-              <li
-                key={resource.id}
-                className="border-2 border-gray-200 dark:border-gray-700 rounded-xl p-6 bg-white dark:bg-gray-800 hover:shadow-lg transition hover:border-blue-400 dark:hover:border-blue-500"
-              >
-                <Link
-                  href={`/resources/${resource.id}`}
-                  className="text-xl font-semibold hover:text-blue-600 dark:hover:text-blue-400 transition dark:text-white"
+          <div className="grid gap-4">
+            {resources.map((resource) => {
+               const score = resource.votes.reduce((acc, vote) => acc + vote.value, 0);
+               return (
+                <div
+                    key={resource.id}
+                    className="group relative flex items-start gap-4 p-5 bg-card border rounded-xl hover:border-primary/40 hover:shadow-sm transition-all duration-200"
                 >
-                  {resource.title}
-                </Link>
+                     {/* Icon Box */}
+                    <div className="shrink-0 mt-1">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-xs ${resource.type === 'PDF' ? 'bg-blue-500/10 border-blue-200/50 text-blue-600 dark:border-blue-500/20 dark:text-blue-400' : 'bg-emerald-500/10 border-emerald-200/50 text-emerald-600 dark:border-emerald-500/20 dark:text-emerald-400'}`}>
+                            {resource.type === 'PDF' ? (
+                                <FileText className="w-6 h-6" />
+                            ) : (
+                                <Link2 className="w-6 h-6" />
+                            )}
+                        </div>
+                    </div>
 
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-3 flex items-center gap-2">
-                  <span className="inline-block px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium dark:text-gray-300">
-                    {resource.type}
-                  </span>
-                </p>
-              </li>
-            ))}
-          </ul>
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                        <Link
+                            href={`/resources/${resource.id}`}
+                            className="block group-hover:text-primary transition-colors"
+                        >
+                            <h3 className="text-lg font-bold leading-tight tracking-tight">
+                            {resource.title}
+                            </h3>
+                        </Link>
+                        
+                        <p className="text-sm text-muted-foreground text-ellipsis overflow-hidden whitespace-nowrap">
+                           {resource.description || "No description provided."}
+                        </p>
+
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground pt-1">
+                            <span>
+                                {new Date(resource.createdAt).toLocaleDateString()}
+                            </span>
+                            <span className="text-muted-foreground/40">•</span>
+                            <span>{score} points</span>
+                        </div>
+                    </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
-    </section>
+    </div>
   );
 }
