@@ -81,6 +81,7 @@ export const ROUTES = {
   MY_PROFILE: "/me",
   EDIT_PROFILE: "/me/edit",
   MY_UPLOADS: "/my-uploads",
+  MY_FAVORITES: "/my-favorites",
   SIGN_IN: "/api/auth/signin",
   SIGN_OUT: "/api/auth/signout",
 } as const;

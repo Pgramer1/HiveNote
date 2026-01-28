@@ -2,13 +2,25 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import HomeSearchBar from "@/components/features/HomeSearchBar";
+import { getUserFavorites } from "@/actions/favorites";
+import { Hexagon, FileText, Link2, ChevronUp, Flame, Sparkles, Heart } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/Card";
-import { Hexagon, FileText, Link2, ChevronUp, Flame, Sparkles, FolderOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default async function Home() {
   const session = await getSession();
+
+  // Get current user for favorites
+  const currentUser = session?.user?.email
+    ? await prisma.user.findUnique({
+        where: { email: session.user.email },
+        select: { id: true },
+      })
+    : null;
+
+  // Fetch favorites if logged in
+  const userFavorites = currentUser ? await getUserFavorites() : [];
 
   // Fetch stats and resources
   const [totalResources, totalUsers, recentResources, trendingResources] = await Promise.all([
@@ -61,7 +73,7 @@ export default async function Home() {
       {/* Hero Section */}
       <section className="relative px-6 pt-10 pb-8 lg:pt-16 lg:pb-12 overflow-hidden">
         {/* Background decorative elements */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/5 rounded-[100%] blur-3xl -z-10 pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-200 h-125 bg-primary/5 rounded-full blur-3xl -z-10 pointer-events-none" />
         
         <div className="container mx-auto max-w-4xl text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-muted/50 text-sm font-medium text-muted-foreground animate-fade-in-up">
@@ -153,6 +165,60 @@ export default async function Home() {
            </Link>
         </div>
 
+        {/* Favorites Section - Only shown when logged in */}
+        {session && userFavorites.length > 0 && (
+          <div className="space-y-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-red-500/10 rounded-lg">
+                  <Heart className="w-6 h-6 text-red-500 fill-current" />
+                </div>
+                <h2 className="text-3xl font-bold tracking-tight">Your Favorites</h2>
+              </div>
+              <Link 
+                href="/my-favorites" 
+                className="text-sm text-primary hover:underline flex items-center gap-1"
+              >
+                View all <ChevronUp className="w-4 h-4 rotate-90" />
+              </Link>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {userFavorites.slice(0, 3).map((resource: any) => {
+                const score = resource.votes.reduce((sum: number, vote: any) => sum + vote.value, 0);
+                return (
+                  <Link
+                    key={resource.id}
+                    href={`/resources/${resource.id}`}
+                    className="block p-6 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:shadow-lg hover:border-red-400 dark:hover:border-red-500 transition"
+                  >
+                    <div className="flex items-start gap-3 mb-3">
+                      {resource.type === "PDF" ? (
+                        <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400 shrink-0" />
+                      ) : (
+                        <Link2 className="w-6 h-6 text-green-600 dark:text-green-400 shrink-0" />
+                      )}
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg hover:text-blue-600 dark:hover:text-blue-400 transition dark:text-white line-clamp-2">
+                          {resource.title}
+                        </h3>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                      <span className="inline-block px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium">
+                        {resource.type}
+                      </span>
+                      <span>•</span>
+                      <span className="inline-flex items-center gap-1">
+                        <ChevronUp className="w-4 h-4" /> {score}
+                      </span>
+                    </p>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Trending Section */}
         {trendingWithScore.length > 0 && (
           <div className="space-y-8">
@@ -240,7 +306,7 @@ function ResourceCard({ resource }: { resource: any }) {
       </CardContent>
       <CardFooter className="pt-4 pb-5 px-5 text-xs text-muted-foreground border-t mt-auto flex justify-between items-center bg-muted/10">
          <div className="flex items-center gap-2 z-20">
-            <span className="font-medium hover:text-foreground transition-colors truncate max-w-[100px]">
+            <span className="font-medium hover:text-foreground transition-colors truncate max-w-25">
                {resource.user.name || "Anonymous"}
             </span>
          </div>

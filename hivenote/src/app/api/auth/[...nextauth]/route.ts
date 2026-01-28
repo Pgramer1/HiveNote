@@ -16,6 +16,10 @@ export const authOptions = {
   session: {
     strategy: "database" as const,
   },
+  pages: {
+    signIn: '/auth/signin',
+    signOut: '/auth/signout',
+  },
 };
 
 const handler = NextAuth(authOptions);

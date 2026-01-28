@@ -16,6 +16,7 @@ model User {
   createdAt     DateTime  @default(now())
 
   resources Resource[]
+  favorites Favorite[]
 
   accounts Account[]
   sessions Session[]
@@ -35,6 +36,7 @@ model Resource {
 
   user User @relation(fields: [uploadedBy], references: [id])
   votes Vote[]
+  favorites Favorite[]
 }
 
 enum ResourceType {
@@ -81,6 +83,18 @@ model VerificationToken {
 model Vote {
   id         String   @id @default(cuid())
   value      Int      // +1 = upvote, -1 = downvote
+  userId     String
+  resourceId String
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, resourceId])
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
   userId     String
   resourceId String
   createdAt  DateTime @default(now())

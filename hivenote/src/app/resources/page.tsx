@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import VoteButtons from "@/components/features/VoteButtons";
+import FavoriteButton from "@/components/features/FavoriteButton";
 import { getSession } from "@/lib/auth";
 import Breadcrumbs from "@/components/layout/Breadcrumbs";
 import { calculateResourceScore, sortResources } from "@/utils/resources";
@@ -69,6 +70,12 @@ export default async function ResourcesPage({
     votes: {
       select: { value: true ,userId: true},
     },
+    ...(currentUser ? {
+      favorites: {
+        where: { userId: currentUser.id },
+        select: { id: true },
+      }
+    } : {}),
   },
   orderBy: {
     createdAt: "desc", // popularity sorting comes later
@@ -76,7 +83,7 @@ export default async function ResourcesPage({
 });
 
 // 2️⃣ Compute score for each resource using utility function
-const resourcesWithScore = resources.map((resource) => 
+const resourcesWithScore = resources.map((resource: any) => 
   calculateResourceScore(resource, currentUser?.id)
 );
 
@@ -213,9 +220,14 @@ const sortedResources = sortResources(
                     </div>
                 </div>
                 
-                {/* Vote Actions */}
-                <div className="flex items-center self-start sm:self-center mt-2 sm:mt-0">
+                {/* Vote and Favorite Actions */}
+                <div className="flex items-center gap-2 self-start sm:self-center mt-2 sm:mt-0">
                     <VoteButtons resourceId={resource.id} score={resource.score} userVote={resource.userVote} isLoggedIn={!!currentUser} />
+                    <FavoriteButton 
+                      resourceId={resource.id} 
+                      isFavorited={(resource as any).favorites?.length > 0} 
+                      isLoggedIn={!!currentUser} 
+                    />
                 </div>
               </div>
             ))}

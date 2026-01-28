@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Heart } from "lucide-react";
 
 type Props = {
   isLoggedIn: boolean;
@@ -55,6 +56,14 @@ export default function MobileMenu({ isLoggedIn }: Props) {
                   onClick={() => setIsOpen(false)}
                 >
                   Upload
+                </Link>
+                <Link
+                  href="/my-favorites"
+                  className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition dark:text-white flex items-center gap-2"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Heart className="w-4 h-4" />
+                  Favorites
                 </Link>
                 <Link
                   href="/me"
