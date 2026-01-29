@@ -94,27 +94,22 @@ export default async function Home() {
             All your notes, PDFs, and links in one Hive.
           </p>
 
-          <div className="pt-1 pb-4">
-            <HomeSearchBar />
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-4 pt-4">
              <Link href="/resources" className={buttonVariants({ size: "lg", className: "rounded-full h-12 px-8 text-base shadow-lg hover:shadow-xl transition-all" })}>
                Browse Resources
              </Link>
              
-             {!session && (
+             {session ? (
+               <Link href="/resources/upload" className={buttonVariants({ variant: "outline", size: "lg", className: "rounded-full h-12 px-8 text-base" })}>
+                  Upload Resource
+               </Link>
+             ) : (
                <form action="/api/auth/signin" method="post">
                  <Button variant="outline" size="lg" className="rounded-full h-12 px-8 text-base">
                    Join the Hive
                  </Button>
                </form>
              )}
-              {session && (
-               <Link href="/resources/upload" className={buttonVariants({ variant: "outline", size: "lg", className: "rounded-full h-12 px-8 text-base" })}>
-                  Upload Resource
-               </Link>
-              )}
           </div>
           
           {/* Quick Stats */}
@@ -282,41 +277,42 @@ export default async function Home() {
 // Helper component for resource cards
 function ResourceCard({ resource }: { resource: any }) {
   return (
-    <Card className="flex flex-col hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full group">
-      <CardHeader className="pb-3 px-5 pt-5">
-        <div className="flex justify-between items-start gap-4 mb-2">
-           <div className={cn(
-             "px-2.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wide uppercase border",
-             resource.type === 'PDF' 
+    <Link href={`/resources/${resource.id}`} className="block h-full">
+      <Card className="flex flex-col hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full group">
+        <CardHeader className="pb-3 px-5 pt-5">
+          <div className="flex justify-between items-start gap-4 mb-2">
+            <div className={cn(
+              "px-2.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wide uppercase border",
+              resource.type === 'PDF' 
                 ? 'bg-blue-500/5 text-blue-600 border-blue-500/20 dark:text-blue-400' 
                 : 'bg-green-500/5 text-green-600 border-green-500/20 dark:text-green-400'
-           )}>
+            )}>
               {resource.type}
-           </div>
-        </div>
-        <CardTitle className="text-lg line-clamp-2 leading-tight group-hover:text-primary transition-colors">
-           <Link href={`/resources/${resource.id}`} className="absolute inset-0 z-10" />
-           {resource.title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pb-4 grow px-5">
-         <p className="text-sm text-muted-foreground line-clamp-2">
+            </div>
+          </div>
+          <CardTitle className="text-lg line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+            {resource.title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pb-4 grow px-5">
+          <p className="text-sm text-muted-foreground line-clamp-2">
             {resource.description || "No description provided."}
-         </p>
-      </CardContent>
-      <CardFooter className="pt-4 pb-5 px-5 text-xs text-muted-foreground border-t mt-auto flex justify-between items-center bg-muted/10">
-         <div className="flex items-center gap-2 z-20">
+          </p>
+        </CardContent>
+        <CardFooter className="pt-4 pb-5 px-5 text-xs text-muted-foreground border-t mt-auto flex justify-between items-center bg-muted/10">
+          <div className="flex items-center gap-2">
             <span className="font-medium hover:text-foreground transition-colors truncate max-w-25">
-               {resource.user.name || "Anonymous"}
+              {resource.user.name || "Anonymous"}
             </span>
-         </div>
-         <div className="flex items-center gap-3">
-             <span className="flex items-center gap-1 font-medium text-foreground bg-background px-2 py-0.5 rounded border shadow-sm">
-                <ChevronUp className="w-3 h-3" />
-                {resource.score}
-             </span>
-         </div>
-      </CardFooter>
-    </Card>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1 font-medium text-foreground bg-background px-2 py-0.5 rounded border shadow-sm">
+              <ChevronUp className="w-3 h-3" />
+              {resource.score}
+            </span>
+          </div>
+        </CardFooter>
+      </Card>
+    </Link>
   )
 }

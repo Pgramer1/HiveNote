@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import ResourcePreview from "@/components/features/ResourcePreview";
 import Breadcrumbs from "@/components/layout/Breadcrumbs";
 import { Eye } from "lucide-react";
+import { getAvatarUrl } from "@/utils/avatar";
+import Image from "next/image";
+import Link from "next/link";
 
 type Props = {
   params: Promise<{
@@ -56,12 +59,18 @@ export default async function ResourceDetailPage({ params }: Props) {
             <div className="flex items-center gap-6 text-sm text-muted-foreground border-y py-4">
                 <div className="flex items-center gap-2">
                     <span className="font-medium text-foreground">Posted by</span>
-                    <span className="flex items-center gap-2">
-                         <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-foreground">
-                                {resource.user.name?.[0] || "A"}
+                    <Link href={`/users/${resource.uploadedBy}`} className="flex items-center gap-2 hover:text-foreground transition-colors">
+                         <div className="w-5 h-5 rounded-full overflow-hidden bg-muted">
+                                <Image
+                                  src={getAvatarUrl(resource.user.name || "Anonymous")}
+                                  alt={resource.user.name || "Anonymous"}
+                                  width={20}
+                                  height={20}
+                                  className="w-full h-full object-cover"
+                                />
                          </div>
                         {resource.user.name || "Anonymous"}
-                    </span>
+                    </Link>
                 </div>
                 <div className="h-4 w-px bg-border" />
                 <div className="flex items-center gap-2">

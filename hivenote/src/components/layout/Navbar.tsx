@@ -4,6 +4,8 @@ import ThemeToggle from "@/components/ui/ThemeToggle";
 import MobileMenu from "@/components/layout/MobileMenu";
 import { Hexagon, Heart } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { getAvatarUrl } from "@/utils/avatar";
+import Image from "next/image";
 
 export default async function Navbar() {
   const session = await getSession();
@@ -31,25 +33,31 @@ export default async function Navbar() {
                 <Heart className="w-4 h-4" />
                 Favorites
               </Link>
-              <Link href="/me" className="text-base font-medium hover:text-primary transition-colors">
-                My Profile
-              </Link>
 
-              <form action="/api/auth/signout" method="post">
-                <Button variant="ghost" size="sm" className="text-base text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 font-medium">
-                  Logout
+              <ThemeToggle />
+
+              <Link href="/me" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-muted border-2 border-primary/20 hover:border-primary/50 transition-colors">
+                  <Image
+                    src={getAvatarUrl(session.user?.email || "user")}
+                    alt={session.user?.name || "User avatar"}
+                    width={40}
+                    height={40}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </Link>
+            </>
+          ) : (
+            <>
+              <ThemeToggle />
+              <form action="/api/auth/signin" method="post">
+                <Button size="sm">
+                  Login
                 </Button>
               </form>
             </>
-          ) : (
-            <form action="/api/auth/signin" method="post">
-              <Button size="sm">
-                Login
-              </Button>
-            </form>
           )}
-          
-          <ThemeToggle />
         </div>
 
         {/* Mobile Menu */}

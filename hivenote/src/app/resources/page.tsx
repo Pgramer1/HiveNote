@@ -7,6 +7,8 @@ import Breadcrumbs from "@/components/layout/Breadcrumbs";
 import { calculateResourceScore, sortResources } from "@/utils/resources";
 import type { ResourceSortOption } from "@/types";
 import { FileText, Link2, Sparkles, Flame, Eye } from "lucide-react";
+import { getAvatarUrl } from "@/utils/avatar";
+import Image from "next/image";
 
 
 
@@ -208,8 +210,14 @@ const sortedResources = sortResources(
 
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground pt-1">
                         <Link href={`/users/${resource.user.id}`} className="flex items-center gap-1.5 font-medium hover:text-foreground transition-colors bg-muted/50 rounded-full pl-0.5 pr-2 py-0.5 border border-transparent hover:border-border">
-                             <div className="w-4 h-4 rounded-full bg-background flex items-center justify-center text-[9px] font-bold border">
-                                {resource.user.name?.[0] || "A"}
+                             <div className="w-4 h-4 rounded-full overflow-hidden bg-background border">
+                                <Image
+                                  src={getAvatarUrl(resource.user.name || "Anonymous")}
+                                  alt={resource.user.name || "Anonymous"}
+                                  width={16}
+                                  height={16}
+                                  className="w-full h-full object-cover"
+                                />
                              </div>
                              {resource.user.name || "Anonymous"}
                         </Link>

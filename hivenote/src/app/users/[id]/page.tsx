@@ -4,6 +4,8 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import Breadcrumbs from "@/components/layout/Breadcrumbs";
 import { ChevronUp } from "lucide-react";
+import { getAvatarUrl } from "@/utils/avatar";
+import Image from "next/image";
 
 
 type Props = {
@@ -69,8 +71,14 @@ export default async function UserProfilePage({ params }: Props) {
                 {/* User Info */}
                 <div className="flex-1 min-w-0">
                      <div className="flex items-center gap-4 mb-4">
-                        <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center text-3xl font-bold text-foreground shrink-0">
-                            {user.name?.[0] || "U"}
+                        <div className="w-20 h-20 rounded-full overflow-hidden bg-muted shrink-0">
+                            <Image
+                              src={getAvatarUrl(user.email || "anonymous")}
+                              alt={user.name ?? "User avatar"}
+                              width={80}
+                              height={80}
+                              className="w-full h-full object-cover"
+                            />
                         </div>
                         <div className="min-w-0">
                              <h1 className="text-3xl font-extrabold tracking-tight lg:text-4xl text-foreground truncate">
@@ -108,14 +116,24 @@ export default async function UserProfilePage({ params }: Props) {
 
                 {/* Right Side: Stats & Actions */}
                 <div className="flex flex-row md:flex-col items-center md:items-end gap-6 w-full md:w-auto mt-2 md:mt-0 shrink-0">
-                    {/* Edit Button */}
+                    {/* Edit Button and Logout */}
                      {isOwner && (
-                        <Link
-                        href="/me/edit"
-                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
-                        >
-                        Edit profile
-                        </Link>
+                        <div className="flex flex-col md:flex-col gap-3">
+                            <Link
+                            href="/me/edit"
+                            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+                            >
+                            Edit profile
+                            </Link>
+                            <form action="/api/auth/signout" method="post">
+                                <button
+                                    type="submit"
+                                    className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-red-200 bg-background text-red-500 hover:bg-red-50 hover:text-red-600 dark:border-red-900/50 dark:hover:bg-red-950/20 h-9 px-4 py-2"
+                                >
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
                     )}
 
                     {/* Stats - Minimalist */}
