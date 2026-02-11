@@ -1,5 +1,7 @@
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import FloatingBee from "@/components/layout/FloatingBee";
 import { Providers } from "./providers";
 
 export default function RootLayout({
@@ -24,12 +26,14 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body>
+      <body className="flex flex-col min-h-screen">
         <Providers>
           <Navbar />
-          <main>
+          <main className="flex-1">
             {children}
           </main>
+          <Footer />
+          <FloatingBee />
         </Providers>
       </body>
     </html>

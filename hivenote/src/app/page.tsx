@@ -259,17 +259,6 @@ export default async function Home() {
         )}
 
       </section>
-
-      {/* Footer */}
-      <footer className="border-t py-12 bg-muted/30">
-         <div className="container mx-auto px-6 flex flex-col items-center justify-center gap-6">
-            <div className="flex items-center gap-2 font-bold text-xl">
-               <Hexagon className="w-6 h-6 text-primary" />
-               <span>HiveNote</span>
-            </div>
-            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} HiveNote. Built for students.</p>
-         </div>
-      </footer>
     </div>
   );
 }

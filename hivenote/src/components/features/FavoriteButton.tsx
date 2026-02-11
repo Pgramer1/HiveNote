@@ -57,8 +57,8 @@ export default function FavoriteButton({
       disabled={isPending}
       className={`p-2 rounded-lg transition-all ${
         optimisticFavorited
-          ? "text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30"
-          : "text-gray-400 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+          ? "text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+          : "text-gray-400 hover:text-yellow-500 hover:bg-gray-100 dark:hover:bg-gray-800"
       } ${isPending ? "opacity-50 cursor-wait" : ""} ${
         !isLoggedIn ? "cursor-not-allowed" : ""
       }`}
