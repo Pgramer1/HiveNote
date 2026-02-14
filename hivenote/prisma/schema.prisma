@@ -11,9 +11,11 @@ model User {
   name          String?
   email         String?   @unique
   emailVerified DateTime?
+  password      String?
   image         String?
   bio           String?   @db.Text
   createdAt     DateTime  @default(now())
+  isUniversityEmail Boolean @default(false)
 
   resources Resource[]
   favorites Favorite[]

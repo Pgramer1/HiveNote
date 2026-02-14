@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import { Hexagon, Eye, EyeOff } from "lucide-react";
+import { Hexagon } from "lucide-react";
 import Link from "next/link";
 import { Suspense, useState } from "react";
 
@@ -17,9 +17,6 @@ function SignInContent() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info', text: string } | null>(null);
@@ -30,24 +27,11 @@ function SignInContent() {
     setLoading(true);
     setMessage(null);
 
-    // Validate passwords
-    if (password.length < 8) {
-      setMessage({ type: 'error', text: 'Password must be at least 8 characters long' });
-      setLoading(false);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setMessage({ type: 'error', text: 'Passwords do not match' });
-      setLoading(false);
-      return;
-    }
-
     try {
       const response = await fetch('/api/auth/send-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name: name || undefined, password }),
+        body: JSON.stringify({ email, name: name || undefined }),
       });
 
       const data = await response.json();
@@ -61,8 +45,6 @@ function SignInContent() {
         });
         setEmail("");
         setName("");
-        setPassword("");
-        setConfirmPassword("");
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'An error occurred. Please try again.' });
@@ -124,9 +106,6 @@ function SignInContent() {
                 setIsSignUp(false);
                 setMessage(null);
                 setPassword("");
-                setConfirmPassword("");
-                setShowPassword(false);
-                setShowConfirmPassword(false);
               }}
               className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                 !isSignUp
@@ -142,9 +121,6 @@ function SignInContent() {
                 setIsSignUp(true);
                 setMessage(null);
                 setPassword("");
-                setConfirmPassword("");
-                setShowPassword(false);
-                setShowConfirmPassword(false);
               }}
               className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                 isSignUp
@@ -158,107 +134,48 @@ function SignInContent() {
 
           {/* Sign Up Form */}
           {isSignUp ? (
-          <form onSubmit={handleSignUp} className="space-y-3">
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium text-foreground">
-                Name (optional)
-              </label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="Your name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={loading}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-foreground">
-                University Email <span className="text-red-500">*</span>
-              </label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="yourname@university.edu"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={loading}
-              />
-              <p className="text-xs text-muted-foreground">
-                Must be a valid university email (.edu, .ac.uk, etc.)
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="signup-password" className="text-sm font-medium text-foreground">
-                Password <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
+            <form onSubmit={handleSignUp} className="space-y-3">
+              <div className="space-y-2">
+                <label htmlFor="name" className="text-sm font-medium text-foreground">
+                  Name (optional)
+                </label>
                 <Input
-                  id="signup-password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Create a password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  id="name"
+                  type="text"
+                  placeholder="Your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-medium text-foreground">
+                  University Email <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="yourname@university.edu"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={loading}
-                  minLength={8}
-                  className="pr-10"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  disabled={loading}
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+                <p className="text-xs text-muted-foreground">
+                  Must be a valid university email (.edu, .ac.uk, etc.)
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Must be at least 8 characters
-              </p>
-            </div>
 
-            <div className="space-y-2">
-              <label htmlFor="confirm-password" className="text-sm font-medium text-foreground">
-                Confirm Password <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <Input
-                  id="confirm-password"
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirm your password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  disabled={loading}
-                  minLength={8}
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  disabled={loading}
-                  tabIndex={-1}
-                >
-                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            <Button 
-              type="submit"
-              size="lg"
-              className="w-full font-semibold"
-              disabled={loading || !email || !password || !confirmPassword}
-            >
-              {loading ? 'Sending...' : 'Send Verification Email'}
-            </Button>
-          </form>
+              <Button 
+                type="submit"
+                size="lg"
+                className="w-full font-semibold"
+                disabled={loading || !email}
+              >
+                {loading ? 'Sending...' : 'Send Verification Email'}
+              </Button>
+            </form>
           ) : (
             /* Sign In Form */
             <form onSubmit={handleSignIn} className="space-y-3">
@@ -281,35 +198,15 @@ function SignInContent() {
                 <label htmlFor="password" className="text-sm font-medium text-foreground">
                   Password <span className="text-red-500">*</span>
                 </label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={loading}
-                    className="pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    disabled={loading}
-                    tabIndex={-1}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-                <div className="flex justify-end">
-                  <Link 
-                    href="/auth/forgot-password" 
-                    className="text-xs text-primary hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                />
               </div>
 
               <Button 
@@ -338,7 +235,7 @@ function SignInContent() {
 
           <p className="text-xs text-center text-muted-foreground">
             {isSignUp 
-              ? "Your password will be set after email verification"
+              ? "After verification, you'll set up your password"
               : "Only university email accounts are accepted"
             }
           </p>

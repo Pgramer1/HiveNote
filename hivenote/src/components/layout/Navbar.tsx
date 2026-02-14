@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import MobileMenu from "@/components/layout/MobileMenu";
-import { Hexagon, Heart } from "lucide-react";
+import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { getAvatarUrl } from "@/utils/avatar";
 import Image from "next/image";
@@ -14,7 +14,7 @@ export default async function Navbar() {
     <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md supports-backdrop-filter:bg-background/60">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity">
-          <Hexagon className="w-6 h-6 text-primary" />
+          <Image src="/bee (1).svg" alt="HiveNote Logo" width={32} height={32} className="w-8 h-8" />
           <span>HiveNote</span>
         </Link>
 

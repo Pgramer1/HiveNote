@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 export default function FloatingBee() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -39,9 +40,9 @@ export default function FloatingBee() {
       title="HiveNote Bee 🐝"
     >
       <div className="relative">
-        {/* Bee SVG/Emoji */}
-        <div className="text-6xl animate-bounce-slow">
-          🐝
+        {/* Bee SVG */}
+        <div className="w-16 h-16 animate-bounce-slow">
+          <Image src="/bee (1).svg" alt="HiveNote Bee" width={64} height={64} className="w-full h-full" />
         </div>
         
         {/* Tooltip on hover */}

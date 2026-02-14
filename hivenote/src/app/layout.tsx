@@ -1,8 +1,17 @@
+import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import FloatingBee from "@/components/layout/FloatingBee";
 import { Providers } from "./providers";
+
+export const metadata: Metadata = {
+  title: "HiveNote",
+  description: "Share and discover educational resources",
+  icons: {
+    icon: "/HiveNoteLogo.png",
+  },
+};
 
 export default function RootLayout({
   children,

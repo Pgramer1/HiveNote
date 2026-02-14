@@ -25,13 +25,15 @@
 *.pem
 
 # debug
-npm-debug.log*
+pm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
+.env
+.env.local
+.env*.local
 !.env.example
 
 # vercel
@@ -41,6 +43,17 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# documentation
+# prisma
+/prisma/*.db
+/prisma/*.db-journal
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+#documentation
 *.md
 !README.md
