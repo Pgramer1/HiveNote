@@ -37,12 +37,12 @@ export default function FloatingBee() {
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      title="HiveNote Bee 🐝"
+      title="QBee - Your Knowledge Navigator"
     >
       <div className="relative">
         {/* Bee SVG */}
         <div className="w-16 h-16 animate-bounce-slow">
-          <Image src="/bee (1).svg" alt="HiveNote Bee" width={64} height={64} className="w-full h-full" />
+          <Image src="/bee_2.svg" alt="HiveNote Bee" width={64} height={64} className="w-full h-full" />
         </div>
         
         {/* Tooltip on hover */}
