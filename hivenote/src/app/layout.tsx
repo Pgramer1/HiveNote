@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "HiveNote",
   description: "Share and discover educational resources",
   icons: {
-    icon: "/HiveNoteLogo.png",
+    icon: "/HiveNoteLogo.svg",
   },
 };
 

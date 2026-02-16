@@ -1,5 +1,9 @@
 import { Resend } from 'resend';
 
+if (!process.env.RESEND_API_KEY) {
+  console.warn('⚠️  RESEND_API_KEY is not set. Email sending will fail.');
+}
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
@@ -74,13 +78,26 @@ export async function sendVerificationEmail(
     });
 
     if (error) {
-      console.error('Error sending verification email:', error);
-      throw new Error('Failed to send verification email');
+      console.error('❌ Resend API Error (Verification Email):', {
+        error,
+        recipient: email,
+        from: process.env.EMAIL_FROM,
+      });
+      
+      // Check for common Resend errors
+      if (error.message?.includes('not verified')) {
+        throw new Error('Email domain not verified in Resend. Please verify your domain or add recipient email.');
+      }
+      throw new Error(`Failed to send verification email: ${error.message || 'Unknown error'}`);
     }
 
+    console.log('✅ Verification email sent successfully to:', email);
     return { success: true, data };
-  } catch (error) {
-    console.error('Error in sendVerificationEmail:', error);
+  } catch (error: any) {
+    console.error('❌ Error in sendVerificationEmail:', {
+      message: error.message,
+      recipient: email,
+    });
     throw error;
   }
 }
@@ -152,13 +169,26 @@ export async function sendPasswordResetEmail(
     });
 
     if (error) {
-      console.error('Error sending password reset email:', error);
-      throw new Error('Failed to send password reset email');
+      console.error('❌ Resend API Error (Password Reset):', {
+        error,
+        recipient: email,
+        from: process.env.EMAIL_FROM,
+      });
+      
+      // Check for common Resend errors
+      if (error.message?.includes('not verified')) {
+        throw new Error('Email domain not verified in Resend. Please verify your domain or add recipient email.');
+      }
+      throw new Error(`Failed to send password reset email: ${error.message || 'Unknown error'}`);
     }
 
+    console.log('✅ Password reset email sent successfully to:', email);
     return { success: true, data };
-  } catch (error) {
-    console.error('Error in sendPasswordResetEmail:', error);
+  } catch (error: any) {
+    console.error('❌ Error in sendPasswordResetEmail:', {
+      message: error.message,
+      recipient: email,
+    });
     throw error;
   }
 }
