@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/permissions";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { Department } from "@prisma/client";
 
 /**
  * Create a new subject (Admin only)
@@ -14,7 +13,7 @@ export async function createSubject(formData: FormData) {
 
   const name = formData.get("name") as string;
   const code = formData.get("code") as string;
-  const department = formData.get("department") as Department;
+  const department = formData.get("department") as string;
   const semester = parseInt(formData.get("semester") as string);
   const university = formData.get("university") as string;
 
@@ -103,7 +102,7 @@ export async function deleteSubject(id: string) {
  */
 export async function getSubjects(filters?: {
   university?: string;
-  department?: Department;
+  department?: string;
   semester?: number;
 }) {
   return await prisma.subject.findMany({
@@ -127,7 +126,7 @@ export async function getSubjects(filters?: {
  */
 export async function seedSubjectsForSemester(
   university: string,
-  department: Department,
+  department: string,
   semester: number
 ) {
   await requireAdmin();
