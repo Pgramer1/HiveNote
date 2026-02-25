@@ -21,14 +21,17 @@ export const authOptions = {
           throw new Error("Email and password are required");
         }
 
+        // Normalize email to lowercase
+        const email = credentials.email.toLowerCase();
+
         // Check if it's a university email
-        if (!isUniversityEmail(credentials.email)) {
+        if (!isUniversityEmail(email)) {
           throw new Error("Please use a valid university email address");
         }
 
         // Find user
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+          where: { email },
         });
 
         if (!user) {

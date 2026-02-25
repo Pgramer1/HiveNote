@@ -86,7 +86,7 @@ export default async function SubjectResourcesPage({ params, searchParams }: Pag
         equals: subjectCode.toUpperCase(),
         mode: 'insensitive',
       },
-      university: currentUser.university,
+      university: currentUser.university!,
       department: department.code as any,
       semester,
     },

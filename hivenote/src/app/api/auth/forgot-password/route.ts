@@ -4,7 +4,8 @@ import { isUniversityEmail, sendPasswordResetEmail, generateVerificationToken } 
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    const { email: rawEmail } = await request.json();
+    const email = rawEmail?.toLowerCase();
 
     if (!email) {
       return NextResponse.json(

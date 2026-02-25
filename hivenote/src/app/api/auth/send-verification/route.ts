@@ -5,7 +5,8 @@ import { detectUniversityFromEmail } from '@/lib/universities';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, name, password } = await request.json();
+    const { email: rawEmail, name, password } = await request.json();
+    const email = rawEmail?.toLowerCase();
 
     if (!email) {
       return NextResponse.json(
