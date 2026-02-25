@@ -18,7 +18,7 @@ model User {
   role              Role        @default(USER)
   isUniversityEmail Boolean     @default(false)
   university        String? // e.g., "Adani University", "IIT Delhi", etc.
-  department        Department?
+  department        String? // Department code like "CSE", "ICT", etc.
   batch             String? // e.g., "28" for 2024-2028 batch
 
   resources    Resource[]
@@ -36,12 +36,6 @@ enum Role {
   ADMIN
 }
 
-enum Department {
-  CSE // Computer Science & Engineering
-  ICT // Information & Communication Technology
-  CIE // Computer & Internet Engineering
-}
-
 model Resource {
   id          String       @id @default(cuid())
   title       String
@@ -52,7 +46,7 @@ model Resource {
   viewCount   Int          @default(0)
   createdAt   DateTime     @default(now())
   university  String? // Which university this resource belongs to
-  department  Department? // Which department this resource is for
+  department  String? // Department code like "CSE", "ICT", etc.
   batch       String? // Which batch this resource is for (e.g., "28")
   semester    Int? // Which semester (1-8) this resource is for
   subjectId   String? // Which subject this resource is for
@@ -70,17 +64,21 @@ enum ResourceType {
 }
 
 model Subject {
-  id         String     @id @default(cuid())
-  name       String // e.g., "Data Structures", "Operating Systems"
-  code       String // e.g., "CS201", "CS301"
-  department Department // Which department this subject belongs to
-  semester   Int // Which semester (1-8) this subject is for
-  university String // Which university this subject belongs to
-  createdAt  DateTime   @default(now())
+  id           String   @id @default(cuid())
+  name         String // e.g., "Data Structures", "Operating Systems"
+  code         String // e.g., "CS201", "CS301"
+  department   String? // DEPRECATED: Old department field (CSE, ICT, etc.)
+  departmentId String? // New: Reference to DepartmentConfig
+  semester     Int // Which semester (1-8) this subject is for
+  university   String // Which university this subject belongs to
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
 
-  resources Resource[]
+  departmentConfig DepartmentConfig? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  resources        Resource[]
 
-  @@unique([code, university, department, semester])
+  @@unique([code, university, semester])
 }
 
 model Account {
@@ -170,4 +168,36 @@ model CommentLike {
   comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
 
   @@unique([userId, commentId])
+}
+
+// Admin-manageable entities
+model DepartmentConfig {
+  id          String   @id @default(cuid())
+  code        String // e.g., "CSE", "ICT", "CIE"
+  name        String // e.g., "Computer Science & Engineering"
+  description String?
+  university  String // Which university this department belongs to
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  batches  BatchConfig[]
+  subjects Subject[]
+
+  @@unique([code, university])
+}
+
+model BatchConfig {
+  id           String           @id @default(cuid())
+  code         String // e.g., "28" for 2024-2028
+  years        String // e.g., "2024-2028"
+  university   String
+  departmentId String
+  isActive     Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  department DepartmentConfig @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@unique([code, university, departmentId])
 }
