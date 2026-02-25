@@ -73,7 +73,7 @@ export default async function SemesterSubjectsPage({ params }: PageProps) {
   // Fetch subjects for this semester, department, and university
   const subjects = await prisma.subject.findMany({
     where: {
-      university: currentUser.university,
+      university: currentUser.university!, // Guaranteed non-null by checks above
       department: department.code as any,
       semester,
     },
@@ -145,7 +145,7 @@ export default async function SemesterSubjectsPage({ params }: PageProps) {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-            {subjects.map((subject, index) => {
+            {subjects.map((subject: any, index: number) => {
               const colorScheme = subjectColors[index % subjectColors.length];
               
               return (
