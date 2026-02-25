@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { detectUniversityFromEmail } from '@/lib/universities';
 
 export async function GET(request: NextRequest) {
   try {
@@ -39,11 +40,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Update user's email verification status
+    const university = detectUniversityFromEmail(verificationToken.identifier);
     const user = await prisma.user.update({
       where: { email: verificationToken.identifier },
       data: { 
         emailVerified: new Date(),
         isUniversityEmail: true,
+        university: university?.name || null,
       } as any,
     });
 

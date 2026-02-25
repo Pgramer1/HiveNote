@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { Heart, GraduationCap } from "lucide-react";
 
 type Props = {
   isLoggedIn: boolean;
+  isUniversityStudent?: boolean;
 };
 
-export default function MobileMenu({ isLoggedIn }: Props) {
+export default function MobileMenu({ isLoggedIn, isUniversityStudent }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -40,16 +41,18 @@ export default function MobileMenu({ isLoggedIn }: Props) {
       {isOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-lg">
           <div className="flex flex-col p-4 space-y-3">
-            <Link
-              href="/resources"
-              className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition dark:text-white"
-              onClick={() => setIsOpen(false)}
-            >
-              Resources
-            </Link>
-
             {isLoggedIn ? (
               <>
+                {isUniversityStudent && (
+                  <Link
+                    href="/university"
+                    className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition dark:text-white flex items-center gap-2"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <GraduationCap className="w-4 h-4" />
+                    My University
+                  </Link>
+                )}
                 <Link
                   href="/resources/upload"
                   className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition dark:text-white"

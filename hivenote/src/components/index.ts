@@ -9,5 +9,4 @@ export { ToastProvider, useToast } from "./ui/ToastProvider";
 
 export { default as VoteButtons } from "./features/VoteButtons";
 export { default as ResourcePreview } from "./features/ResourcePreview";
-export { default as HomeSearchBar } from "./features/HomeSearchBar";
 export { default as FavoriteButton } from "./features/FavoriteButton";

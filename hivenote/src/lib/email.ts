@@ -1,4 +1,5 @@
 import * as brevo from '@getbrevo/brevo';
+import { detectUniversityFromEmail } from './universities';
 
 if (!process.env.BREVO_API_KEY) {
   console.warn('⚠️  BREVO_API_KEY is not set. Email sending will fail.');
@@ -13,19 +14,10 @@ apiInstance.setApiKey(
 
 /**
  * Check if an email is a valid university email
- * This is a basic implementation - you can expand this with more domains
+ * Uses the centralized university configuration
  */
 export function isUniversityEmail(email: string): boolean {
-  const universityDomains = [
-    'adaniuni.ac.in',
-    'yahoo.com',
-    'gmail.com', // for testing purposes - remove in production
-     // Allow Yahoo for testing purposes - remove in production
-    // Add more university domain patterns as needed
-  ];
-
-  const emailLower = email.toLowerCase();
-  return universityDomains.some(domain => emailLower.endsWith(domain));
+  return detectUniversityFromEmail(email) !== null;
 }
 
 /**
@@ -56,34 +48,72 @@ export async function sendVerificationEmail(
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Verify Your Email</title>
         </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">🐝 HiveNote</h1>
-          </div>
-          <div style="background: #ffffff; padding: 40px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
-            <h2 style="color: #1f2937; margin-top: 0;">Welcome${name ? ` ${name}` : ''}!</h2>
-            <p style="color: #4b5563; font-size: 16px;">
-              Thank you for signing up with your university email. To complete your registration and access HiveNote, please verify your email address by clicking the button below:
-            </p>
-            <div style="text-align: center; margin: 35px 0;">
-              <a href="${verificationUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; font-size: 16px;">
-                Verify Email Address
-              </a>
-            </div>
-            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-              Or copy and paste this link in your browser:
-            </p>
-            <p style="color: #667eea; font-size: 14px; word-break: break-all;">
-              ${verificationUrl}
-            </p>
-            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-            <p style="color: #9ca3af; font-size: 13px; margin: 0;">
-              This link will expire in 24 hours. If you didn't create an account with HiveNote, you can safely ignore this email.
-            </p>
-          </div>
-          <div style="text-align: center; margin-top: 20px; color: #9ca3af; font-size: 12px;">
-            <p>&copy; ${new Date().getFullYear()} HiveNote. All rights reserved.</p>
-          </div>
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f9fafb;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f9fafb;">
+            <tr>
+              <td style="padding: 60px 20px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+                  <!-- Logo -->
+                  <tr>
+                    <td style="padding: 40px 40px 20px 40px; text-align: center;">
+                      <h1 style="margin: 0; color: #9ca3af; font-size: 18px; font-weight: 400; letter-spacing: 1px;">HiveNote</h1>
+                    </td>
+                  </tr>
+                  <!-- Mascot -->
+                  <tr>
+                    <td style="padding: 20px 40px; text-align: center;">
+                      <div style="position: relative; display: inline-block;">
+                        <span style="font-size: 120px; display: block;">🐝</span>
+                        <span style="position: absolute; top: 10px; left: -20px; font-size: 24px;">✨</span>
+                        <span style="position: absolute; top: 50px; right: -15px; font-size: 20px;">📚</span>
+                        <span style="position: absolute; bottom: 20px; left: -15px; font-size: 18px;">💛</span>
+                        <span style="position: absolute; bottom: 30px; right: -10px; font-size: 22px;">🎓</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <!-- Heading -->
+                  <tr>
+                    <td style="padding: 20px 40px 10px 40px; text-align: center;">
+                      <h2 style="margin: 0; color: #4b5563; font-size: 28px; font-weight: 700;">Verify your email</h2>
+                    </td>
+                  </tr>
+                  <!-- Body Text -->
+                  <tr>
+                    <td style="padding: 10px 60px 30px 60px; text-align: center;">
+                      <p style="margin: 0; color: #6b7280; font-size: 16px; line-height: 1.6;">
+                        Thanks for helping us keep your account secure!<br>
+                        Click the button below to finish verifying your email address.
+                      </p>
+                    </td>
+                  </tr>
+                  <!-- CTA Button -->
+                  <tr>
+                    <td style="padding: 0 60px 30px 60px; text-align: center;">
+                      <a href="${verificationUrl}" style="display: inline-block; background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 700; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        CONFIRM EMAIL
+                      </a>
+                    </td>
+                  </tr>
+                  <!-- Small Text -->
+                  <tr>
+                    <td style="padding: 0 60px 40px 60px; text-align: center;">
+                      <p style="margin: 0; color: #9ca3af; font-size: 14px; line-height: 1.5;">
+                        Didn't create an account? <a href="#" style="color: #3b82f6; text-decoration: none;">Click here</a> to remove this email address.
+                      </p>
+                    </td>
+                  </tr>
+                  <!-- Footer -->
+                  <tr>
+                    <td style="padding: 40px 40px; text-align: center; border-top: 1px solid #e5e7eb;">
+                      <p style="margin: 0; color: #9ca3af; font-size: 11px; line-height: 1.5;">
+                        &copy; ${new Date().getFullYear()} HiveNote • Empowering University Students
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
         </body>
       </html>
     `;
@@ -138,37 +168,72 @@ export async function sendPasswordResetEmail(
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Reset Your Password</title>
         </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">🐝 HiveNote</h1>
-          </div>
-          <div style="background: #ffffff; padding: 40px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
-            <h2 style="color: #1f2937; margin-top: 0;">Password Reset Request</h2>
-            <p style="color: #4b5563; font-size: 16px;">
-              Hi${name ? ` ${name}` : ''},
-            </p>
-            <p style="color: #4b5563; font-size: 16px;">
-              We received a request to reset your HiveNote password. Click the button below to create a new password:
-            </p>
-            <div style="text-align: center; margin: 35px 0;">
-              <a href="${resetUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; font-size: 16px;">
-                Reset Password
-              </a>
-            </div>
-            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-              Or copy and paste this link in your browser:
-            </p>
-            <p style="color: #667eea; font-size: 14px; word-break: break-all;">
-              ${resetUrl}
-            </p>
-            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-            <p style="color: #9ca3af; font-size: 13px; margin: 0;">
-              This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.
-            </p>
-          </div>
-          <div style="text-align: center; margin-top: 20px; color: #9ca3af; font-size: 12px;">
-            <p>&copy; ${new Date().getFullYear()} HiveNote. All rights reserved.</p>
-          </div>
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f9fafb;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f9fafb;">
+            <tr>
+              <td style="padding: 60px 20px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+                  <!-- Logo -->
+                  <tr>
+                    <td style="padding: 40px 40px 20px 40px; text-align: center;">
+                      <h1 style="margin: 0; color: #9ca3af; font-size: 18px; font-weight: 400; letter-spacing: 1px;">HiveNote</h1>
+                    </td>
+                  </tr>
+                  <!-- Mascot -->
+                  <tr>
+                    <td style="padding: 20px 40px; text-align: center;">
+                      <div style="position: relative; display: inline-block;">
+                        <span style="font-size: 120px; display: block;">🔐</span>
+                        <span style="position: absolute; top: 10px; left: -20px; font-size: 24px;">🔑</span>
+                        <span style="position: absolute; top: 50px; right: -15px; font-size: 20px;">⚡</span>
+                        <span style="position: absolute; bottom: 20px; left: -15px; font-size: 18px;">✨</span>
+                        <span style="position: absolute; bottom: 30px; right: -10px; font-size: 22px;">🛡️</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <!-- Heading -->
+                  <tr>
+                    <td style="padding: 20px 40px 10px 40px; text-align: center;">
+                      <h2 style="margin: 0; color: #4b5563; font-size: 28px; font-weight: 700;">Reset your password</h2>
+                    </td>
+                  </tr>
+                  <!-- Body Text -->
+                  <tr>
+                    <td style="padding: 10px 60px 30px 60px; text-align: center;">
+                      <p style="margin: 0; color: #6b7280; font-size: 16px; line-height: 1.6;">
+                        We received a request to reset your HiveNote password.<br>
+                        Click the button below to create a new password for your account.
+                      </p>
+                    </td>
+                  </tr>
+                  <!-- CTA Button -->
+                  <tr>
+                    <td style="padding: 0 60px 30px 60px; text-align: center;">
+                      <a href="${resetUrl}" style="display: inline-block; background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 700; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        RESET PASSWORD
+                      </a>
+                    </td>
+                  </tr>
+                  <!-- Small Text -->
+                  <tr>
+                    <td style="padding: 0 60px 40px 60px; text-align: center;">
+                      <p style="margin: 0; color: #9ca3af; font-size: 14px; line-height: 1.5;">
+                        Didn't request this? <a href="#" style="color: #3b82f6; text-decoration: none;">Click here</a> to secure your account.
+                      </p>
+                    </td>
+                  </tr>
+                  <!-- Footer -->
+                  <tr>
+                    <td style="padding: 40px 40px; text-align: center; border-top: 1px solid #e5e7eb;">
+                      <p style="margin: 0; color: #9ca3af; font-size: 11px; line-height: 1.5;">
+                        &copy; ${new Date().getFullYear()} HiveNote • Empowering University Students
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
         </body>
       </html>
     `;

@@ -45,6 +45,46 @@ export default function EditProfileForm({ user }: { user: any }) {
             />
             </div>
 
+            {/* University-specific fields */}
+            {user.isUniversityEmail && (
+              <>
+                <div>
+                  <label htmlFor="department" className="block text-sm font-medium leading-none mb-2">
+                    Department
+                  </label>
+                  <select
+                    id="department"
+                    name="department"
+                    defaultValue={user.department ?? ""}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">Select Department</option>
+                    <option value="CSE">CSE - Computer Science & Engineering</option>
+                    <option value="ICT">ICT - Information & Communication Technology</option>
+                    <option value="CIE">CIE - Computer & Internet Engineering</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="batch" className="block text-sm font-medium leading-none mb-2">
+                    Batch
+                  </label>
+                  <select
+                    id="batch"
+                    name="batch"
+                    defaultValue={user.batch ?? ""}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">Select Batch</option>
+                    <option value="28">28' (2024-2028)</option>
+                    <option value="27">27' (2023-2027)</option>
+                    <option value="26">26' (2022-2026)</option>
+                    <option value="25">25' (2021-2025)</option>
+                  </select>
+                </div>
+              </>
+            )}
+
             <button
             disabled={isPending}
             className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"

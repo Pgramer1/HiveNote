@@ -2,13 +2,22 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import MobileMenu from "@/components/layout/MobileMenu";
-import { Heart } from "lucide-react";
+import { Heart, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { getAvatarUrl } from "@/utils/avatar";
 import Image from "next/image";
+import { prisma } from "@/lib/prisma";
 
 export default async function Navbar() {
   const session = await getSession();
+  
+  // Check if user is a university student
+  const isUniversityStudent = session?.user?.email 
+    ? (await prisma.user.findUnique({
+        where: { email: session.user.email },
+        select: { isUniversityEmail: true },
+      }))?.isUniversityEmail || false
+    : false;
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md supports-backdrop-filter:bg-background/60">
@@ -20,12 +29,14 @@ export default async function Navbar() {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-8">
-          <Link href="/resources" className="text-base font-medium hover:text-primary transition-colors">
-            Resources
-          </Link>
-
           {session ? (
             <>
+              {isUniversityStudent && (
+                <Link href="/university" className="text-base font-medium hover:text-primary transition-colors flex items-center gap-1">
+                  <GraduationCap className="w-4 h-4" />
+                  My University
+                </Link>
+              )}
               <Link href="/resources/upload" className="text-base font-medium hover:text-primary transition-colors">
                 Upload
               </Link>
@@ -63,7 +74,7 @@ export default async function Navbar() {
         {/* Mobile Menu */}
         <div className="flex md:hidden items-center gap-4">
           <ThemeToggle />
-          <MobileMenu isLoggedIn={!!session} />
+          <MobileMenu isLoggedIn={!!session} isUniversityStudent={isUniversityStudent} />
         </div>
       </div>
     </nav>

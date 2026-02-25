@@ -1,0 +1,10 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow authentication pages
+Disallow: /auth/
+Disallow: /api/
+
+# Sitemap location (update with your actual domain)
+Sitemap: https://hivenote.vercel.app/sitemap.xml

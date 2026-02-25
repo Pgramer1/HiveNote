@@ -3,20 +3,58 @@
 import { useState, useTransition } from "react";
 import { createResource } from "@/actions/resources";
 import { useToast } from "@/components/ui/ToastProvider";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function UploadForm() {
+type UploadFormProps = {
+  user: {
+    isUniversityEmail: boolean;
+    department: string | null;
+    batch: string | null;
+    university: string | null;
+  } | null;
+  subjects?: Array<{ id: string; name: string; code: string }>;
+};
+
+export default function UploadForm({ user, subjects = [] }: UploadFormProps) {
   const [resourceType, setResourceType] = useState<"PDF" | "LINK">("PDF");
   const [isPending, startTransition] = useTransition();
   const { showToast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Pre-fill from URL params if coming from university pages
+  const defaultDepartment = searchParams.get("department") || user?.department || "";
+  const defaultBatch = searchParams.get("batch") || user?.batch || "";
+  const defaultSemester = searchParams.get("semester") || "";
+  const defaultSubject = searchParams.get("subject") || "";
 
   const handleSubmit = async (formData: FormData) => {
     startTransition(async () => {
       try {
         await createResource(formData);
         showToast("Resource uploaded successfully!", "success");
-        router.push("/resources");
+        
+        // Redirect back to subject page if they came from there
+        const dept = formData.get("department");
+        const batch = formData.get("batch");
+        const semester = formData.get("semester");
+        const subjectId = formData.get("subject");
+        
+        if (dept && batch && semester && subjectId && subjects.length > 0) {
+          const subject = subjects.find(s => s.id === subjectId);
+          if (subject) {
+            router.push(`/university/${dept.toString().toLowerCase()}/${batch}/${semester}/${subject.code.toLowerCase()}`);
+            return;
+          }
+        }
+        
+        if (dept && batch && semester) {
+          router.push(`/university/${dept.toString().toLowerCase()}/${batch}/${semester}`);
+        } else if (user?.isUniversityEmail) {
+          router.push("/university");
+        } else {
+          router.push("/");
+        }
       } catch (error) {
         showToast(error instanceof Error ? error.message : "Failed to upload resource", "error");
       }
@@ -91,6 +129,92 @@ export default function UploadForm() {
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>
+      )}
+
+      {/* University-specific fields */}
+      {user?.isUniversityEmail && (
+        <>
+          {/* Hidden field for university */}
+          <input type="hidden" name="university" value={user.university || ""} />
+          
+          <div className="grid md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium leading-none mb-2">
+                Department *
+              </label>
+              <select
+                name="department"
+                defaultValue={defaultDepartment}
+                required
+                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              >
+                <option value="">Select</option>
+                <option value="CSE">CSE</option>
+                <option value="ICT">ICT</option>
+                <option value="CIE">CIE</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium leading-none mb-2">
+                Batch *
+              </label>
+              <select
+                name="batch"
+                defaultValue={defaultBatch}
+                required
+                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              >
+                <option value="">Select</option>
+                <option value="28">28' (2024-2028)</option>
+                <option value="27">27' (2023-2027)</option>
+                <option value="26">26' (2022-2026)</option>
+                <option value="25">25' (2021-2025)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium leading-none mb-2">
+                Semester *
+              </label>
+              <select
+                name="semester"
+                defaultValue={defaultSemester}
+                required
+                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              >
+                <option value="">Select</option>
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+                  <option key={sem} value={sem}>
+                    Semester {sem}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Subject Selection - only shown if subjects are available */}
+          {subjects.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium leading-none mb-2">
+                Subject *
+              </label>
+              <select
+                name="subject"
+                defaultValue={defaultSubject}
+                required
+                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              >
+                <option value="">Select subject</option>
+                {subjects.map((subject) => (
+                  <option key={subject.id} value={subject.id}>
+                    {subject.code} - {subject.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </>
       )}
 
       <button 

@@ -7,26 +7,40 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  password      String?
-  image         String?
-  bio           String?   @db.Text
-  createdAt     DateTime  @default(now())
-  isUniversityEmail Boolean @default(false)
+  id                String      @id @default(cuid())
+  name              String?
+  email             String?     @unique
+  emailVerified     DateTime?
+  password          String?
+  image             String?
+  bio               String?     @db.Text
+  createdAt         DateTime    @default(now())
+  role              Role        @default(USER)
+  isUniversityEmail Boolean     @default(false)
+  university        String? // e.g., "Adani University", "IIT Delhi", etc.
+  department        Department?
+  batch             String? // e.g., "28" for 2024-2028 batch
 
-  resources Resource[]
-  favorites Favorite[]
-  comments  Comment[]
+  resources    Resource[]
+  favorites    Favorite[]
+  comments     Comment[]
   commentLikes CommentLike[]
 
   accounts Account[]
   sessions Session[]
-  votes Vote[]
+  votes    Vote[]
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Department {
+  CSE // Computer Science & Engineering
+  ICT // Information & Communication Technology
+  CIE // Computer & Internet Engineering
+}
 
 model Resource {
   id          String       @id @default(cuid())
@@ -37,16 +51,36 @@ model Resource {
   uploadedBy  String
   viewCount   Int          @default(0)
   createdAt   DateTime     @default(now())
+  university  String? // Which university this resource belongs to
+  department  Department? // Which department this resource is for
+  batch       String? // Which batch this resource is for (e.g., "28")
+  semester    Int? // Which semester (1-8) this resource is for
+  subjectId   String? // Which subject this resource is for
 
-  user User @relation(fields: [uploadedBy], references: [id])
-  votes Vote[]
+  user      User       @relation(fields: [uploadedBy], references: [id])
+  subject   Subject?   @relation(fields: [subjectId], references: [id])
+  votes     Vote[]
   favorites Favorite[]
-  comments Comment[]
+  comments  Comment[]
 }
 
 enum ResourceType {
   PDF
   LINK
+}
+
+model Subject {
+  id         String     @id @default(cuid())
+  name       String // e.g., "Data Structures", "Operating Systems"
+  code       String // e.g., "CS201", "CS301"
+  department Department // Which department this subject belongs to
+  semester   Int // Which semester (1-8) this subject is for
+  university String // Which university this subject belongs to
+  createdAt  DateTime   @default(now())
+
+  resources Resource[]
+
+  @@unique([code, university, department, semester])
 }
 
 model Account {
@@ -87,7 +121,7 @@ model VerificationToken {
 
 model Vote {
   id         String   @id @default(cuid())
-  value      Int      // +1 = upvote, -1 = downvote
+  value      Int // +1 = upvote, -1 = downvote
   userId     String
   resourceId String
   createdAt  DateTime @default(now())
@@ -115,14 +149,14 @@ model Comment {
   content    String   @db.Text
   userId     String
   resourceId String
-  parentId   String?  // For replies
+  parentId   String? // For replies
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-  parent   Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies  Comment[] @relation("CommentReplies")
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resource Resource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  parent   Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[]     @relation("CommentReplies")
   likes    CommentLike[]
 }
 

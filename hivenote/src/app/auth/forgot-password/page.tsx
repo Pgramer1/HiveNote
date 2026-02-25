@@ -121,31 +121,31 @@ export default function ForgotPasswordPage() {
 
       {/* Right Panel - Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative z-10">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 space-y-6 animate-in fade-in slide-in-from-right duration-500">
+        <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 space-y-6 animate-in fade-in slide-in-from-right duration-500">
           {/* Mobile Logo */}
-          <Link href="/" className="lg:hidden flex items-center justify-center gap-2 font-bold text-xl">
+          <Link href="/" className="lg:hidden flex items-center justify-center gap-2 font-bold text-xl text-slate-900 dark:text-white">
             <Hexagon className="w-6 h-6 text-yellow-500" />
             <span>HiveNote</span>
           </Link>
 
           {/* Icon */}
           <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center">
-              <Mail className="w-8 h-8 text-yellow-600" />
+            <div className="w-16 h-16 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+              <Mail className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
             </div>
           </div>
 
           {/* Header */}
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold text-slate-900">Forgot Password?</h1>
-            <p className="text-sm text-slate-600">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Forgot Password?</h1>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
               Enter your email and we'll send you a reset link
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label htmlFor="email" className="text-sm font-medium text-slate-700">
+              <label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                 University Email
               </label>
               <Input
@@ -163,8 +163,8 @@ export default function ForgotPasswordPage() {
             {message && (
               <div className={`p-3 rounded-lg text-sm animate-in slide-in-from-top ${
                 message.type === 'success' 
-                  ? 'bg-green-50 text-green-700 border border-green-200' 
-                  : 'bg-red-50 text-red-700 border border-red-200'
+                  ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700' 
+                  : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700'
               }`}>
                 {message.text}
               </div>
@@ -180,7 +180,7 @@ export default function ForgotPasswordPage() {
 
             <Link 
               href="/auth/signin" 
-              className="flex items-center justify-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors"
+              className="flex items-center justify-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Sign In

@@ -101,7 +101,15 @@ function SignInContent() {
       if (result?.error) {
         setMessage({ type: 'error', text: result.error });
       } else {
-        router.push(callbackUrl);
+        // Check if user is a university student to redirect appropriately
+        const response = await fetch('/api/user/check-university');
+        const data = await response.json();
+        
+        if (data.isUniversityEmail) {
+          router.push('/university');
+        } else {
+          router.push(callbackUrl);
+        }
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'An error occurred. Please try again.' });
@@ -196,19 +204,19 @@ function SignInContent() {
 
       {/* Right Panel - Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative z-10">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 space-y-6 animate-in fade-in slide-in-from-right duration-500">
+        <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 space-y-6 animate-in fade-in slide-in-from-right duration-500">
           {/* Mobile Logo */}
-          <Link href="/" className="lg:hidden flex items-center justify-center gap-2 font-bold text-xl">
+          <Link href="/" className="lg:hidden flex items-center justify-center gap-2 font-bold text-xl text-slate-900 dark:text-white">
             <Hexagon className="w-6 h-6 text-yellow-500" />
             <span>HiveNote</span>
           </Link>
 
           {/* Header */}
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold text-slate-900">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
               {isSignUp ? 'Create Account' : 'Log In'}
             </h1>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-600 dark:text-slate-300">
               {isSignUp 
                 ? 'Sign up with your university email'
                 : 'Enter your credentials to access your account'
@@ -217,7 +225,7 @@ function SignInContent() {
           </div>
 
           {/* Tab Switcher - Compact */}
-          <div className="flex gap-1 p-1 bg-slate-100 rounded-lg">
+          <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-700 rounded-lg">
             <button
               type="button"
               onClick={() => {
@@ -228,8 +236,8 @@ function SignInContent() {
               }}
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
                 !isSignUp
-                  ? 'bg-white shadow-sm text-slate-900'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-600 shadow-sm text-slate-900 dark:text-white'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Sign In
@@ -244,8 +252,8 @@ function SignInContent() {
               }}
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
                 isSignUp
-                  ? 'bg-white shadow-sm text-slate-900'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-600 shadow-sm text-slate-900 dark:text-white'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Sign Up
@@ -256,7 +264,7 @@ function SignInContent() {
           {isSignUp ? (
           <form onSubmit={handleSignUp} className="space-y-4">
             <div className="space-y-1.5">
-              <label htmlFor="name" className="text-sm font-medium text-slate-700">
+              <label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                 Name (optional)
               </label>
               <Input
@@ -271,7 +279,7 @@ function SignInContent() {
             </div>
             
             <div className="space-y-1.5">
-              <label htmlFor="email" className="text-sm font-medium text-slate-700">
+              <label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                 University Email <span className="text-red-500">*</span>
               </label>
               <Input
@@ -287,7 +295,7 @@ function SignInContent() {
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="signup-password" className="text-sm font-medium text-slate-700">
+              <label htmlFor="signup-password" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                 Password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -305,7 +313,7 @@ function SignInContent() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
                   disabled={loading}
                   tabIndex={-1}
                 >
@@ -315,7 +323,7 @@ function SignInContent() {
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="confirm-password" className="text-sm font-medium text-slate-700">
+              <label htmlFor="confirm-password" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                 Confirm Password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -333,7 +341,7 @@ function SignInContent() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
                   disabled={loading}
                   tabIndex={-1}
                 >
@@ -350,7 +358,7 @@ function SignInContent() {
               {loading ? 'Sending...' : 'Send Verification Email'}
             </Button>
 
-            <p className="text-xs text-slate-500 text-center">
+            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
               Your password will be set after email verification
             </p>
           </form>
@@ -358,7 +366,7 @@ function SignInContent() {
             /* Sign In Form */
             <form onSubmit={handleSignIn} className="space-y-4">
               <div className="space-y-1.5">
-                <label htmlFor="signin-email" className="text-sm font-medium text-slate-700">
+                <label htmlFor="signin-email" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                   Email
                 </label>
                 <Input
@@ -375,7 +383,7 @@ function SignInContent() {
               
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="text-sm font-medium text-slate-700">
+                  <label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-slate-200">
                     Password
                   </label>
                   <Link 
@@ -399,7 +407,7 @@ function SignInContent() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
                     disabled={loading}
                     tabIndex={-1}
                   >
@@ -414,9 +422,9 @@ function SignInContent() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 text-yellow-500 bg-slate-100 border-slate-300 rounded focus:ring-yellow-500"
+                  className="w-4 h-4 text-yellow-500 bg-slate-100 dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded focus:ring-yellow-500"
                 />
-                <label htmlFor="remember" className="ml-2 text-sm text-slate-600">
+                <label htmlFor="remember" className="ml-2 text-sm text-slate-600 dark:text-slate-300">
                   Remember me
                 </label>
               </div>
@@ -435,17 +443,17 @@ function SignInContent() {
           {message && (
             <div className={`p-3 rounded-lg text-sm animate-in slide-in-from-top ${
               message.type === 'success' 
-                ? 'bg-green-50 text-green-700 border border-green-200' 
+                ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700' 
                 : message.type === 'info'
-                ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                : 'bg-red-50 text-red-700 border border-red-200'
+                ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
+                : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700'
             }`}>
               {message.text}
             </div>
           )}
 
           {/* Footer Text */}
-          <div className="text-center text-xs text-slate-500">
+          <div className="text-center text-xs text-slate-500 dark:text-slate-400">
             {isSignUp ? (
               <p>
                 Already have an account?{' '}

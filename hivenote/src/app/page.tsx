@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import HomeSearchBar from "@/components/features/HomeSearchBar";
 import { getUserFavorites } from "@/actions/favorites";
 import { Hexagon, FileText, Link2, ChevronUp, Flame, Sparkles, Heart } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/Button";
@@ -11,11 +10,14 @@ import { cn } from "@/lib/utils";
 export default async function Home() {
   const session = await getSession();
 
-  // Get current user for favorites
+  // Get current user for favorites and university check
   const currentUser = session?.user?.email
     ? await prisma.user.findUnique({
         where: { email: session.user.email },
-        select: { id: true },
+        select: { 
+          id: true,
+          isUniversityEmail: true,
+        },
       })
     : null;
 
@@ -95,8 +97,11 @@ export default async function Home() {
           </p>
 
           <div className="flex flex-wrap justify-center gap-4 pt-4">
-             <Link href="/resources" className={buttonVariants({ size: "lg", className: "rounded-full h-12 px-8 text-base shadow-lg hover:shadow-xl transition-all" })}>
-               Browse Resources
+             <Link 
+               href={currentUser?.isUniversityEmail ? "/university" : "/"} 
+               className={buttonVariants({ size: "lg", className: "rounded-full h-12 px-8 text-base shadow-lg hover:shadow-xl transition-all" })}
+             >
+               {currentUser?.isUniversityEmail ? "Go to My University" : "Browse Resources"}
              </Link>
              
              {session ? (

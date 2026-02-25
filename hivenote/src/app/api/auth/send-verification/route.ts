@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { isUniversityEmail, sendVerificationEmail, generateVerificationToken } from '@/lib/email';
+import { detectUniversityFromEmail } from '@/lib/universities';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,9 +22,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate if it's a university email
-    if (!isUniversityEmail(email)) {
+    const university = detectUniversityFromEmail(email);
+    if (!university) {
       return NextResponse.json(
-        { error: 'Please use a valid university email address (.edu, .ac.uk, etc.)' },
+        { error: 'Please use a valid university email address' },
         { status: 400 }
       );
     }
@@ -92,6 +94,7 @@ export async function POST(request: NextRequest) {
         data: { 
           name: name || existingUser.name,
           isUniversityEmail: true,
+          university: university.name,
         } as any,
       });
     } else {
@@ -100,6 +103,7 @@ export async function POST(request: NextRequest) {
           email,
           name: name || null,
           isUniversityEmail: true,
+          university: university.name,
         } as any,
       });
     }

@@ -26,6 +26,12 @@ export async function createResource(formData: FormData) {
   const type = formData.get("type") as "PDF" | "LINK";
   const link = formData.get("link") as string | null;
   const file = formData.get("file") as File | null;
+  const department = formData.get("department") as string | null;
+  const batch = formData.get("batch") as string | null;
+  const semesterStr = formData.get("semester") as string | null;
+  const semester = semesterStr ? parseInt(semesterStr) : null;
+  const university = formData.get("university") as string | null;
+  const subjectId = formData.get("subject") as string | null;
 
   let finalUrl = "";
 
@@ -65,6 +71,11 @@ export async function createResource(formData: FormData) {
       type,
       fileUrl: finalUrl,
       uploadedBy: user.id,
+      ...(university && university !== "" && { university }),
+      ...(department && department !== "" && { department: department as any }),
+      ...(batch && batch !== "" && { batch }),
+      ...(semester && { semester }),
+      ...(subjectId && subjectId !== "" && { subjectId }),
     },
   });
 
