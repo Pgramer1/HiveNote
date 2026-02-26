@@ -50,17 +50,25 @@ export default async function UniversityLandingPage() {
     redirect("/");
   }
 
-  const departments = universityConfig.departments.map((dept, index) => {
-    const colors = [
-      "bg-blue-500/10 border-blue-200/50 hover:border-blue-500/50 text-blue-600 dark:border-blue-500/20 dark:text-blue-400",
-      "bg-purple-500/10 border-purple-200/50 hover:border-purple-500/50 text-purple-600 dark:border-purple-500/20 dark:text-purple-400",
-      "bg-emerald-500/10 border-emerald-200/50 hover:border-emerald-500/50 text-emerald-600 dark:border-emerald-500/20 dark:text-emerald-400",
-    ];
-    return {
-      ...dept,
-      color: colors[index % colors.length]
-    };
+  const DEPT_COLORS = [
+    "bg-blue-500/10 border-blue-200/50 hover:border-blue-500/50 text-blue-600 dark:border-blue-500/20 dark:text-blue-400",
+    "bg-purple-500/10 border-purple-200/50 hover:border-purple-500/50 text-purple-600 dark:border-purple-500/20 dark:text-purple-400",
+    "bg-emerald-500/10 border-emerald-200/50 hover:border-emerald-500/50 text-emerald-600 dark:border-emerald-500/20 dark:text-emerald-400",
+    "bg-rose-500/10 border-rose-200/50 hover:border-rose-500/50 text-rose-600 dark:border-rose-500/20 dark:text-rose-400",
+    "bg-orange-500/10 border-orange-200/50 hover:border-orange-500/50 text-orange-600 dark:border-orange-500/20 dark:text-orange-400",
+    "bg-teal-500/10 border-teal-200/50 hover:border-teal-500/50 text-teal-600 dark:border-teal-500/20 dark:text-teal-400",
+  ];
+
+  // Fetch active departments from the database
+  const dbDepartments = await prisma.departmentConfig.findMany({
+    where: { university: user.university!, isActive: true },
+    orderBy: { code: 'asc' },
   });
+
+  const departments = dbDepartments.map((dept, index) => ({
+    ...dept,
+    color: DEPT_COLORS[index % DEPT_COLORS.length],
+  }));
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground animate-in fade-in duration-500">

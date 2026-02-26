@@ -4,13 +4,15 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { GraduationCap, ArrowLeft, Calendar } from "lucide-react";
 import Breadcrumbs from "@/components/layout/Breadcrumbs";
-import { getUniversityById, detectUniversityFromEmail } from "@/lib/universities";
+import { detectUniversityFromEmail } from "@/lib/universities";
 
-const batches = [
-  { code: "28", years: "2024-2028", color: "bg-blue-500/10 border-blue-200/50 hover:border-blue-500/50 text-blue-600 dark:border-blue-500/20 dark:text-blue-400" },
-  { code: "27", years: "2023-2027", color: "bg-purple-500/10 border-purple-200/50 hover:border-purple-500/50 text-purple-600 dark:border-purple-500/20 dark:text-purple-400" },
-  { code: "26", years: "2022-2026", color: "bg-emerald-500/10 border-emerald-200/50 hover:border-emerald-500/50 text-emerald-600 dark:border-emerald-500/20 dark:text-emerald-400" },
-  { code: "25", years: "2021-2025", color: "bg-orange-500/10 border-orange-200/50 hover:border-orange-500/50 text-orange-600 dark:border-orange-500/20 dark:text-orange-400" },
+const BATCH_COLORS = [
+  "bg-blue-500/10 border-blue-200/50 hover:border-blue-500/50 text-blue-600 dark:border-blue-500/20 dark:text-blue-400",
+  "bg-purple-500/10 border-purple-200/50 hover:border-purple-500/50 text-purple-600 dark:border-purple-500/20 dark:text-purple-400",
+  "bg-emerald-500/10 border-emerald-200/50 hover:border-emerald-500/50 text-emerald-600 dark:border-emerald-500/20 dark:text-emerald-400",
+  "bg-orange-500/10 border-orange-200/50 hover:border-orange-500/50 text-orange-600 dark:border-orange-500/20 dark:text-orange-400",
+  "bg-rose-500/10 border-rose-200/50 hover:border-rose-500/50 text-rose-600 dark:border-rose-500/20 dark:text-rose-400",
+  "bg-teal-500/10 border-teal-200/50 hover:border-teal-500/50 text-teal-600 dark:border-teal-500/20 dark:text-teal-400",
 ];
 
 type PageProps = {
@@ -52,22 +54,24 @@ export default async function DepartmentPage({ params }: PageProps) {
     }
   }
 
-  // Get university configuration
-  const universityConfig = getUniversityById(user.university!.toLowerCase().replace(/\s+/g, '-')) || 
-                          getUniversityById('adani');
-  
-  if (!universityConfig) {
-    redirect("/");
-  }
+  // Fetch department from the database
+  const department = await prisma.departmentConfig.findFirst({
+    where: {
+      code: { equals: deptSlug, mode: 'insensitive' },
+      university: user.university!,
+      isActive: true,
+    },
+  });
 
-  // Find department in university config
-  const department = universityConfig.departments.find(
-    d => d.code.toLowerCase() === deptSlug.toLowerCase()
-  );
-  
   if (!department) {
     notFound();
   }
+
+  // Fetch active batches for this department from the database
+  const batches = await prisma.batchConfig.findMany({
+    where: { departmentId: department.id, isActive: true },
+    orderBy: { code: 'desc' },
+  });
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground animate-in fade-in duration-500">
@@ -93,11 +97,16 @@ export default async function DepartmentPage({ params }: PageProps) {
 
         {/* Batch Cards */}
         <div className="grid md:grid-cols-2 gap-6">
-          {batches.map((batch) => (
+          {batches.length === 0 && (
+            <p className="col-span-2 text-center text-muted-foreground py-12">
+              No batches available yet. Please check back later.
+            </p>
+          )}
+          {batches.map((batch, index) => (
             <Link
               key={batch.code}
               href={`/university/${deptSlug}/${batch.code}`}
-              className={`group relative p-8 rounded-2xl border-2 transition-all duration-300 hover:shadow-lg hover:scale-105 ${batch.color}`}
+              className={`group relative p-8 rounded-2xl border-2 transition-all duration-300 hover:shadow-lg hover:scale-105 ${BATCH_COLORS[index % BATCH_COLORS.length]}`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6">

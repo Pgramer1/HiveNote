@@ -4,7 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { GraduationCap, ArrowLeft, FolderOpen } from "lucide-react";
 import Breadcrumbs from "@/components/layout/Breadcrumbs";
-import { getUniversityById, detectUniversityFromEmail } from "@/lib/universities";
+import { detectUniversityFromEmail } from "@/lib/universities";
 
 const semesters = [
   { num: 1, color: "bg-red-500/10 border-red-200/50 hover:border-red-500/50 text-red-600 dark:border-red-500/20 dark:text-red-400" },
@@ -56,19 +56,15 @@ export default async function BatchPage({ params }: PageProps) {
     }
   }
 
-  // Get university configuration
-  const universityConfig = getUniversityById(user.university!.toLowerCase().replace(/\s+/g, '-')) || 
-                          getUniversityById('adani');
-  
-  if (!universityConfig) {
-    redirect("/");
-  }
+  // Fetch department from the database
+  const department = await prisma.departmentConfig.findFirst({
+    where: {
+      code: { equals: deptSlug, mode: 'insensitive' },
+      university: user.university!,
+      isActive: true,
+    },
+  });
 
-  // Find department in university config
-  const department = universityConfig.departments.find(
-    d => d.code.toLowerCase() === deptSlug.toLowerCase()
-  );
-  
   if (!department) {
     notFound();
   }

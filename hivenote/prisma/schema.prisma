@@ -69,6 +69,7 @@ model Subject {
   code         String // e.g., "CS201", "CS301"
   department   String? // DEPRECATED: Old department field (CSE, ICT, etc.)
   departmentId String? // New: Reference to DepartmentConfig
+  batchId      String? // Which batch this subject belongs to
   semester     Int // Which semester (1-8) this subject is for
   university   String // Which university this subject belongs to
   isActive     Boolean  @default(true)
@@ -76,9 +77,10 @@ model Subject {
   updatedAt    DateTime @default(now()) @updatedAt
 
   departmentConfig DepartmentConfig? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  batchConfig      BatchConfig?      @relation(fields: [batchId], references: [id], onDelete: SetNull)
   resources        Resource[]
 
-  @@unique([code, university, semester])
+  @@unique([code, university, semester, batchId])
 }
 
 model Account {
@@ -198,6 +200,7 @@ model BatchConfig {
   updatedAt    DateTime         @updatedAt
 
   department DepartmentConfig @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  subjects   Subject[]
 
   @@unique([code, university, departmentId])
 }
