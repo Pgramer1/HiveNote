@@ -24,7 +24,20 @@ export default async function NewSubjectPage({ searchParams }: PageProps) {
     redirect("/");
   }
 
+  // Load departments from DB
+  const dbDepartments = await prisma.departmentConfig.findMany({
+    where: { university: currentUser.university!, isActive: true },
+    include: {
+      batches: { where: { isActive: true }, orderBy: { code: 'asc' } },
+    },
+    orderBy: { code: 'asc' },
+  });
+
   const { department, batch, semester } = await searchParams;
+
+  // Pre-select the matching batch
+  const selectedDept = dbDepartments.find(d => d.code.toLowerCase() === department?.toLowerCase());
+  const selectedBatch = selectedDept?.batches.find(b => b.code === batch);
 
   async function createSubject(formData: FormData) {
     'use server';
@@ -45,20 +58,35 @@ export default async function NewSubjectPage({ searchParams }: PageProps) {
 
     const name = formData.get("name") as string;
     const code = formData.get("code") as string;
-    const dept = formData.get("department") as string;
+    const departmentId = formData.get("departmentId") as string;
+    const batchId = (formData.get("batchId") as string) || null;
     const sem = parseInt(formData.get("semester") as string);
+
+    // Look up department to get code for legacy field
+    const dept = await prisma.departmentConfig.findUnique({
+      where: { id: departmentId },
+      select: { code: true },
+    });
+
+    // Look up batch code for redirect
+    const batchRecord = batchId ? await prisma.batchConfig.findUnique({
+      where: { id: batchId },
+      select: { code: true },
+    }) : null;
 
     await prisma.subject.create({
       data: {
         name,
         code: code.toUpperCase(),
-        department: dept as any,
+        departmentId,
+        batchId,
+        department: dept?.code as any,
         semester: sem,
         university: user.university!,
       },
     });
 
-    redirect(`/university/${dept.toLowerCase()}/${formData.get("batch")}/${sem}`);
+    redirect(`/university/${(dept?.code || '').toLowerCase()}/${batchRecord?.code || ''}/${sem}`);
   }
 
   return (
@@ -105,36 +133,44 @@ export default async function NewSubjectPage({ searchParams }: PageProps) {
           </div>
 
           <div>
-            <label htmlFor="department" className="block text-sm font-medium mb-2">
+            <label htmlFor="departmentId" className="block text-sm font-medium mb-2">
               Department *
             </label>
             <select
-              id="department"
-              name="department"
+              id="departmentId"
+              name="departmentId"
               required
-              defaultValue={department || ""}
+              defaultValue={selectedDept?.id || ""}
               className="w-full px-4 py-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="" disabled>Select department</option>
-              <option value="CSE">CSE - Computer Science & Engineering</option>
-              <option value="ICT">ICT - Information & Communication Technology</option>
-              <option value="CIE">CIE - Computer & Internet Engineering</option>
+              {dbDepartments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.code} - {dept.name}
+                </option>
+              ))}
             </select>
           </div>
 
           <div>
-            <label htmlFor="batch" className="block text-sm font-medium mb-2">
-              Batch *
+            <label htmlFor="batchId" className="block text-sm font-medium mb-2">
+              Batch
             </label>
-            <input
-              type="text"
-              id="batch"
-              name="batch"
-              required
-              defaultValue={batch || ""}
-              placeholder="e.g., 28"
+            <select
+              id="batchId"
+              name="batchId"
+              defaultValue={selectedBatch?.id || ""}
               className="w-full px-4 py-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+            >
+              <option value="">— No specific batch (shared) —</option>
+              {dbDepartments.flatMap((dept) =>
+                dept.batches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {dept.code} — Batch {b.code} ({b.years})
+                  </option>
+                ))
+              )}
+            </select>
           </div>
 
           <div>

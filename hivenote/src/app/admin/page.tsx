@@ -1,4 +1,6 @@
 import { requireAdmin } from "@/lib/permissions";
+import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { getDepartments } from "@/actions/admin-departments";
 import { getBatches } from "@/actions/admin-batches";
 import { getSubjectsAdmin } from "@/actions/admin-subjects";
@@ -9,10 +11,17 @@ import { Plus, Settings, GraduationCap, Calendar, BookOpen, Users } from "lucide
 export default async function AdminDashboard() {
   await requireAdmin();
 
+  const session = await getSession();
+  const adminUser = await prisma.user.findUnique({
+    where: { email: session!.user!.email! },
+    select: { university: true },
+  });
+  const university = adminUser?.university || undefined;
+
   const [departments, batches, subjects] = await Promise.all([
-    getDepartments(),
-    getBatches(),
-    getSubjectsAdmin(),
+    getDepartments(university),
+    getBatches(university ? { university } : undefined),
+    getSubjectsAdmin(university ? { university } : undefined),
   ]);
 
   const activeStats = {
@@ -247,13 +256,15 @@ function BatchCard({ batch }: any) {
 }
 
 function SubjectCard({ subject }: any) {
+  const deptCode = subject.departmentConfig?.code || subject.department || 'N/A';
+  const deptName = subject.departmentConfig?.name;
   return (
     <Link
       href={`/admin/subjects/${subject.id}`}
       className="block p-4 rounded-lg border-2 border-slate-200 dark:border-slate-700 hover:border-purple-500 dark:hover:border-purple-500 transition-all hover:shadow-lg bg-slate-50 dark:bg-slate-800/50"
     >
       <div className="flex items-start justify-between mb-2">
-        <div>
+        <div className="flex-1 min-w-0">
           <div className="font-mono text-sm font-bold text-purple-600 dark:text-purple-400">
             {subject.code}
           </div>
@@ -261,7 +272,7 @@ function SubjectCard({ subject }: any) {
             {subject.name}
           </h3>
         </div>
-        <div className={`px-2 py-1 rounded-full text-xs font-semibold ${
+        <div className={`ml-2 shrink-0 px-2 py-1 rounded-full text-xs font-semibold ${
           subject.isActive
             ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
             : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
@@ -269,9 +280,16 @@ function SubjectCard({ subject }: any) {
           {subject.isActive ? 'Active' : 'Inactive'}
         </div>
       </div>
-      <div className="flex gap-4 text-xs text-slate-500 dark:text-slate-400">
-        <span>Sem {subject.semester}</span>
-        <span>{subject._count?.resources || 0} resources</span>
+      <div className="mt-2 flex flex-wrap gap-2">
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">
+          {deptCode}{deptName ? ` · ${deptName}` : ''}
+        </span>
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
+          Semester {subject.semester}
+        </span>
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+          {subject._count?.resources || 0} {subject._count?.resources === 1 ? 'resource' : 'resources'}
+        </span>
       </div>
     </Link>
   );

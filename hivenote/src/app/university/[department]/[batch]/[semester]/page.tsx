@@ -4,7 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { GraduationCap, ArrowLeft, FolderOpen, Sparkles, Plus } from "lucide-react";
 import Breadcrumbs from "@/components/layout/Breadcrumbs";
-import { getUniversityById, detectUniversityFromEmail } from "@/lib/universities";
+import { detectUniversityFromEmail } from "@/lib/universities";
 
 type PageProps = {
   params: Promise<{ department: string; batch: string; semester: string }>;
@@ -53,19 +53,15 @@ export default async function SemesterSubjectsPage({ params }: PageProps) {
     }
   }
 
-  // Get university configuration
-  const universityConfig = getUniversityById(currentUser.university!.toLowerCase().replace(/\s+/g, '-')) || 
-                          getUniversityById('adani');
-  
-  if (!universityConfig) {
-    redirect("/");
-  }
+  // Fetch department from the database
+  const department = await prisma.departmentConfig.findFirst({
+    where: {
+      code: { equals: deptSlug, mode: 'insensitive' },
+      university: currentUser.university!,
+      isActive: true,
+    },
+  });
 
-  // Find department in university config
-  const department = universityConfig.departments.find(
-    d => d.code.toLowerCase() === deptSlug.toLowerCase()
-  );
-  
   if (!department) {
     notFound();
   }
@@ -73,8 +69,11 @@ export default async function SemesterSubjectsPage({ params }: PageProps) {
   // Fetch subjects for this semester, department, and university
   const subjects = await prisma.subject.findMany({
     where: {
-      university: currentUser.university!, // Guaranteed non-null by checks above
-      department: department.code as any,
+      university: currentUser.university!,
+      OR: [
+        { departmentId: department.id },
+        { department: department.code as any },
+      ],
       semester,
     },
     include: {

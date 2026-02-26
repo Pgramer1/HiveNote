@@ -16,6 +16,9 @@ export async function getSubjectsAdmin(filters?: {
   return await prisma.subject.findMany({
     where: filters,
     include: {
+      departmentConfig: {
+        select: { id: true, code: true, name: true },
+      },
       _count: {
         select: {
           resources: true,
@@ -36,6 +39,12 @@ export async function getSubjectAdmin(id: string) {
   return await prisma.subject.findUnique({
     where: { id },
     include: {
+      departmentConfig: {
+        select: { id: true, code: true, name: true },
+      },
+      batchConfig: {
+        select: { id: true, code: true, years: true },
+      },
       _count: {
         select: {
           resources: true,
@@ -82,6 +91,7 @@ export async function updateSubjectAdmin(
     name?: string;
     code?: string;
     semester?: number;
+    batchId?: string | null;
     isActive?: boolean;
   }
 ) {
@@ -93,6 +103,7 @@ export async function updateSubjectAdmin(
       ...(data.name && { name: data.name }),
       ...(data.code && { code: data.code.toUpperCase() }),
       ...(data.semester && { semester: data.semester }),
+      ...('batchId' in data && { batchId: data.batchId }),
       ...(data.isActive !== undefined && { isActive: data.isActive }),
     },
   });
