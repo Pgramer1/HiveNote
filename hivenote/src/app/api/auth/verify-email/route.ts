@@ -20,8 +20,14 @@ export async function GET(request: NextRequest) {
     });
 
     if (!verificationToken) {
+      // Token not found — it may have already been used successfully.
+      // Check if a user with emailVerified exists for any identifier matching this token pattern.
+      // Since we can't look up by token anymore, return a friendly alreadyVerified hint.
       return NextResponse.json(
-        { error: 'Invalid verification token' },
+        { 
+          error: 'This verification link has already been used or is invalid.',
+          alreadyVerified: true,
+        },
         { status: 400 }
       );
     }

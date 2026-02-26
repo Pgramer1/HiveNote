@@ -47,18 +47,17 @@ export async function POST(request: NextRequest) {
     const token = generateVerificationToken();
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-    // Store or update verification token
-    await prisma.verificationToken.upsert({
-      where: {
-        identifier_token: {
-          identifier: email,
-          token: token,
-        },
-      },
-      update: {
-        expires,
-      },
-      create: {
+    // Clean up any old verification/password tokens for this email before creating new ones
+    await prisma.verificationToken.deleteMany({
+      where: { identifier: email },
+    });
+    await prisma.verificationToken.deleteMany({
+      where: { identifier: `password:${email}` },
+    });
+
+    // Store new verification token
+    await prisma.verificationToken.create({
+      data: {
         identifier: email,
         token,
         expires,
@@ -69,18 +68,9 @@ export async function POST(request: NextRequest) {
     if (password) {
       const bcrypt = require('bcryptjs');
       const hashedPassword = await bcrypt.hash(password, 10);
-      
-      await prisma.verificationToken.upsert({
-        where: {
-          identifier_token: {
-            identifier: `password:${email}`,
-            token: token,
-          },
-        },
-        update: {
-          expires,
-        },
-        create: {
+
+      await prisma.verificationToken.create({
+        data: {
           identifier: `password:${email}`,
           token: hashedPassword,
           expires,
