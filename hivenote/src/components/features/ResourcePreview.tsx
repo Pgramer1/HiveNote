@@ -46,7 +46,7 @@ export default function ResourcePreview({ fileUrl, type, resourceId, showPreview
   return (
     <div className="h-full">
       {showPreview ? (
-        <div className="rounded-lg overflow-hidden border shadow-md bg-muted/20 h-full">
+        <div className="overflow-hidden h-full">
           <iframe
             src={viewUrl}
             className="w-full h-full"
