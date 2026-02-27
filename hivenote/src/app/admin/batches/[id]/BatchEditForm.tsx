@@ -21,8 +21,8 @@ export default function BatchEditForm({ batch, departments }: { batch: any; depa
   const handleCodeChange = (code: string) => {
     let years = formData.years;
     if (code.length === 2 && !isNaN(Number(code))) {
-      const start = 2000 + parseInt(code);
-      years = `${start}-${start + 4}`;
+      const end = 2000 + parseInt(code);
+      years = `${end - 4}-${end}`;
     }
     setFormData({ ...formData, code, years });
   };

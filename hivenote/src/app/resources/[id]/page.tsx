@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import ResourcePreview from "@/components/features/ResourcePreview";
-import TabbedSidebar from "@/components/features/TabbedSidebar";
+import ResourcePageClient from "@/components/features/ResourcePageClient";
 import { getResourceComments } from "@/actions/comments";
 
 // CURRENT: Layout Option 2 - Two-Column with Tabbed Sidebar
@@ -42,20 +41,12 @@ export default async function ResourceDetailPage({ params }: Props) {
         <div className="mb-4">
           <h1 className="text-2xl font-bold">{resource.title}</h1>
         </div>
-        
-        <div className="grid lg:grid-cols-[1fr_420px] gap-4">
-            {/* Left - PDF Preview (Wider) */}
-            <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
-                <div className="p-4">
-                    <ResourcePreview fileUrl={resource.fileUrl} type={resource.type} resourceId={id} />
-                </div>
-            </div>
 
-            {/* Right - Tabbed Sidebar */}
-            <div className="lg:sticky lg:top-20" style={{ height: "calc(100vh - 120px)" }}>
-                <TabbedSidebar resource={resource} resourceId={id} initialComments={comments} />
-            </div>
-        </div>
+        <ResourcePageClient
+          resource={resource}
+          resourceId={id}
+          initialComments={comments}
+        />
       </div>
     </div>
   );
