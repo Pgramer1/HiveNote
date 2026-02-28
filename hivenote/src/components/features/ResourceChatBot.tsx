@@ -13,7 +13,7 @@ type Message = {
 type Props = {
   resourceId: string;
   resourceTitle: string;
-  resourceType: "PDF" | "LINK";
+  resourceType: "PDF" | "PPT" | "LINK";
 };
 
 export default function ResourceChatBot({ resourceId, resourceTitle, resourceType }: Props) {

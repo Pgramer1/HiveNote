@@ -69,6 +69,8 @@ export default function TabbedSidebar({ resource, resourceId, initialComments }:
                   className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold ${
                     resource.type === "PDF"
                       ? "bg-blue-500/10 text-blue-600 border-blue-500/20"
+                      : resource.type === "PPT"
+                      ? "bg-orange-500/10 text-orange-600 border-orange-500/20"
                       : "bg-green-500/10 text-green-600 border-green-500/20"
                   }`}
                 >

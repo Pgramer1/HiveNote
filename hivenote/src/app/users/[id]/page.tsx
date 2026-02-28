@@ -176,7 +176,7 @@ export default async function UserProfilePage({ params }: Props) {
                             >
                                 <div className="space-y-2">
                                      <div className="flex items-center gap-2 mb-1">
-                                         <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold transition-colors ${resource.type === 'PDF' ? 'border-transparent bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'border-transparent bg-green-500/10 text-green-600 dark:text-green-400'}`}>
+                                         <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold transition-colors ${resource.type === 'PDF' ? 'border-transparent bg-blue-500/10 text-blue-600 dark:text-blue-400' : resource.type === 'PPT' ? 'border-transparent bg-orange-500/10 text-orange-600 dark:text-orange-400' : 'border-transparent bg-green-500/10 text-green-600 dark:text-green-400'}`}>
                                             {resource.type}
                                         </span>
                                     </div>

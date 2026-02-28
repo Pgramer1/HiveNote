@@ -23,7 +23,7 @@ export async function createResource(formData: FormData) {
   // Extract form data
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
-  const type = formData.get("type") as "PDF" | "LINK";
+  const type = formData.get("type") as "PDF" | "PPT" | "LINK";
   const link = formData.get("link") as string | null;
   const file = formData.get("file") as File | null;
   const department = formData.get("department") as string | null;
@@ -35,25 +35,29 @@ export async function createResource(formData: FormData) {
 
   let finalUrl = "";
 
-  if (type === "PDF" && file && file.size > 0) {
-    // Upload PDF to Cloudinary
+  if ((type === "PDF" || type === "PPT") && file && file.size > 0) {
+    // Upload file to Cloudinary
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
+    // For PPT files, preserve the file extension in the Cloudinary URL so that
+    // the Microsoft Office Online viewer can identify the file type correctly.
+    const uploadOptions: Record<string, any> = {
+      resource_type: "raw",
+      folder: "hivenote-resources",
+    };
+
+    if (type === "PPT") {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "pptx";
+      uploadOptions.public_id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
+    }
+
     const uploadResponse = await new Promise<any>((resolve, reject) => {
       cloudinary.uploader
-        .upload_stream(
-          {
-            resource_type: "raw",
-            folder: "hivenote-resources",
-            // Don't set flags that force download
-            // This ensures files can be viewed inline
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        )
+        .upload_stream(uploadOptions, (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        })
         .end(buffer);
     });
 
@@ -61,7 +65,7 @@ export async function createResource(formData: FormData) {
   } else if (type === "LINK" && link) {
     finalUrl = link;
   } else {
-    throw new Error("Invalid upload: provide either a file (for PDF) or a link");
+    throw new Error("Invalid upload: provide either a file (for PDF/PPT) or a link");
   }
 
   await prisma.resource.create({
