@@ -37,19 +37,20 @@ enum Role {
 }
 
 model Resource {
-  id          String       @id @default(cuid())
-  title       String
-  description String?
-  type        ResourceType
-  fileUrl     String
-  uploadedBy  String
-  viewCount   Int          @default(0)
-  createdAt   DateTime     @default(now())
-  university  String? // Which university this resource belongs to
-  department  String? // Department code like "CSE", "ICT", etc.
-  batch       String? // Which batch this resource is for (e.g., "28")
-  semester    Int? // Which semester (1-8) this resource is for
-  subjectId   String? // Which subject this resource is for
+  id            String       @id @default(cuid())
+  title         String
+  description   String?
+  type          ResourceType
+  fileUrl       String
+  uploadedBy    String
+  viewCount     Int          @default(0)
+  createdAt     DateTime     @default(now())
+  university    String? // Which university this resource belongs to
+  department    String? // Department code like "CSE", "ICT", etc.
+  batch         String? // Which batch this resource is for (e.g., "28")
+  semester      Int? // Which semester (1-8) this resource is for
+  subjectId     String? // Which subject this resource is for
+  extractedText String? @db.Text // Extracted text content for AI chat
 
   user      User       @relation(fields: [uploadedBy], references: [id])
   subject   Subject?   @relation(fields: [subjectId], references: [id])
@@ -60,6 +61,7 @@ model Resource {
 
 enum ResourceType {
   PDF
+  PPT
   LINK
 }
 

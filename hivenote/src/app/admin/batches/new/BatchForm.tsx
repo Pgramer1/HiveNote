@@ -55,8 +55,8 @@ export default function BatchForm({ departments }: { departments: Department[] }
     
     // Auto-calculate years if code is 2 digits
     if (code.length === 2 && !isNaN(Number(code))) {
-      const startYear = 2000 + parseInt(code);
-      const endYear = startYear + 4;
+      const endYear = 2000 + parseInt(code);
+      const startYear = endYear - 4;
       setFormData({ ...formData, code, years: `${startYear}-${endYear}` });
     }
   };

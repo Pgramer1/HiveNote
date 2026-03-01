@@ -16,7 +16,7 @@ type UploadFormProps = {
 };
 
 export default function UploadForm({ user, subjects = [] }: UploadFormProps) {
-  const [resourceType, setResourceType] = useState<"PDF" | "LINK">("PDF");
+  const [resourceType, setResourceType] = useState<"PDF" | "PPT" | "LINK">("PDF");
   const [isPending, startTransition] = useTransition();
   const { showToast } = useToast();
   const router = useRouter();
@@ -95,10 +95,11 @@ export default function UploadForm({ user, subjects = [] }: UploadFormProps) {
           name="type"
           required
           value={resourceType}
-          onChange={(e) => setResourceType(e.target.value as "PDF" | "LINK")}
+          onChange={(e) => setResourceType(e.target.value as "PDF" | "PPT" | "LINK")}
           className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <option value="PDF">📄 PDF</option>
+          <option value="PPT">📊 PowerPoint (PPT/PPTX)</option>
           <option value="LINK">🔗 Link</option>
         </select>
       </div>
@@ -112,6 +113,19 @@ export default function UploadForm({ user, subjects = [] }: UploadFormProps) {
             type="file"
             name="file"
             accept=".pdf"
+            required
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+          />
+        </div>
+      ) : resourceType === "PPT" ? (
+        <div>
+          <label className="block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2">
+            Upload PowerPoint File *
+          </label>
+          <input
+            type="file"
+            name="file"
+            accept=".ppt,.pptx"
             required
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
           />

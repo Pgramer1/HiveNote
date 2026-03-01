@@ -2,7 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { getUserFavorites } from "@/actions/favorites";
-import { Hexagon, FileText, Link2, ChevronUp, Flame, Sparkles, Heart } from "lucide-react";
+import { Hexagon, FileText, Link2, Presentation, ChevronUp, Flame, Sparkles, Heart } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
@@ -194,6 +194,8 @@ export default async function Home() {
                     <div className="flex items-start gap-3 mb-3">
                       {resource.type === "PDF" ? (
                         <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400 shrink-0" />
+                      ) : resource.type === "PPT" ? (
+                        <Presentation className="w-6 h-6 text-orange-600 dark:text-orange-400 shrink-0" />
                       ) : (
                         <Link2 className="w-6 h-6 text-green-600 dark:text-green-400 shrink-0" />
                       )}
@@ -279,6 +281,8 @@ function ResourceCard({ resource }: { resource: any }) {
               "px-2.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wide uppercase border",
               resource.type === 'PDF' 
                 ? 'bg-blue-500/5 text-blue-600 border-blue-500/20 dark:text-blue-400' 
+                : resource.type === 'PPT'
+                ? 'bg-orange-500/5 text-orange-600 border-orange-500/20 dark:text-orange-400'
                 : 'bg-green-500/5 text-green-600 border-green-500/20 dark:text-green-400'
             )}>
               {resource.type}
