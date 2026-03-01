@@ -1,76 +1,113 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Loader2, Sparkles } from "lucide-react";
+import { Bot, User, Loader2, Sparkles, Send, AlertCircle } from "lucide-react";
+
+type Props = {
+  resourceId: string;
+  resourceTitle: string;
+  resourceType: "PDF" | "PPT" | "LINK";
+  hasExtractedText: boolean;
+};
 
 type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
-  timestamp: Date;
 };
 
-type Props = {
-  resourceId: string;
-  resourceTitle: string;
-  resourceType: "PDF" | "LINK";
-};
-
-export default function ResourceChatBot({ resourceId, resourceTitle, resourceType }: Props) {
+export default function ResourceChatBot({
+  resourceId,
+  resourceTitle,
+  resourceType,
+  hasExtractedText,
+}: Props) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
       role: "assistant",
-      content: `Hi! I'm your AI assistant. I can help you understand "${resourceTitle}". Ask me anything about this ${resourceType.toLowerCase()}!`,
-      timestamp: new Date(),
+      content: hasExtractedText
+        ? `Hi! I've read "${resourceTitle}" and I'm ready to help. Ask me anything about this document!`
+        : resourceType === "PPT"
+        ? `Hi! I can help you with "${resourceTitle}". Note: I can't read the slides directly, but ask me anything and I'll do my best!`
+        : `Hi! I can help you with "${resourceTitle}". Ask me anything!`,
     },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const [error, setError] = useState<string | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollToBottom();
+    const el = scrollContainerRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [messages]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || isLoading) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: input.trim(),
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
+    const userMsg: Message = { id: Date.now().toString(), role: "user", content: text };
+    const allMessages = [...messages, userMsg];
+    setMessages(allMessages);
     setInput("");
     setIsLoading(true);
+    setError(null);
 
-    // TODO: Replace with actual API call to your AI service
-    // For now, simulate a response
-    setTimeout(() => {
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: `I understand you're asking about "${input.trim()}". This feature is coming soon! I'll be able to analyze the PDF content and provide detailed answers.`,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
+    const assistantId = (Date.now() + 1).toString();
+    setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "" }]);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resourceId,
+          messages: allMessages.map((m) => ({ role: m.role, content: m.content })),
+        }),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Server error ${res.status}: ${errText}`);
+      }
+
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = "";
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          accumulated += chunk;
+          setMessages((prev) =>
+            prev.map((m) => m.id === assistantId ? { ...m, content: accumulated } : m)
+          );
+        }
+      }
+
+      if (!accumulated) {
+        throw new Error("Empty response from server");
+      }
+    } catch (e) {
+      console.error("[Chat]:", e);
+      setError(e instanceof Error ? e.message : "Failed to get a response. Please try again.");
+      setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(input);
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e);
+      sendMessage(input);
     }
   };
 
@@ -82,83 +119,77 @@ export default function ResourceChatBot({ resourceId, resourceTitle, resourceTyp
           <Bot className="w-5 h-5 text-primary" />
         </div>
         <div className="flex-1">
-          <h3 className="font-semibold text-sm">AI Assistant</h3>
-          <p className="text-xs text-muted-foreground">Powered by AI</p>
+          <h3 className="font-semibold text-sm">AI Study Assistant</h3>
+          <p className="text-xs text-muted-foreground">
+            {hasExtractedText ? "Powered by Gemini · Has document context" : "Powered by Gemini"}
+          </p>
         </div>
         <Sparkles className="w-4 h-4 text-primary animate-pulse" />
       </div>
 
+      {/* Context notice for PDF without extracted text */}
+      {!hasExtractedText && resourceType === "PDF" && (
+        <div className="flex items-start gap-2 px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 text-xs text-amber-700 dark:text-amber-400">
+          <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+          This PDF was uploaded before AI support was added. Re-upload it to enable document-aware answers.
+        </div>
+      )}
+
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ maxHeight: "calc(100vh - 280px)" }}>
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4" style={{ maxHeight: "calc(100vh - 300px)" }}>
         {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
-          >
+          <div key={message.id} className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
             {message.role === "assistant" && (
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                 <Bot className="w-4 h-4 text-primary" />
               </div>
             )}
-            <div
-              className={`max-w-[80%] rounded-lg px-4 py-2.5 ${
-                message.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted"
-              }`}
-            >
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-              <span className="text-[10px] opacity-60 mt-1 block">
-                {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-              </span>
+            <div className={`max-w-[80%] rounded-lg px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
+              message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
+            }`}>
+              {message.content || (message.role === "assistant" && isLoading && (
+                <Loader2 className="w-4 h-4 animate-spin text-primary" />
+              ))}
             </div>
             {message.role === "user" && (
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0 mt-0.5">
                 <User className="w-4 h-4 text-primary-foreground" />
               </div>
             )}
           </div>
         ))}
-        {isLoading && (
-          <div className="flex gap-3 justify-start">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <Bot className="w-4 h-4 text-primary" />
-            </div>
-            <div className="bg-muted rounded-lg px-4 py-2.5">
-              <Loader2 className="w-4 h-4 animate-spin text-primary" />
-            </div>
+
+        {error && (
+          <div className="flex items-center gap-2 text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            {error}
           </div>
         )}
-        <div ref={messagesEndRef} />
+
       </div>
 
       {/* Input */}
       <div className="p-4 border-t bg-muted/20">
         <form onSubmit={handleSubmit} className="flex gap-2">
           <textarea
-            ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
+            onKeyDown={onKeyDown}
             placeholder="Ask about this resource..."
-            className="flex-1 resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px] max-h-32"
             rows={1}
             disabled={isLoading}
+            className="flex-1 resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 min-h-11 max-h-32"
           />
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="inline-flex items-center justify-center rounded-lg text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 w-11 shrink-0"
+            className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 w-11 shrink-0"
           >
-            {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
-            )}
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </button>
         </form>
         <p className="text-[10px] text-muted-foreground mt-2 text-center">
-          Press Enter to send, Shift+Enter for new line
+          Enter to send · Shift+Enter for new line
         </p>
       </div>
     </div>

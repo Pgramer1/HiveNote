@@ -3,6 +3,7 @@
  */
 export const RESOURCE_TYPES = {
   PDF: "PDF",
+  PPT: "PPT",
   LINK: "LINK",
 } as const;
 
@@ -14,6 +15,11 @@ export const RESOURCE_TYPE_INFO = {
     label: "PDF Documents",
     description: "Notes, books, study materials",
     colorClass: "text-blue-600 dark:text-blue-400",
+  },
+  PPT: {
+    label: "Presentations",
+    description: "Slides, lecture presentations",
+    colorClass: "text-orange-600 dark:text-orange-400",
   },
   LINK: {
     label: "External Links",
@@ -53,7 +59,11 @@ export const TOAST_DURATION = {
  */
 export const FILE_UPLOAD = {
   MAX_SIZE: 10 * 1024 * 1024, // 10MB
-  ALLOWED_TYPES: ["application/pdf"],
+  ALLOWED_TYPES: [
+    "application/pdf",
+    "application/vnd.ms-powerpoint",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  ],
 } as const;
 
 /**

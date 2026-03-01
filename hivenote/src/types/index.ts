@@ -22,7 +22,7 @@ export type ResourceWithScore = ResourceWithRelations & {
 /**
  * Resource type enum - matches Prisma schema
  */
-export type ResourceType = "PDF" | "LINK";
+export type ResourceType = "PDF" | "PPT" | "LINK";
 
 /**
  * Sort options for resources

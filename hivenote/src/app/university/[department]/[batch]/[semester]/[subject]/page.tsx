@@ -2,7 +2,7 @@ import { getSession } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { BookOpen, ArrowLeft, FileText, Link2, Sparkles, Upload } from "lucide-react";
+import { BookOpen, ArrowLeft, FileText, Link2, Presentation, Sparkles, Upload } from "lucide-react";
 import Breadcrumbs from "@/components/layout/Breadcrumbs";
 import VoteButtons from "@/components/features/VoteButtons";
 import FavoriteButton from "@/components/features/FavoriteButton";
@@ -193,9 +193,11 @@ export default async function SubjectResourcesPage({ params, searchParams }: Pag
               >
                 {/* Icon Box */}
                 <div className="shrink-0 mt-1">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-xs ${resource.type === 'PDF' ? 'bg-blue-500/10 border-blue-200/50 text-blue-600 dark:border-blue-500/20 dark:text-blue-400' : 'bg-emerald-500/10 border-emerald-200/50 text-emerald-600 dark:border-emerald-500/20 dark:text-emerald-400'}`}>
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-xs ${resource.type === 'PDF' ? 'bg-blue-500/10 border-blue-200/50 text-blue-600 dark:border-blue-500/20 dark:text-blue-400' : resource.type === 'PPT' ? 'bg-orange-500/10 border-orange-200/50 text-orange-600 dark:border-orange-500/20 dark:text-orange-400' : 'bg-emerald-500/10 border-emerald-200/50 text-emerald-600 dark:border-emerald-500/20 dark:text-emerald-400'}`}>
                     {resource.type === 'PDF' ? (
                       <FileText className="w-6 h-6" />
+                    ) : resource.type === 'PPT' ? (
+                      <Presentation className="w-6 h-6" />
                     ) : (
                       <Link2 className="w-6 h-6" />
                     )}

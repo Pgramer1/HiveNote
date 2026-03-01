@@ -6,7 +6,7 @@ import { ExternalLink, Eye, EyeOff } from "lucide-react";
 
 type Props = {
   fileUrl: string;
-  type: "PDF" | "LINK";
+  type: "PDF" | "PPT" | "LINK";
   resourceId: string;
 };
 
@@ -40,6 +40,34 @@ export default function ResourcePreview({ fileUrl, type, resourceId }: Props) {
           <ExternalLink className="w-5 h-5" />
           Visit External Link
         </a>
+      </div>
+    );
+  }
+
+  if (type === "PPT") {
+    const embedUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 px-4 py-3 bg-muted/30 rounded-lg border text-sm text-muted-foreground">
+          <Eye className="w-4 h-4" />
+          <span>PowerPoint Preview</span>
+          <a
+            href={fileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-auto inline-flex items-center gap-1 rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium hover:bg-primary/90 transition-colors"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            Download
+          </a>
+        </div>
+        <div className="rounded-lg overflow-hidden border shadow-md bg-muted/20" style={{ height: '750px' }}>
+          <iframe
+            src={embedUrl}
+            className="w-full h-full"
+            title="PowerPoint Preview"
+          />
+        </div>
       </div>
     );
   }
