@@ -121,7 +121,7 @@ export default function ResourceChatBot({
         <div className="flex-1">
           <h3 className="font-semibold text-sm">AI Study Assistant</h3>
           <p className="text-xs text-muted-foreground">
-            {hasExtractedText ? "Powered by Gemini · Has document context" : "Powered by Gemini"}
+            {hasExtractedText ? "Powered by Groq · Has document context" : "Powered by Groq"}
           </p>
         </div>
         <Sparkles className="w-4 h-4 text-primary animate-pulse" />
