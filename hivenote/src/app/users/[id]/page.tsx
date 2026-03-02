@@ -71,7 +71,7 @@ export default async function UserProfilePage({ params }: Props) {
                 {/* User Info */}
                 <div className="flex-1 min-w-0">
                      <div className="flex items-center gap-4 mb-4">
-                        <div className="w-20 h-20 rounded-full overflow-hidden bg-muted shrink-0">
+                        <div className="w-20 h-20 rounded-full overflow-hidden bg-muted border border-border shrink-0">
                             <Image
                               src={getAvatarUrl(user.email || "anonymous")}
                               alt={user.name ?? "User avatar"}

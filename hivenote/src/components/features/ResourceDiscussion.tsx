@@ -207,7 +207,7 @@ export default function ResourceDiscussion({
           comments.map((comment) => (
             <div key={comment.id} className="space-y-2">
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-muted shrink-0">
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-muted border border-border shrink-0">
                   <Image
                     src={getAvatarUrl(comment.user.name || comment.user.id)}
                     alt={comment.user.name || "User"}
@@ -298,7 +298,7 @@ export default function ResourceDiscussion({
                     <div className="mt-3 ml-11 space-y-3 border-l-2 border-muted pl-3">
                       {comment.replies.map((reply) => (
                         <div key={reply.id} className="flex items-start gap-3">
-                          <div className="w-7 h-7 rounded-full overflow-hidden bg-muted shrink-0">
+                          <div className="w-7 h-7 rounded-full overflow-hidden bg-muted border border-border shrink-0">
                             <Image
                               src={getAvatarUrl(reply.user.name || reply.user.id)}
                               alt={reply.user.name || "User"}
