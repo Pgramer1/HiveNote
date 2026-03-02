@@ -71,28 +71,31 @@ A full-stack academic resource-sharing platform built for university students. U
 
 ```
 hivenote/
- src/
-    actions/        # Server Actions (resources, votes, comments, favorites, profile)
-    app/            # Next.js App Router pages and API routes
-       admin/      # Admin dashboard (subjects, departments, batches)
-       api/        # API routes (auth, chat, pdf, debug-session)
-       auth/       # Sign-in / sign-up pages
-       me/         # Current user profile
-       my-favorites/
-       my-uploads/
-       resources/  # Resource listing, detail, and upload
-       university/ # University-based browsing
-       users/      # Public user profiles
-    components/     # Reusable UI components (features/, layout/, ui/)
-    constants/
-    hooks/
-    lib/            # Core utilities (auth, prisma, cloudinary, email, permissions)
-    types/
-    utils/
- prisma/
-    schema.prisma   # Database schema
-    seed.ts         # Database seeder
-    migrations/     # SQL migration history
+├── src/
+│   ├── actions/        # Server Actions (resources, votes, comments, favorites, profile)
+│   ├── app/            # Next.js App Router pages and API routes
+│   │   ├── admin/      # Admin dashboard (subjects, departments, batches)
+│   │   ├── api/        # API routes (auth, chat, pdf, debug-session)
+│   │   ├── auth/       # Sign-in / sign-up pages
+│   │   ├── me/         # Current user profile
+│   │   ├── my-favorites/
+│   │   ├── my-uploads/
+│   │   ├── resources/  # Resource listing, detail, and upload
+│   │   ├── university/ # University-based browsing
+│   │   └── users/      # Public user profiles
+│   ├── components/     # Reusable UI components (features/, layout/, ui/)
+│   ├── constants/
+│   ├── hooks/
+│   ├── lib/            # Core utilities (auth, prisma, cloudinary, email, permissions)
+│   ├── types/
+│   └── utils/
+├── prisma/
+│   ├── schema.prisma   # Database schema
+│   ├── seed.ts         # Database seeder
+│   └── migrations/     # SQL migration history
+├── public/             # Static assets (favicons, logos, robots.txt)
+├── scripts/            # Utility scripts (seed, db check, migration helpers)
+└── docs/               # Setup guides and deployment checklists
 ```
 
 ---
@@ -151,7 +154,7 @@ pnpm exec prisma generate
 Optionally seed subjects:
 
 ```bash
-node seed-subjects.js
+node scripts/seed-subjects.js
 ```
 
 ### 4. Run the development server
@@ -189,7 +192,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Deployment
 
-The app is configured for Vercel deployment. See [hivenote/markss/VERCEL_DEPLOYMENT.md](hivenote/markss/VERCEL_DEPLOYMENT.md) for the full checklist.
+The app is configured for Vercel deployment. See [hivenote/docs/VERCEL_DEPLOYMENT.md](hivenote/docs/VERCEL_DEPLOYMENT.md) for the full checklist.
 
 Key points:
 - Set all `.env` variables in Vercel project settings
