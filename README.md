@@ -1,101 +1,197 @@
-# 🐝 HiveNote
+﻿#  HiveNote
 
-HiveNote is a full-stack web application designed for students to share and discover academic resources (PDFs, links, notes) in one centralized place — reducing last-minute stress caused by scattered resources.
+A full-stack academic resource-sharing platform built for university students. Upload, discover, and discuss PDFs, slides, and links — organized by university, department, batch, and subject.
 
 ---
 
-## 🚀 Tech Stack
+## Tech Stack
 
-### Frontend & Backend
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| UI | React 19, Tailwind CSS v4, Framer Motion |
+| Database | PostgreSQL (Neon) |
+| ORM | Prisma 7 |
+| Auth | NextAuth v4 — Google OAuth + credentials |
+| File Storage | Cloudinary |
+| AI | Vercel AI SDK, Google Gemini, Groq |
+| Email | Brevo (transactional) |
+| Package Manager | pnpm |
+| Deployment | Vercel |
 
-- **Next.js 16 (App Router)**
-- **React 19**
-- **TypeScript**
+---
 
-### Database & ORM
+## Features
 
-- **PostgreSQL**
-- **Prisma ORM**
+### Resources
+- Upload **PDF**, **PPT**, and **Link** resources
+- Resources are scoped to university  department  batch  semester  subject
+- View count tracking per resource
+- Full-text extraction from PDFs for AI-powered chat
+
+### AI Chat
+- Chat with any uploaded PDF using `/api/chat`
+- Powered by Vercel AI SDK with Google Gemini / Groq backends
 
 ### Authentication
+- Google OAuth sign-in
+- Email/password credentials
+- University email detection (`isUniversityEmail` flag)
+- Protected routes via NextAuth sessions
 
-- **NextAuth (Auth.js)**
-- Google OAuth
-- Database-backed sessions
+### Social & Community
+- **Voting** — upvote/downvote resources with optimistic UI
+- **Comments & Replies** — threaded comment system with likes
+- **Favorites** — bookmark resources, view them at `/my-favorites`
 
-### File Storage
+### User Profiles
+- Public profile pages at `/users/[id]`
+- Fields: name, bio, university, department, batch
+- Avatar support
 
-- **Cloudinary** (PDF uploads)
+### University Navigation
+- Browse resources by university  department  batch  semester at `/university`
+- Admin-managed departments, batches, and subjects
 
-### Styling
+### Admin Panel (`/admin`)
+- Manage subjects, departments, and batches
+- Role-based access control (`ADMIN` vs `USER`)
 
-- **Tailwind CSS**
-
----
-
-## ✅ Features Implemented So Far
-
-### 1. Resource Management
-
-- Upload resources as:
-  - 📄 PDF files
-  - 🔗 External links
-- View all uploaded resources
-- View detailed page for each resource
-
-### 2. Authentication & Authorization
-
-- Google Sign-In using NextAuth
-- Secure database-backed sessions
-- Protected routes (only logged-in users can upload)
-- Logout support
-
-### 3. User-Specific Features
-
-- “My Uploads” page showing resources uploaded by the logged-in user
-- Resources are linked to real users in the database
-
-### 4. Search & Filter (Server-Side)
-
-- Search resources by title
-- Filter by resource type (PDF / LINK)
-- URL-based filtering (`/resources?query=...&type=...`)
-- SEO-friendly and shareable search URLs
-
-### 5. UX Improvements
-
-- Preserved search & filter state
-- Clear filters option
-- Proper empty states
-- Clean navigation bar with auth-aware UI
+### UX
+- Dark mode with system preference detection and localStorage persistence
+- Responsive design (mobile-first)
+- Optimistic UI updates on votes
+- Breadcrumb navigation
+- Styled empty states with actionable CTAs
 
 ---
 
+## Project Structure
+
+```
+hivenote/
+ src/
+    actions/        # Server Actions (resources, votes, comments, favorites, profile)
+    app/            # Next.js App Router pages and API routes
+       admin/      # Admin dashboard (subjects, departments, batches)
+       api/        # API routes (auth, chat, pdf, debug-session)
+       auth/       # Sign-in / sign-up pages
+       me/         # Current user profile
+       my-favorites/
+       my-uploads/
+       resources/  # Resource listing, detail, and upload
+       university/ # University-based browsing
+       users/      # Public user profiles
+    components/     # Reusable UI components (features/, layout/, ui/)
+    constants/
+    hooks/
+    lib/            # Core utilities (auth, prisma, cloudinary, email, permissions)
+    types/
+    utils/
+ prisma/
+    schema.prisma   # Database schema
+    seed.ts         # Database seeder
+    migrations/     # SQL migration history
+```
+
 ---
 
-## 🛣️ Upcoming Features (Planned)
+## Getting Started
 
-- Edit & delete uploaded resources
-- Full-text search (PostgreSQL)
-- Tags / subjects for resources
-- College / semester-based access control
-- Popularity-based sorting
+### Prerequisites
+- Node.js 20+
+- pnpm (`npm install -g pnpm`)
+- PostgreSQL database (or a [Neon](https://neon.tech) project)
+
+### 1. Clone and install
+
+```bash
+git clone <repo-url>
+cd hivenote
+pnpm install
+```
+
+### 2. Set up environment variables
+
+Create a `.env` file inside the `hivenote/` folder. Required variables:
+
+```env
+# Database
+DATABASE_URL=
+
+# NextAuth
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=
+
+# Google OAuth
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+# AI
+GOOGLE_GENERATIVE_AI_API_KEY=
+GROQ_API_KEY=
+
+# Email (Brevo)
+BREVO_API_KEY=
+```
+
+### 3. Set up the database
+
+```bash
+pnpm exec prisma migrate deploy
+pnpm exec prisma generate
+```
+
+Optionally seed subjects:
+
+```bash
+node seed-subjects.js
+```
+
+### 4. Run the development server
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## 🧠 Learning Outcomes
+## Available Scripts
 
-This project demonstrates:
-
-- Real-world Next.js App Router usage
-- Server Components & Server Actions
-- Authentication with NextAuth
-- Prisma relational data modeling
-- Secure file uploads
-- Clean full-stack architecture
+| Command | Description |
+|---|---|
+| `pnpm dev` | Start development server (Turbopack) |
+| `pnpm build` | Generate Prisma client + production build |
+| `pnpm start` | Start production server |
+| `pnpm lint` | Run ESLint |
 
 ---
 
-<!-- ## 📌 Author -->
-<!--
-Built by a Computer Science student as a semester project and portfolio-grade full-stack application. -->
+## Database Schema (Key Models)
+
+- **User** — profile, university, department, batch, role
+- **Resource** — title, type (PDF/PPT/LINK), fileUrl, university/department/batch/semester/subject scoping, extracted text
+- **Subject** — name, code, semester, linked to department and batch
+- **Vote** — upvote/downvote on resources
+- **Comment / CommentLike** — threaded comments with likes
+- **Favorite** — saved resources per user
+- **DepartmentConfig / BatchConfig** — admin-managed university structure
+
+---
+
+## Deployment
+
+The app is configured for Vercel deployment. See [hivenote/markss/VERCEL_DEPLOYMENT.md](hivenote/markss/VERCEL_DEPLOYMENT.md) for the full checklist.
+
+Key points:
+- Set all `.env` variables in Vercel project settings
+- `pnpm-lock.yaml` is committed — Vercel auto-detects pnpm
+- `prisma generate` runs automatically via the `postinstall` script
