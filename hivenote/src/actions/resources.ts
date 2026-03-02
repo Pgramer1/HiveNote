@@ -96,3 +96,18 @@ export async function createResource(formData: FormData) {
 
   return { success: true };
 }
+
+export async function deleteResource(resourceId: string) {
+  const session = await getSession();
+  if (!session?.user?.email) throw new Error("Unauthorized");
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { role: true },
+  });
+
+  if (user?.role !== "ADMIN") throw new Error("Forbidden");
+
+  await prisma.resource.delete({ where: { id: resourceId } });
+  return { success: true };
+}

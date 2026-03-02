@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { BookOpen, ArrowLeft, FileText, Link2, Presentation, Sparkles, Upload } from "lucide-react";
+import DeleteResourceButton from "@/components/features/DeleteResourceButton";
 import Breadcrumbs from "@/components/layout/Breadcrumbs";
 import VoteButtons from "@/components/features/VoteButtons";
 import FavoriteButton from "@/components/features/FavoriteButton";
@@ -185,67 +186,75 @@ export default async function SubjectResourcesPage({ params, searchParams }: Pag
             </Link>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedResources.map((resource) => (
               <div
                 key={resource.id}
-                className="group relative flex flex-col sm:flex-row items-start gap-4 p-5 bg-card border rounded-xl hover:border-primary/40 hover:shadow-sm transition-all duration-200"
+                className="group relative flex flex-col p-5 bg-card border rounded-xl hover:border-primary/40 hover:shadow-md transition-all duration-200"
               >
-                {/* Icon Box */}
-                <div className="shrink-0 mt-1">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-xs ${resource.type === 'PDF' ? 'bg-blue-500/10 border-blue-200/50 text-blue-600 dark:border-blue-500/20 dark:text-blue-400' : resource.type === 'PPT' ? 'bg-orange-500/10 border-orange-200/50 text-orange-600 dark:border-orange-500/20 dark:text-orange-400' : 'bg-emerald-500/10 border-emerald-200/50 text-emerald-600 dark:border-emerald-500/20 dark:text-emerald-400'}`}>
+                {/* Icon + Type Badge */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border shadow-sm ${resource.type === 'PDF' ? 'bg-blue-500/10 border-blue-200/50 text-blue-600 dark:border-blue-500/20 dark:text-blue-400' : resource.type === 'PPT' ? 'bg-orange-500/10 border-orange-200/50 text-orange-600 dark:border-orange-500/20 dark:text-orange-400' : 'bg-emerald-500/10 border-emerald-200/50 text-emerald-600 dark:border-emerald-500/20 dark:text-emerald-400'}`}>
                     {resource.type === 'PDF' ? (
-                      <FileText className="w-6 h-6" />
+                      <FileText className="w-7 h-7" />
                     ) : resource.type === 'PPT' ? (
-                      <Presentation className="w-6 h-6" />
+                      <Presentation className="w-7 h-7" />
                     ) : (
-                      <Link2 className="w-6 h-6" />
+                      <Link2 className="w-7 h-7" />
                     )}
                   </div>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${resource.type === 'PDF' ? 'bg-blue-500/10 border-blue-200/50 text-blue-600 dark:border-blue-500/20 dark:text-blue-400' : resource.type === 'PPT' ? 'bg-orange-500/10 border-orange-200/50 text-orange-600 dark:border-orange-500/20 dark:text-orange-400' : 'bg-emerald-500/10 border-emerald-200/50 text-emerald-600 dark:border-emerald-500/20 dark:text-emerald-400'}`}>
+                    {resource.type}
+                  </span>
                 </div>
 
-                <div className="flex-1 min-w-0 space-y-1.5">
+                {/* Title & Description */}
+                <div className="flex-1 mb-4 space-y-1.5">
                   <Link
                     href={`/resources/${resource.id}`}
                     className="block group-hover:text-primary transition-colors"
                   >
-                    <h3 className="text-lg font-bold leading-tight tracking-tight pr-8">
+                    <h3 className="text-base font-bold leading-snug tracking-tight line-clamp-2">
                       {resource.title}
                     </h3>
                   </Link>
-                  
                   <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
                     {resource.description || "No description provided."}
                   </p>
-
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground pt-1">
-                    <Link href={`/users/${resource.user.id}`} className="flex items-center gap-1.5 font-medium hover:text-foreground transition-colors bg-muted/50 rounded-full pl-0.5 pr-2 py-0.5 border border-transparent hover:border-border">
-                      <div className="w-4 h-4 rounded-full overflow-hidden bg-background border">
-                        <Image
-                          src={getAvatarUrl(resource.user.name || "Anonymous")}
-                          alt={resource.user.name || "Anonymous"}
-                          width={16}
-                          height={16}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      {resource.user.name || "Anonymous"}
-                    </Link>
-                    <span className="text-muted-foreground/40">•</span>
-                    <span>
-                      {new Date(resource.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </span>
-                  </div>
                 </div>
-                
-                {/* Vote and Favorite Actions */}
-                <div className="flex items-center gap-2 self-start sm:self-center mt-2 sm:mt-0">
+
+                {/* Footer: author + date */}
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground mb-3">
+                  <Link href={`/users/${resource.user.id}`} className="flex items-center gap-1.5 font-medium hover:text-foreground transition-colors">
+                    <div className="w-4 h-4 rounded-full overflow-hidden bg-background border">
+                      <Image
+                        src={getAvatarUrl(resource.user.name || "Anonymous")}
+                        alt={resource.user.name || "Anonymous"}
+                        width={16}
+                        height={16}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    {resource.user.name || "Anonymous"}
+                  </Link>
+                  <span className="text-muted-foreground/40">·</span>
+                  <span>
+                    {new Date(resource.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 pt-3 border-t border-border/60">
                   <VoteButtons resourceId={resource.id} score={resource.score} userVote={resource.userVote} isLoggedIn={true} />
+                  <div className="flex-1" />
                   <FavoriteButton 
                     resourceId={resource.id} 
                     isFavorited={(resource as any).favorites?.length > 0} 
                     isLoggedIn={true} 
                   />
+                  {currentUser.role === "ADMIN" && (
+                    <DeleteResourceButton resourceId={resource.id} />
+                  )}
                 </div>
               </div>
             ))}
