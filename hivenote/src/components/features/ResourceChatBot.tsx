@@ -112,7 +112,7 @@ export default function ResourceChatBot({
   };
 
   return (
-    <div className="flex flex-col h-full bg-card rounded-xl border shadow-sm">
+    <div className="flex flex-col h-full min-h-0 bg-card rounded-xl border shadow-sm">
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b bg-muted/30">
         <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -136,7 +136,7 @@ export default function ResourceChatBot({
       )}
 
       {/* Messages */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4" style={{ maxHeight: "calc(100vh - 300px)" }}>
+      <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
           <div key={message.id} className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
             {message.role === "assistant" && (

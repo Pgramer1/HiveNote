@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Hexagon, Eye, EyeOff } from "lucide-react";
@@ -10,7 +10,6 @@ import { Suspense, useState, useEffect } from "react";
 
 function SignInContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
   
   const [isSignUp, setIsSignUp] = useState(false);
@@ -104,12 +103,11 @@ function SignInContent() {
         // Check if user is a university student to redirect appropriately
         const response = await fetch('/api/user/check-university');
         const data = await response.json();
-        
-        if (data.isUniversityEmail) {
-          router.push('/university');
-        } else {
-          router.push(callbackUrl);
-        }
+
+        // Force a full navigation so root server components (like Navbar)
+        // re-render with the newly established session cookie.
+        const targetUrl = data.isUniversityEmail ? '/university' : callbackUrl;
+        window.location.assign(targetUrl);
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'An error occurred. Please try again.' });

@@ -19,15 +19,15 @@ export default function ResourcePageClient({ resource, resourceId, initialCommen
     : `/api/pdf?url=${encodeURIComponent(resource.fileUrl)}`;
 
   return (
-    <div className="flex flex-col" style={{ height: "calc(100vh - 110px)" }}>
+    <div className="flex flex-col lg:h-[calc(100vh-110px)]">
       {/* Title row with optional toolbar on the right */}
-      <div className="flex-shrink-0 flex items-center justify-between gap-4 mb-3">
+      <div className="shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
         <h1 className="text-2xl font-bold truncate">{resource.title}</h1>
         {(resource.type === "PDF" || resource.type === "PPT") && (
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
             <button
               onClick={() => setShowPreview(!showPreview)}
-              className="inline-flex items-center gap-2 rounded-md bg-background border border-input px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+              className="inline-flex items-center justify-center gap-2 rounded-md bg-background border border-input px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors flex-1 sm:flex-none"
             >
               {showPreview ? (
                 <><EyeOff className="w-4 h-4" />Hide Preview</>
@@ -39,7 +39,7 @@ export default function ResourcePageClient({ resource, resourceId, initialCommen
               href={viewUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-primary/90 transition-colors"
+              className="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-primary/90 transition-colors flex-1 sm:flex-none"
             >
               <ExternalLink className="w-4 h-4" />
               Open in New Tab
@@ -48,21 +48,38 @@ export default function ResourcePageClient({ resource, resourceId, initialCommen
         )}
       </div>
 
-      {/* Resizable two-panel layout — flex-1 fills remaining height */}
-      <ResizableLayout
-        className="flex-1"
-        left={
+      {/* Mobile layout: stack preview then tabs */}
+      <div className="lg:hidden flex flex-col gap-3 flex-1 min-h-0">
+        <div className="h-[52vh] min-h-80 rounded-xl border overflow-hidden bg-card">
           <ResourcePreview
             fileUrl={resource.fileUrl}
             type={resource.type}
             resourceId={resourceId}
             showPreview={showPreview}
           />
-        }
-        right={
+        </div>
+        <div className="h-[58vh] min-h-90 overflow-hidden">
           <TabbedSidebar resource={resource} resourceId={resourceId} initialComments={initialComments} />
-        }
-      />
+        </div>
+      </div>
+
+      {/* Desktop/tablet layout: resizable side-by-side panels */}
+      <div className="hidden lg:block flex-1 min-h-0">
+        <ResizableLayout
+          className="flex-1 h-full"
+          left={
+            <ResourcePreview
+              fileUrl={resource.fileUrl}
+              type={resource.type}
+              resourceId={resourceId}
+              showPreview={showPreview}
+            />
+          }
+          right={
+            <TabbedSidebar resource={resource} resourceId={resourceId} initialComments={initialComments} />
+          }
+        />
+      </div>
     </div>
   );
 }
