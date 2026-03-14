@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { incrementViewCount } from "@/actions/incrementView";
 import { ExternalLink } from "lucide-react";
 
@@ -12,6 +12,8 @@ type Props = {
 };
 
 export default function ResourcePreview({ fileUrl, type, resourceId, showPreview = true }: Props) {
+  const [useMobilePdfViewer, setUseMobilePdfViewer] = useState(false);
+
   useEffect(() => {
     // Check if user viewed this resource recently (within 5 minutes)
     const viewKey = `viewed_${resourceId}`;
@@ -24,6 +26,13 @@ export default function ResourcePreview({ fileUrl, type, resourceId, showPreview
       localStorage.setItem(viewKey, now.toString());
     }
   }, [resourceId]);
+
+  useEffect(() => {
+    const ua = navigator.userAgent.toLowerCase();
+    const isMobileDevice =
+      /android|iphone|ipad|ipod|mobile|windows phone/.test(ua);
+    setUseMobilePdfViewer(isMobileDevice);
+  }, []);
 
   if (type === "LINK") {
     return (
@@ -72,7 +81,9 @@ export default function ResourcePreview({ fileUrl, type, resourceId, showPreview
     );
   }
 
-  const viewUrl = `/api/pdf?url=${encodeURIComponent(fileUrl)}`;
+  const viewUrl = useMobilePdfViewer
+    ? `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(fileUrl)}`
+    : `/api/pdf?url=${encodeURIComponent(fileUrl)}`;
 
   return (
     <div className="h-full">

@@ -21,7 +21,7 @@ export default function TabbedSidebar({ resource, resourceId, initialComments }:
   const [activeTab, setActiveTab] = useState<Tab>("details");
 
   return (
-    <div className="bg-card rounded-xl border shadow-sm h-full flex flex-col">
+    <div className="bg-card rounded-xl border shadow-sm h-full min-h-0 flex flex-col">
       {/* Tabs Header */}
       <div className="flex border-b bg-muted/20">
         <button
@@ -60,9 +60,9 @@ export default function TabbedSidebar({ resource, resourceId, initialComments }:
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 min-h-0 overflow-hidden">
         {activeTab === "details" ? (
-          <div className="h-full overflow-y-auto p-6">
+          <div className="h-full overflow-y-auto p-4 sm:p-6">
             <div className="space-y-4">
               <div className="flex items-center gap-2 flex-wrap">
                 <span
@@ -118,11 +118,11 @@ export default function TabbedSidebar({ resource, resourceId, initialComments }:
             </div>
           </div>
         ) : activeTab === "discussion" ? (
-          <div className="h-full">
+          <div className="h-full min-h-0 overflow-hidden">
             <ResourceDiscussion resourceId={resourceId} initialComments={initialComments} />
           </div>
         ) : (
-          <div className="h-full">
+          <div className="h-full min-h-0 overflow-hidden">
             <ResourceChatBot
               resourceId={resourceId}
               resourceTitle={resource.title}
