@@ -16,7 +16,7 @@ export default function Footer() {
           </div>
 
           {/* Connect With Us */}
-          <div className="space-y-3 md:text-right">
+          {/* <div className="space-y-3 md:text-right">
             <h3 className="text-lg font-semibold text-foreground">Connect With Us</h3>
             <div className="flex gap-3 justify-start md:justify-end flex-wrap">
               <a href="#" className="w-10 h-10 border border-border rounded-lg flex items-center justify-center hover:border-foreground transition-colors" aria-label="Instagram">
@@ -50,7 +50,7 @@ export default function Footer() {
                 </svg>
               </a>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Copyright */}

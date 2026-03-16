@@ -1,4 +1,4 @@
-﻿# HiveNote
+# 🐝 HiveNote
 
 A full-stack academic resource-sharing platform built for university students. Upload, discover, and discuss PDFs, slides, and links — organized by university, department, batch, and subject.
 
@@ -27,7 +27,7 @@ A full-stack academic resource-sharing platform built for university students. U
 ### Resources
 
 - Upload **PDF**, **PPT**, and **Link** resources
-- Resources are scoped to university department batch semester subject
+- Resources are scoped to university → department → batch → semester → subject
 - View count tracking per resource
 - Full-text extraction from PDFs for AI-powered chat
 
@@ -57,7 +57,7 @@ A full-stack academic resource-sharing platform built for university students. U
 
 ### University Navigation
 
-- Browse resources by university department batch semester at `/university`
+- Browse resources by university → department → batch → semester at `/university`
 - Admin-managed departments, batches, and subjects
 
 ### Admin Panel (`/admin`)
@@ -78,32 +78,28 @@ A full-stack academic resource-sharing platform built for university students. U
 ## Project Structure
 
 ```
-hivenote/
-├── src/
-│   ├── actions/        # Server Actions (resources, votes, comments, favorites, profile)
-│   ├── app/            # Next.js App Router pages and API routes
-│   │   ├── admin/      # Admin dashboard (subjects, departments, batches)
-│   │   ├── api/        # API routes (auth, chat, pdf, debug-session)
-│   │   ├── auth/       # Sign-in / sign-up pages
-│   │   ├── me/         # Current user profile
-│   │   ├── my-favorites/
-│   │   ├── my-uploads/
-│   │   ├── resources/  # Resource listing, detail, and upload
-│   │   ├── university/ # University-based browsing
-│   │   └── users/      # Public user profiles
-│   ├── components/     # Reusable UI components (features/, layout/, ui/)
-│   ├── constants/
-│   ├── hooks/
-│   ├── lib/            # Core utilities (auth, prisma, cloudinary, email, permissions)
-│   ├── types/
-│   └── utils/
-├── prisma/
-│   ├── schema.prisma   # Database schema
-│   ├── seed.ts         # Database seeder
-│   └── migrations/     # SQL migration history
-├── public/             # Static assets (favicons, logos, robots.txt)
-├── scripts/            # Utility scripts (seed, db check, migration helpers)
-└── docs/               # Setup guides and deployment checklists
+src/
+├── actions/        # Server Actions (resources, votes, comments, favorites, profile)
+├── app/            # Next.js App Router pages and API routes
+│   ├── admin/      # Admin dashboard (subjects, departments, batches)
+│   ├── api/        # API routes (auth, chat, pdf, debug-session)
+│   ├── auth/       # Sign-in / sign-up pages
+│   ├── me/         # Current user profile
+│   ├── my-favorites/
+│   ├── my-uploads/
+│   ├── resources/  # Resource listing, detail, and upload
+│   ├── university/ # University-based browsing
+│   └── users/      # Public user profiles
+├── components/     # Reusable UI components (features/, layout/, ui/)
+├── constants/
+├── hooks/
+├── lib/            # Core utilities (auth, prisma, cloudinary, email, permissions)
+├── types/
+└── utils/
+prisma/
+├── schema.prisma   # Database schema
+├── seed.ts         # Database seeder
+└── migrations/     # SQL migration history
 ```
 
 ---
@@ -120,13 +116,13 @@ hivenote/
 
 ```bash
 git clone <repo-url>
-cd hivenote
+cd HiveNote
 pnpm install
 ```
 
 ### 2. Set up environment variables
 
-Create a `.env` file inside the `hivenote/` folder. Required variables:
+Create a `.env` file in the project root. Required variables:
 
 ```env
 # Database
@@ -201,7 +197,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Deployment
 
-The app is configured for Vercel deployment. See [hivenote/docs/VERCEL_DEPLOYMENT.md](hivenote/docs/VERCEL_DEPLOYMENT.md) for the full checklist.
+The app is configured for Vercel deployment. See [docs/VERCEL_DEPLOYMENT.md](docs/VERCEL_DEPLOYMENT.md) for the full checklist.
 
 Key points:
 
