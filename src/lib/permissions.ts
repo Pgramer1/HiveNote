@@ -1,19 +1,42 @@
 import { getSession as getSessionImport } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { cache } from "react";
+
+const getSessionCached = cache(async () => getSessionImport());
+
+const getCurrentUserByEmailCached = cache(async (email: string) => {
+  return prisma.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      university: true,
+      department: true,
+      batch: true,
+      isUniversityEmail: true,
+    },
+  });
+});
+
+const getRoleByEmailCached = cache(async (email: string) => {
+  return prisma.user.findUnique({
+    where: { email },
+    select: { role: true },
+  });
+});
 
 /**
  * Check if the current user has admin role
  */
 export async function getSession() {
-  return await getSessionImport();
+  return await getSessionCached();
 }
 
 export async function isAdmin(email: string): Promise<boolean> {
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: { role: true },
-  });
+  const user = await getRoleByEmailCached(email);
   
   return user?.role === 'ADMIN';
 }
@@ -41,41 +64,15 @@ export async function getCurrentUser() {
     return null;
   }
 
-  return await prisma.user.findUnique({
-    where: { email: session.user.email },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      university: true,
-      department: true,
-      batch: true,
-      isUniversityEmail: true,
-    },
-  });
+  return await getCurrentUserByEmailCached(session.user.email);
 }
 
 export async function requireUniversityUser() {
-  const session = await getSession();
+  const user = await getCurrentUser();
 
-  if (!session?.user?.email) {
+  if (!user) {
     redirect("/auth/signin");
   }
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      university: true,
-      department: true,
-      batch: true,
-      isUniversityEmail: true,
-    },
-  });
 
   if (!user?.isUniversityEmail) {
     redirect("/");

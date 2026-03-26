@@ -1,24 +1,73 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/permissions";
 import { getUserFavorites } from "@/actions/favorites";
+import { unstable_cache } from "next/cache";
 import { FileText, Link2, Presentation, ChevronUp, Flame, Sparkles, Heart, Building2, ShieldCheck, KeyRound, ArrowRight } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 
+const getTotalUsersCached = unstable_cache(
+  async () => prisma.user.count(),
+  ["home-total-users"],
+  { revalidate: 300 }
+);
+
+const getTotalResourcesCached = unstable_cache(
+  async () => prisma.resource.count(),
+  ["home-total-resources"],
+  { revalidate: 120 }
+);
+
+const getRecentResourcesCached = unstable_cache(
+  async () =>
+    prisma.resource.findMany({
+      take: 3,
+      include: {
+        user: {
+          select: { id: true, name: true },
+        },
+        votes: {
+          select: { value: true },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+  ["home-recent-resources"],
+  { revalidate: 60 }
+);
+
+const getTrendingResourcesCached = unstable_cache(
+  async () =>
+    prisma.resource.findMany({
+      take: 3,
+      include: {
+        user: {
+          select: { id: true, name: true },
+        },
+        votes: {
+          select: { value: true },
+        },
+      },
+    }),
+  ["home-trending-base"],
+  { revalidate: 60 }
+);
+
 export default async function Home() {
   const session = await getSession();
+  const fullCurrentUser = await getCurrentUser();
 
   // Get current user for favorites and university check
-  const currentUser = session?.user?.email
-    ? await prisma.user.findUnique({
-        where: { email: session.user.email },
-        select: { 
-          id: true,
-          isUniversityEmail: true,
-        },
-      })
+  const currentUser = fullCurrentUser
+    ? {
+        id: fullCurrentUser.id,
+        isUniversityEmail: fullCurrentUser.isUniversityEmail,
+      }
     : null;
 
   const canViewUniversityResources = Boolean(currentUser?.isUniversityEmail);
@@ -28,36 +77,13 @@ export default async function Home() {
 
   // Fetch stats and resources
   const [totalResources, totalUsers, recentResources, trendingResources] = await Promise.all([
-    canViewUniversityResources ? prisma.resource.count() : Promise.resolve(0),
-    prisma.user.count(),
+    canViewUniversityResources ? getTotalResourcesCached() : Promise.resolve(0),
+    getTotalUsersCached(),
     canViewUniversityResources
-      ? prisma.resource.findMany({
-          take: 3,
-          include: {
-            user: {
-              select: { id: true, name: true },
-            },
-            votes: {
-              select: { value: true },
-            },
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        })
+      ? getRecentResourcesCached()
       : Promise.resolve([]),
     canViewUniversityResources
-      ? prisma.resource.findMany({
-          take: 3,
-          include: {
-            user: {
-              select: { id: true, name: true },
-            },
-            votes: {
-              select: { value: true },
-            },
-          },
-        })
+      ? getTrendingResourcesCached()
       : Promise.resolve([]),
   ]);
 
