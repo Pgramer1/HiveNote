@@ -1,23 +1,18 @@
 import Link from "next/link";
-import { getSession } from "@/lib/auth";
+import { getSession, getCurrentUser } from "@/lib/permissions";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import MobileMenu from "@/components/layout/MobileMenu";
 import { Heart, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { getAvatarUrl } from "@/utils/avatar";
 import Image from "next/image";
-import { prisma } from "@/lib/prisma";
 
 export default async function Navbar() {
   const session = await getSession();
+  const currentUser = await getCurrentUser();
   
   // Check if user is a university student
-  const isUniversityStudent = session?.user?.email 
-    ? (await prisma.user.findUnique({
-        where: { email: session.user.email },
-        select: { isUniversityEmail: true },
-      }))?.isUniversityEmail || false
-    : false;
+  const isUniversityStudent = Boolean(currentUser?.isUniversityEmail);
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md supports-backdrop-filter:bg-background/60">

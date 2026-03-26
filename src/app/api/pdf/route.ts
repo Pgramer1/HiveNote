@@ -42,7 +42,9 @@ export async function GET(request: NextRequest) {
       return new NextResponse("Forbidden", { status: 403 });
     }
 
-    const response = await fetch(resource.fileUrl);
+    const response = await fetch(resource.fileUrl, {
+      next: { revalidate: 3600 },
+    });
     
     if (!response.ok) {
       return new NextResponse("Failed to fetch PDF", { status: response.status });
@@ -55,7 +57,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": download ? "attachment; filename=document.pdf" : "inline",
-        "Cache-Control": "public, max-age=31536000, immutable",
+        "Cache-Control": "private, max-age=300",
       },
     });
   } catch (error) {
