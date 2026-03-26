@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Bot, User, Loader2, Sparkles, Send, AlertCircle } from "lucide-react";
+import { Bot, User, Loader2, Sparkles, Send, AlertCircle, BookOpen } from "lucide-react";
 
 type Props = {
   resourceId: string;
@@ -10,10 +10,13 @@ type Props = {
   hasExtractedText: boolean;
 };
 
+type Source = { pageNumber: number | null };
+
 type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  sources?: Source[];
 };
 
 export default function ResourceChatBot({
@@ -66,30 +69,50 @@ export default function ResourceChatBot({
         }),
       });
 
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`Server error ${res.status}: ${errText}`);
-      }
+      if (!res.ok) throw new Error(`Server error ${res.status}: ${await res.text()}`);
 
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
       let accumulated = "";
+      let sources: Source[] = [];
+      let firstChunk = true;
 
       if (reader) {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
           const chunk = decoder.decode(value, { stream: true });
-          accumulated += chunk;
+
+          if (firstChunk) {
+            firstChunk = false;
+            // First line is always the sources JSON
+            const newlineIdx = chunk.indexOf("\n");
+            if (newlineIdx !== -1) {
+              const firstLine = chunk.slice(0, newlineIdx);
+              const rest = chunk.slice(newlineIdx + 1);
+              try {
+                const parsed = JSON.parse(firstLine);
+                if (parsed.type === "sources") sources = parsed.sources;
+              } catch { /* not JSON, treat as text */ }
+              accumulated += rest;
+            } else {
+              accumulated += chunk;
+            }
+          } else {
+            accumulated += chunk;
+          }
+
           setMessages((prev) =>
-            prev.map((m) => m.id === assistantId ? { ...m, content: accumulated } : m)
+            prev.map((m) =>
+              m.id === assistantId
+                ? { ...m, content: accumulated, sources }
+                : m
+            )
           );
         }
       }
 
-      if (!accumulated) {
-        throw new Error("Empty response from server");
-      }
+      if (!accumulated) throw new Error("Empty response from server");
     } catch (e) {
       console.error("[Chat]:", e);
       setError(e instanceof Error ? e.message : "Failed to get a response. Please try again.");
@@ -127,7 +150,6 @@ export default function ResourceChatBot({
         <Sparkles className="w-4 h-4 text-primary animate-pulse" />
       </div>
 
-      {/* Context notice for PDF without extracted text */}
       {!hasExtractedText && resourceType === "PDF" && (
         <div className="flex items-start gap-2 px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 text-xs text-amber-700 dark:text-amber-400">
           <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
@@ -144,13 +166,41 @@ export default function ResourceChatBot({
                 <Bot className="w-4 h-4 text-primary" />
               </div>
             )}
-            <div className={`max-w-[80%] rounded-lg px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
-              message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
-            }`}>
-              {message.content || (message.role === "assistant" && isLoading && (
-                <Loader2 className="w-4 h-4 animate-spin text-primary" />
-              ))}
+            <div className="max-w-[80%] flex flex-col gap-1.5">
+              <div className={`rounded-lg px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
+                message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
+              }`}>
+                {message.content || (message.role === "assistant" && isLoading && (
+                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                ))}
+              </div>
+
+              {/* Sources — only show on assistant messages with page numbers */}
+              {message.role === "assistant" &&
+                message.sources &&
+                message.sources.length > 0 &&
+                message.sources.some(s => s.pageNumber !== null) && (
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <BookOpen className="w-3 h-3 text-muted-foreground shrink-0" />
+                  <span className="text-[10px] text-muted-foreground">Sources:</span>
+                  {/* Deduplicate page numbers */}
+                  {[...new Set(
+                    message.sources
+                      .map(s => s.pageNumber)
+                      .filter((p): p is number => p !== null)
+                      .sort((a, b) => a - b)
+                  )].map(page => (
+                    <span
+                      key={page}
+                      className="inline-flex items-center rounded-md bg-primary/8 px-1.5 py-0.5 text-[10px] font-medium text-primary border border-primary/15"
+                    >
+                      p.{page}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
+
             {message.role === "user" && (
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0 mt-0.5">
                 <User className="w-4 h-4 text-primary-foreground" />
@@ -165,7 +215,6 @@ export default function ResourceChatBot({
             {error}
           </div>
         )}
-
       </div>
 
       {/* Input */}
