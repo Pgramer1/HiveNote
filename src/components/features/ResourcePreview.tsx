@@ -81,9 +81,7 @@ export default function ResourcePreview({ fileUrl, type, resourceId, showPreview
     );
   }
 
-  const viewUrl = useMobilePdfViewer
-    ? `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(fileUrl)}`
-    : `/api/pdf?url=${encodeURIComponent(fileUrl)}`;
+  const viewUrl = `/api/pdf?resourceId=${encodeURIComponent(resourceId)}`;
 
   return (
     <div className="h-full">

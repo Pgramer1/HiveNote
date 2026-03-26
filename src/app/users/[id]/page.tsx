@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
+import { requireUniversityUser } from "@/lib/permissions";
 import Breadcrumbs from "@/components/layout/Breadcrumbs";
 import { ChevronUp } from "lucide-react";
 import { getAvatarUrl } from "@/utils/avatar";
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export default async function UserProfilePage({ params }: Props) {
+  await requireUniversityUser();
   const { id } = await params;
 
   // 1️⃣ Fetch user with resources and votes

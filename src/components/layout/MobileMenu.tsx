@@ -46,6 +46,7 @@ export default function MobileMenu({ isLoggedIn, isUniversityStudent }: Props) {
                 {isUniversityStudent && (
                   <Link
                     href="/university"
+                    data-onboarding-target="nav-university"
                     className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition dark:text-white flex items-center gap-2"
                     onClick={() => setIsOpen(false)}
                   >
@@ -55,6 +56,7 @@ export default function MobileMenu({ isLoggedIn, isUniversityStudent }: Props) {
                 )}
                 <Link
                   href="/resources/upload"
+                  data-onboarding-target="nav-upload"
                   className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition dark:text-white"
                   onClick={() => setIsOpen(false)}
                 >
@@ -62,6 +64,7 @@ export default function MobileMenu({ isLoggedIn, isUniversityStudent }: Props) {
                 </Link>
                 <Link
                   href="/my-favorites"
+                  data-onboarding-target="nav-favorites"
                   className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition dark:text-white flex items-center gap-2"
                   onClick={() => setIsOpen(false)}
                 >
@@ -70,6 +73,7 @@ export default function MobileMenu({ isLoggedIn, isUniversityStudent }: Props) {
                 </Link>
                 <Link
                   href="/me"
+                  data-onboarding-target="nav-profile"
                   className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition dark:text-white"
                   onClick={() => setIsOpen(false)}
                 >

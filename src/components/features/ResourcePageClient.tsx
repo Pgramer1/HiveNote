@@ -16,7 +16,7 @@ export default function ResourcePageClient({ resource, resourceId, initialCommen
   const [showPreview, setShowPreview] = useState(true);
   const viewUrl = resource.type === "PPT"
     ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(resource.fileUrl)}`
-    : `/api/pdf?url=${encodeURIComponent(resource.fileUrl)}`;
+    : `/api/pdf?resourceId=${encodeURIComponent(resourceId)}`;
 
   return (
     <div className="flex flex-col lg:h-[calc(100vh-110px)]">
