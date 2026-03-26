@@ -1,0 +1,2 @@
+-- Empty migration placeholder restored from applied migration history.
+-- Hybrid/citations SQL changes are not tracked in this migration file.

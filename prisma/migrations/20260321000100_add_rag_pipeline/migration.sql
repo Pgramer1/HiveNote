@@ -1,0 +1,2 @@
+-- Empty migration placeholder restored from applied migration history.
+-- RAG schema changes were introduced outside this migration file.
