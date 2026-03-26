@@ -21,7 +21,7 @@ export async function embedText(text: string): Promise<number[]> {
   return json.result.data[0];
 }
 
-type ChunkWithPage = {
+export type ChunkWithPage = {
   content: string;
   pageNumber: number | null;
   chunkIndex: number;
