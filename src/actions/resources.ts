@@ -26,6 +26,27 @@ export async function createResource(formData: FormData) {
   const university = formData.get("university") as string | null;
   const subjectId = formData.get("subject") as string | null;
 
+  if (user.isUniversityEmail) {
+    if (!department || !batch || !semester || !subjectId) {
+      throw new Error("Department, batch, semester, and subject are required for university uploads");
+    }
+
+    const validSubject = await prisma.subject.findFirst({
+      where: {
+        id: subjectId,
+        university: user.university || university || undefined,
+        semester,
+        department,
+        isActive: true,
+      },
+      select: { id: true },
+    });
+
+    if (!validSubject) {
+      throw new Error("Please select a valid subject for the selected department and semester");
+    }
+  }
+
   let finalUrl = "";
   let extractedText: string | null = null;
   let chunksToEmbed: ChunkWithPage[] = [];
@@ -127,8 +148,9 @@ if (type === "PDF") {
       fileUrl: finalUrl,
       extractedText,
       uploadedBy: user.id,
-      ...(university && university !== "" && { university }),
-      ...(department && department !== "" && { department: department as any }),
+      ...(user.isUniversityEmail && user.university && { university: user.university }),
+      ...(!user.isUniversityEmail && university && university !== "" && { university }),
+      ...(department && department !== "" && { department }),
       ...(batch && batch !== "" && { batch }),
       ...(semester && { semester }),
       ...(subjectId && subjectId !== "" && { subjectId }),

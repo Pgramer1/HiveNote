@@ -253,3 +253,116 @@ body {
 .animate-slide-in {
   animation: slide-in 0.3s ease-out forwards;
 }
+
+/* Resource cards: subtle book-cover look with texture and spine */
+.resource-book-card {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0) 45%),
+    linear-gradient(180deg, rgba(234, 179, 8, 0.05) 0%, rgba(234, 179, 8, 0.01) 100%),
+    var(--card);
+  border-color: color-mix(in srgb, var(--border) 85%, var(--hive-yellow) 15%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 10px 24px rgba(0, 0, 0, 0.14);
+}
+
+.resource-book-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.32;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.12) 1px, transparent 0),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
+  background-size: 3px 3px, 100% 100%;
+}
+
+.resource-book-card::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(234, 179, 8, 0.55), rgba(234, 179, 8, 0.08));
+  opacity: 0.55;
+}
+
+.resource-book-card:hover {
+  border-color: color-mix(in srgb, var(--hive-yellow) 55%, var(--border) 45%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 16px 32px rgba(0, 0, 0, 0.2);
+}
+
+.dark .resource-book-card {
+  background:
+    linear-gradient(165deg, rgba(251, 191, 36, 0.08) 0%, rgba(251, 191, 36, 0.01) 50%),
+    linear-gradient(180deg, rgba(9, 9, 11, 0.2) 0%, rgba(9, 9, 11, 0) 100%),
+    color-mix(in srgb, var(--card) 90%, #141414 10%);
+}
+
+.resource-book-card--pdf {
+  background:
+    linear-gradient(160deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.02) 52%),
+    linear-gradient(180deg, rgba(234, 179, 8, 0.04) 0%, rgba(234, 179, 8, 0.01) 100%),
+    var(--card);
+}
+
+.resource-book-card--ppt {
+  background:
+    linear-gradient(160deg, rgba(249, 115, 22, 0.1) 0%, rgba(249, 115, 22, 0.02) 52%),
+    linear-gradient(180deg, rgba(234, 179, 8, 0.04) 0%, rgba(234, 179, 8, 0.01) 100%),
+    var(--card);
+}
+
+.resource-book-card--link {
+  background:
+    linear-gradient(160deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.02) 52%),
+    linear-gradient(180deg, rgba(234, 179, 8, 0.04) 0%, rgba(234, 179, 8, 0.01) 100%),
+    var(--card);
+}
+
+.dark .resource-book-card--pdf {
+  background:
+    linear-gradient(160deg, rgba(96, 165, 250, 0.14) 0%, rgba(96, 165, 250, 0.03) 52%),
+    linear-gradient(180deg, rgba(9, 9, 11, 0.24) 0%, rgba(9, 9, 11, 0) 100%),
+    color-mix(in srgb, var(--card) 90%, #141414 10%);
+}
+
+.dark .resource-book-card--ppt {
+  background:
+    linear-gradient(160deg, rgba(251, 146, 60, 0.14) 0%, rgba(251, 146, 60, 0.03) 52%),
+    linear-gradient(180deg, rgba(9, 9, 11, 0.24) 0%, rgba(9, 9, 11, 0) 100%),
+    color-mix(in srgb, var(--card) 90%, #141414 10%);
+}
+
+.dark .resource-book-card--link {
+  background:
+    linear-gradient(160deg, rgba(52, 211, 153, 0.14) 0%, rgba(52, 211, 153, 0.03) 52%),
+    linear-gradient(180deg, rgba(9, 9, 11, 0.24) 0%, rgba(9, 9, 11, 0) 100%),
+    color-mix(in srgb, var(--card) 90%, #141414 10%);
+}
+
+@keyframes onboarding-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(234, 179, 8, 0.45),
+      0 0 0 6px rgba(234, 179, 8, 0.16);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px rgba(234, 179, 8, 0.26),
+      0 0 0 10px rgba(234, 179, 8, 0.08);
+  }
+}
+
+.onboarding-target-highlight {
+  position: relative;
+  z-index: 81;
+  border-radius: 0.6rem;
+  animation: onboarding-pulse 1.3s ease-in-out infinite;
+}

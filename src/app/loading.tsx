@@ -1,21 +1,23 @@
-// Root page (home) loading skeleton
 function Skeleton({ className }: { className?: string }) {
   return <div className={`animate-pulse rounded-md bg-muted ${className ?? ""}`} />;
 }
 
-function ResourceCardSkeleton() {
+function SectionCardSkeleton() {
   return (
-    <div className="rounded-xl border bg-card p-5 space-y-3">
-      <div className="flex items-start justify-between gap-2">
-        <Skeleton className="h-5 w-16 rounded-full" />
-        <Skeleton className="h-4 w-4 rounded" />
+    <div className="rounded-2xl border bg-card p-6 space-y-4">
+      <div className="flex items-center gap-2">
+        <Skeleton className="h-6 w-6 rounded" />
+        <Skeleton className="h-6 w-40" />
       </div>
-      <Skeleton className="h-5 w-3/4" />
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-2/3" />
-      <div className="flex items-center justify-between pt-1">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-4 w-16" />
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="rounded-xl border bg-background p-4 space-y-2">
+          <Skeleton className="h-4 w-16 rounded-full" />
+          <Skeleton className="h-5 w-4/5" />
+          <Skeleton className="h-4 w-3/5" />
+        </div>
+      ))}
+      <div className="pt-1">
+        <Skeleton className="h-9 w-28 rounded-md" />
       </div>
     </div>
   );
@@ -23,28 +25,56 @@ function ResourceCardSkeleton() {
 
 export default function HomeLoading() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-7xl space-y-8">
-        {/* Header */}
-        <div className="space-y-3">
-          <Skeleton className="h-9 w-48" />
-          <Skeleton className="h-5 w-72" />
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
+      <section className="relative px-6 pt-10 pb-8 lg:pt-16 lg:pb-12 overflow-hidden">
+        <div className="container mx-auto max-w-4xl text-center space-y-5">
+          <div className="flex justify-center">
+            <Skeleton className="h-7 w-56 rounded-full" />
+          </div>
+          <div className="space-y-3">
+            <Skeleton className="h-14 w-full max-w-3xl mx-auto" />
+            <Skeleton className="h-14 w-2/3 max-w-2xl mx-auto" />
+          </div>
+          <Skeleton className="h-6 w-full max-w-2xl mx-auto" />
+
+          <div className="flex flex-wrap justify-center gap-4 pt-4">
+            <Skeleton className="h-12 w-48 rounded-full" />
+            <Skeleton className="h-12 w-40 rounded-full" />
+          </div>
+
+          <div className="pt-10 flex items-center justify-center gap-8">
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-16 mx-auto" />
+              <Skeleton className="h-4 w-20" />
+            </div>
+            <Skeleton className="h-10 w-px" />
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-16 mx-auto" />
+              <Skeleton className="h-4 w-20" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="container mx-auto px-6 py-12 space-y-16">
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="rounded-2xl border bg-muted/30 p-6 space-y-4">
+            <Skeleton className="h-12 w-12 rounded-lg" />
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-5 w-full" />
+          </div>
+          <div className="rounded-2xl border bg-muted/30 p-6 space-y-4">
+            <Skeleton className="h-12 w-12 rounded-lg" />
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-5 w-full" />
+          </div>
         </div>
 
-        {/* Filter bar */}
-        <div className="flex gap-2">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-9 w-24 rounded-full" />
-          ))}
+        <div className="grid lg:grid-cols-2 gap-8">
+          <SectionCardSkeleton />
+          <SectionCardSkeleton />
         </div>
-
-        {/* Cards grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <ResourceCardSkeleton key={i} />
-          ))}
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

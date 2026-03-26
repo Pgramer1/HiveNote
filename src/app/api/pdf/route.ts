@@ -1,16 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
-  const url = request.nextUrl.searchParams.get("url");
+  const session = await getSession();
+  if (!session?.user?.email) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { isUniversityEmail: true, university: true },
+  });
+
+  if (!user?.isUniversityEmail) {
+    return new NextResponse("Forbidden", { status: 403 });
+  }
+
+  const resourceId = request.nextUrl.searchParams.get("resourceId");
   const download = request.nextUrl.searchParams.get("download") === "true";
 
-  if (!url) {
-    return new NextResponse("Missing URL parameter", { status: 400 });
+  if (!resourceId) {
+    return new NextResponse("Missing resourceId parameter", { status: 400 });
   }
 
   try {
-    // Fetch the PDF from Cloudinary
-    const response = await fetch(url);
+    const resource = await prisma.resource.findUnique({
+      where: { id: resourceId },
+      select: { fileUrl: true, type: true, university: true },
+    });
+
+    if (!resource) {
+      return new NextResponse("Resource not found", { status: 404 });
+    }
+
+    if (resource.type !== "PDF") {
+      return new NextResponse("Invalid resource type", { status: 400 });
+    }
+
+    if (resource.university && user.university && resource.university !== user.university) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
+
+    const response = await fetch(resource.fileUrl);
     
     if (!response.ok) {
       return new NextResponse("Failed to fetch PDF", { status: response.status });

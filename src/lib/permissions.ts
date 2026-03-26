@@ -55,3 +55,31 @@ export async function getCurrentUser() {
     },
   });
 }
+
+export async function requireUniversityUser() {
+  const session = await getSession();
+
+  if (!session?.user?.email) {
+    redirect("/auth/signin");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      university: true,
+      department: true,
+      batch: true,
+      isUniversityEmail: true,
+    },
+  });
+
+  if (!user?.isUniversityEmail) {
+    redirect("/");
+  }
+
+  return user;
+}

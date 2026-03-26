@@ -32,22 +32,22 @@ export default async function Navbar() {
           {session ? (
             <>
               {isUniversityStudent && (
-                <Link href="/university" className="text-base font-medium hover:text-primary transition-colors flex items-center gap-1">
+                <Link href="/university" data-onboarding-target="nav-university" className="text-base font-medium hover:text-primary transition-colors flex items-center gap-1">
                   <GraduationCap className="w-4 h-4" />
                   My University
                 </Link>
               )}
-              <Link href="/resources/upload" className="text-base font-medium hover:text-primary transition-colors">
+              <Link href="/resources/upload" data-onboarding-target="nav-upload" className="text-base font-medium hover:text-primary transition-colors">
                 Upload
               </Link>
-              <Link href="/my-favorites" className="text-base font-medium hover:text-primary transition-colors flex items-center gap-1">
+              <Link href="/my-favorites" data-onboarding-target="nav-favorites" className="text-base font-medium hover:text-primary transition-colors flex items-center gap-1">
                 <Heart className="w-4 h-4" />
                 Favorites
               </Link>
 
               <ThemeToggle />
 
-              <Link href="/me" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <Link href="/me" data-onboarding-target="nav-profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <div className="w-10 h-10 rounded-full overflow-hidden bg-muted border-2 border-primary/20 hover:border-primary/50 transition-colors">
                   <Image
                     src={getAvatarUrl(session.user?.email || "user")}

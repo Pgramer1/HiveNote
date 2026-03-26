@@ -1,6 +1,6 @@
 "use client";
 
-import { useOptimistic, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { voteResource } from "@/actions/vote";
 import { useToast } from "@/components/ui/ToastProvider";
 import { calculateVoteChange } from "@/utils/resources";
@@ -26,35 +26,46 @@ export default function VoteButtons({
   className,
   orientation = "horizontal"
 }: Props) {
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
   const { showToast } = useToast();
-  
-  // Optimistic state for instant UI updates
-  const [optimisticVote, setOptimisticVote] = useOptimistic(
-    { score, userVote },
-    (state, newVote: VoteValue) => {
-      // Calculate new score based on vote change using utility function
-      const scoreChange = calculateVoteChange(state.userVote, newVote);
 
-      return {
-        score: state.score + scoreChange,
-        userVote: newVote,
-      };
-    }
-  );
+  const [localScore, setLocalScore] = useState(score);
+  const [localUserVote, setLocalUserVote] = useState(userVote);
 
-  function handleVote(value: 1 | -1) {
+  // Keep local state aligned when parent data refreshes.
+  useEffect(() => {
+    setLocalScore(score);
+    setLocalUserVote(userVote);
+  }, [score, userVote]);
+
+  async function handleVote(value: 1 | -1) {
     if (!isLoggedIn) {
       showToast("Please login to vote", "info");
       return;
     }
 
-    const newVote = optimisticVote.userVote === value ? 0 : value;
+    if (isPending) return;
 
-    startTransition(() => {
-      setOptimisticVote(newVote);
-      voteResource(resourceId, value);
-    });
+    const previousVote = localUserVote;
+    const previousScore = localScore;
+    const newVote: VoteValue = localUserVote === value ? 0 : value;
+    const scoreChange = calculateVoteChange(localUserVote, newVote);
+
+    // Optimistic UI update happens immediately.
+    setLocalUserVote(newVote);
+    setLocalScore((current) => current + scoreChange);
+    setIsPending(true);
+
+    try {
+      await voteResource(resourceId, value);
+    } catch (error) {
+      // Roll back optimistic state if server action fails.
+      setLocalUserVote(previousVote);
+      setLocalScore(previousScore);
+      showToast(error instanceof Error ? error.message : "Failed to update vote", "error");
+    } finally {
+      setIsPending(false);
+    }
   }
 
   return (
@@ -71,7 +82,7 @@ export default function VoteButtons({
         className={cn(
           "h-8 w-8 rounded-none hover:bg-muted/80",
           orientation === "vertical" && "h-8 w-full",
-          optimisticVote.userVote === 1 && "text-green-600 bg-green-500/10 hover:bg-green-500/20"
+          localUserVote === 1 && "text-green-600 bg-green-500/10 hover:bg-green-500/20"
         )}
         title={isLoggedIn ? "Upvote" : "Login to vote"}
       >
@@ -82,7 +93,7 @@ export default function VoteButtons({
         "font-semibold text-sm grid place-content-center min-w-[2.5ch] text-muted-foreground",
          orientation === "vertical" ? "py-1" : "px-1"
       )}>
-        {optimisticVote.score}
+        {localScore}
       </span>
 
       <Button
@@ -93,7 +104,7 @@ export default function VoteButtons({
         className={cn(
            "h-8 w-8 rounded-none hover:bg-muted/80",
            orientation === "vertical" && "h-8 w-full",
-          optimisticVote.userVote === -1 && "text-red-600 bg-red-500/10 hover:bg-red-500/20"
+          localUserVote === -1 && "text-red-600 bg-red-500/10 hover:bg-red-500/20"
         )}
         title={isLoggedIn ? "Downvote" : "Login to vote"}
       >

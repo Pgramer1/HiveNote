@@ -27,25 +27,24 @@ export default async function UploadPage({
     },
   });
 
-  const { department, semester } = await searchParams;
+  await searchParams;
   
-  // Fetch subjects if department and semester are provided
-  let subjects: Array<{ id: string; name: string; code: string }> = [];
-  if (user?.isUniversityEmail && user.university && department && semester) {
+  // Always fetch university subjects so navbar uploads can still choose a subject.
+  let subjects: Array<{ id: string; name: string; code: string; department: string | null; semester: number }> = [];
+  if (user?.isUniversityEmail && user.university) {
     subjects = await prisma.subject.findMany({
       where: {
         university: user.university,
-        department: department as any,
-        semester: parseInt(semester),
+        isActive: true,
       },
       select: {
         id: true,
         name: true,
         code: true,
+        department: true,
+        semester: true,
       },
-      orderBy: {
-        code: 'asc',
-      },
+      orderBy: [{ semester: "asc" }, { code: "asc" }],
     });
   }
 

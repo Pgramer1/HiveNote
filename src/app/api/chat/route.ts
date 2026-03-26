@@ -12,16 +12,32 @@ export async function POST(req: Request) {
     const session = await getSession();
     if (!session?.user?.email) return new Response("Unauthorized", { status: 401 });
 
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { isUniversityEmail: true, university: true },
+    });
+
+    if (!user?.isUniversityEmail) {
+      return new Response("Forbidden", { status: 403 });
+    }
+
     const { messages, resourceId } = await req.json();
 
     const resource = await prisma.resource.findUnique({
       where: { id: resourceId },
-      select: { title: true, type: true, extractedText: true },
+      select: { title: true, type: true, extractedText: true, university: true },
     });
 
     if (!resource) return new Response("Resource not found", { status: 404 });
 
-    const lastUserMessage = [...messages].reverse().find((m: any) => m.role === "user");
+    if (resource.university && user.university && resource.university !== user.university) {
+      return new Response("Forbidden", { status: 403 });
+    }
+
+    const normalizedMessages = Array.isArray(messages)
+      ? (messages as Array<{ role?: string; content?: unknown }>)
+      : [];
+    const lastUserMessage = [...normalizedMessages].reverse().find((m) => m.role === "user");
     const query = typeof lastUserMessage?.content === "string" ? lastUserMessage.content : "";
 
     let systemPrompt: string;

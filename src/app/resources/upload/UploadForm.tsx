@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { createResource } from "@/actions/resources";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -12,7 +12,7 @@ type UploadFormProps = {
     batch: string | null;
     university: string | null;
   } | null;
-  subjects?: Array<{ id: string; name: string; code: string }>;
+  subjects?: Array<{ id: string; name: string; code: string; department: string | null; semester: number }>;
 };
 
 export default function UploadForm({ user, subjects = [] }: UploadFormProps) {
@@ -28,6 +28,30 @@ export default function UploadForm({ user, subjects = [] }: UploadFormProps) {
   const defaultSemester = searchParams.get("semester") || "";
   const defaultSubject = searchParams.get("subject") || "";
 
+  const [selectedDepartment, setSelectedDepartment] = useState(defaultDepartment);
+  const [selectedSemester, setSelectedSemester] = useState(defaultSemester);
+  const [selectedSubject, setSelectedSubject] = useState(defaultSubject);
+
+  const filteredSubjects = useMemo(() => {
+    if (!selectedDepartment || !selectedSemester) return [];
+    const semesterNumber = Number.parseInt(selectedSemester, 10);
+    if (Number.isNaN(semesterNumber)) return [];
+
+    return subjects.filter(
+      (subject) =>
+        (subject.department || "").toUpperCase() === selectedDepartment.toUpperCase() &&
+        subject.semester === semesterNumber
+    );
+  }, [subjects, selectedDepartment, selectedSemester]);
+
+  useEffect(() => {
+    if (!selectedSubject) return;
+    const isStillValid = filteredSubjects.some((subject) => subject.id === selectedSubject);
+    if (!isStillValid) {
+      setSelectedSubject("");
+    }
+  }, [filteredSubjects, selectedSubject]);
+
   const handleSubmit = async (formData: FormData) => {
     startTransition(async () => {
       try {
@@ -40,7 +64,7 @@ export default function UploadForm({ user, subjects = [] }: UploadFormProps) {
         const semester = formData.get("semester");
         const subjectId = formData.get("subject");
         
-        if (dept && batch && semester && subjectId && subjects.length > 0) {
+        if (dept && batch && semester && subjectId && filteredSubjects.length > 0) {
           const subject = subjects.find(s => s.id === subjectId);
           if (subject) {
             router.push(`/university/${dept.toString().toLowerCase()}/${batch}/${semester}/${subject.code.toLowerCase()}`);
@@ -158,7 +182,8 @@ export default function UploadForm({ user, subjects = [] }: UploadFormProps) {
               </label>
               <select
                 name="department"
-                defaultValue={defaultDepartment}
+                value={selectedDepartment}
+                onChange={(e) => setSelectedDepartment(e.target.value)}
                 required
                 className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
               >
@@ -193,7 +218,8 @@ export default function UploadForm({ user, subjects = [] }: UploadFormProps) {
               </label>
               <select
                 name="semester"
-                defaultValue={defaultSemester}
+                value={selectedSemester}
+                onChange={(e) => setSelectedSemester(e.target.value)}
                 required
                 className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
               >
@@ -207,27 +233,32 @@ export default function UploadForm({ user, subjects = [] }: UploadFormProps) {
             </div>
           </div>
 
-          {/* Subject Selection - only shown if subjects are available */}
-          {subjects.length > 0 && (
-            <div>
-              <label className="block text-sm font-medium leading-none mb-2">
-                Subject *
-              </label>
-              <select
-                name="subject"
-                defaultValue={defaultSubject}
-                required
-                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              >
-                <option value="">Select subject</option>
-                {subjects.map((subject) => (
-                  <option key={subject.id} value={subject.id}>
-                    {subject.code} - {subject.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          <div>
+            <label className="block text-sm font-medium leading-none mb-2">
+              Subject *
+            </label>
+            <select
+              name="subject"
+              value={selectedSubject}
+              onChange={(e) => setSelectedSubject(e.target.value)}
+              required
+              disabled={!selectedDepartment || !selectedSemester || filteredSubjects.length === 0}
+              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              <option value="">
+                {!selectedDepartment || !selectedSemester
+                  ? "Select department and semester first"
+                  : filteredSubjects.length === 0
+                    ? "No subjects found"
+                    : "Select subject"}
+              </option>
+              {filteredSubjects.map((subject) => (
+                <option key={subject.id} value={subject.id}>
+                  {subject.code} - {subject.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </>
       )}
 
