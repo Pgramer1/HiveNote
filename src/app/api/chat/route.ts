@@ -7,38 +7,111 @@ import { getRelevantChunks, type SourceChunk } from "@/lib/rag";
 const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
 export const maxDuration = 30;
 
+async function authorizeChatAccess(resourceId: string) {
+  const session = await getSession();
+  if (!session?.user?.email) {
+    return { error: new Response("Unauthorized", { status: 401 }) };
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, isUniversityEmail: true, university: true },
+  });
+
+  if (!user?.isUniversityEmail) {
+    return { error: new Response("Forbidden", { status: 403 }) };
+  }
+
+  const resource = await prisma.resource.findUnique({
+    where: { id: resourceId },
+    select: { id: true, title: true, type: true, extractedText: true, university: true },
+  });
+
+  if (!resource) {
+    return { error: new Response("Resource not found", { status: 404 }) };
+  }
+
+  if (resource.university && user.university && resource.university !== user.university) {
+    return { error: new Response("Forbidden", { status: 403 }) };
+  }
+
+  return { user, resource };
+}
+
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const resourceId = searchParams.get("resourceId");
+
+    if (!resourceId) {
+      return new Response("Missing resourceId", { status: 400 });
+    }
+
+    const auth = await authorizeChatAccess(resourceId);
+    if ("error" in auth) return auth.error;
+
+    const messages = await prisma.chatMessage.findMany({
+      where: {
+        userId: auth.user.id,
+        resourceId,
+      },
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        role: true,
+        content: true,
+        createdAt: true,
+      },
+    });
+
+    return Response.json({ messages });
+  } catch (err) {
+    console.error("[Chat History API Error]", err);
+    return new Response("Internal server error", { status: 500 });
+  }
+}
+
 export async function POST(req: Request) {
   try {
-    const session = await getSession();
-    if (!session?.user?.email) return new Response("Unauthorized", { status: 401 });
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { isUniversityEmail: true, university: true },
-    });
-
-    if (!user?.isUniversityEmail) {
-      return new Response("Forbidden", { status: 403 });
-    }
-
     const { messages, resourceId } = await req.json();
-
-    const resource = await prisma.resource.findUnique({
-      where: { id: resourceId },
-      select: { title: true, type: true, extractedText: true, university: true },
-    });
-
-    if (!resource) return new Response("Resource not found", { status: 404 });
-
-    if (resource.university && user.university && resource.university !== user.university) {
-      return new Response("Forbidden", { status: 403 });
+    if (!resourceId) {
+      return new Response("Missing resourceId", { status: 400 });
     }
+
+    const auth = await authorizeChatAccess(resourceId);
+    if ("error" in auth) return auth.error;
+    const { user, resource } = auth;
 
     const normalizedMessages = Array.isArray(messages)
       ? (messages as Array<{ role?: string; content?: unknown }>)
       : [];
     const lastUserMessage = [...normalizedMessages].reverse().find((m) => m.role === "user");
     const query = typeof lastUserMessage?.content === "string" ? lastUserMessage.content : "";
+
+    if (!query.trim()) {
+      return new Response("Missing user message", { status: 400 });
+    }
+
+    // Persist the latest user message, avoiding accidental duplicates on retries.
+    const latestStoredMessage = await prisma.chatMessage.findFirst({
+      where: {
+        userId: user.id,
+        resourceId,
+      },
+      orderBy: { createdAt: "desc" },
+      select: { role: true, content: true },
+    });
+
+    if (!(latestStoredMessage?.role === "user" && latestStoredMessage.content === query)) {
+      await prisma.chatMessage.create({
+        data: {
+          userId: user.id,
+          resourceId,
+          role: "user",
+          content: query,
+        },
+      });
+    }
 
     let systemPrompt: string;
     let sources: SourceChunk[] = [];
@@ -62,7 +135,11 @@ ${sources.map((s, i) => `[Excerpt ${i + 1}${s.pageNumber ? ` · p.${s.pageNumber
     const result = streamText({
       model: groq("llama-3.3-70b-versatile"),
       system: systemPrompt,
-      messages,
+      messages: normalizedMessages
+        .filter((m): m is { role: "user" | "assistant"; content: string } =>
+          (m.role === "user" || m.role === "assistant") && typeof m.content === "string"
+        )
+        .map((m) => ({ role: m.role, content: m.content })),
     });
 
     const encoder = new TextEncoder();
@@ -76,9 +153,23 @@ ${sources.map((s, i) => `[Excerpt ${i + 1}${s.pageNumber ? ` · p.${s.pageNumber
         });
         controller.enqueue(encoder.encode(sourcesLine + "\n"));
 
+        let assistantContent = "";
+
         try {
           for await (const chunk of result.textStream) {
+            assistantContent += chunk;
             controller.enqueue(encoder.encode(chunk));
+          }
+
+          if (assistantContent.trim()) {
+            await prisma.chatMessage.create({
+              data: {
+                userId: user.id,
+                resourceId,
+                role: "assistant",
+                content: assistantContent,
+              },
+            });
           }
         } catch (err) {
           const msg = err instanceof Error ? err.message : "Unknown error";

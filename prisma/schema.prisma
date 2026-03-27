@@ -7,16 +7,16 @@ datasource db {
 }
 
 model User {
-  id                String      @id @default(cuid())
+  id                String    @id @default(cuid())
   name              String?
-  email             String?     @unique
+  email             String?   @unique
   emailVerified     DateTime?
   password          String?
   image             String?
-  bio               String?     @db.Text
-  createdAt         DateTime    @default(now())
-  role              Role        @default(USER)
-  isUniversityEmail Boolean     @default(false)
+  bio               String?   @db.Text
+  createdAt         DateTime  @default(now())
+  role              Role      @default(USER)
+  isUniversityEmail Boolean   @default(false)
   university        String? // e.g., "Adani University", "IIT Delhi", etc.
   department        String? // Department code like "CSE", "ICT", etc.
   batch             String? // e.g., "28" for 2024-2028 batch
@@ -25,6 +25,7 @@ model User {
   favorites    Favorite[]
   comments     Comment[]
   commentLikes CommentLike[]
+  chatMessages ChatMessage[]
 
   accounts Account[]
   sessions Session[]
@@ -50,14 +51,34 @@ model Resource {
   batch         String? // Which batch this resource is for (e.g., "28")
   semester      Int? // Which semester (1-8) this resource is for
   subjectId     String? // Which subject this resource is for
-  extractedText String? @db.Text // Extracted text content for AI chat
+  extractedText String?      @db.Text // Extracted text content for AI chat
 
-  user      User       @relation(fields: [uploadedBy], references: [id])
-  subject   Subject?   @relation(fields: [subjectId], references: [id])
-  votes     Vote[]
-  favorites Favorite[]
-  comments  Comment[]
-  chunks ResourceChunk[]
+  user         User            @relation(fields: [uploadedBy], references: [id])
+  subject      Subject?        @relation(fields: [subjectId], references: [id])
+  votes        Vote[]
+  favorites    Favorite[]
+  comments     Comment[]
+  chunks       ResourceChunk[]
+  chatMessages ChatMessage[]
+}
+
+enum ChatRole {
+  user
+  assistant
+}
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  userId     String
+  resourceId String
+  role       ChatRole
+  content    String   @db.Text
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@index([userId, resourceId, createdAt])
 }
 
 enum ResourceType {
@@ -193,14 +214,14 @@ model DepartmentConfig {
 }
 
 model BatchConfig {
-  id           String           @id @default(cuid())
+  id           String   @id @default(cuid())
   code         String // e.g., "28" for 2024-2028
   years        String // e.g., "2024-2028"
   university   String
   departmentId String
-  isActive     Boolean          @default(true)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   department DepartmentConfig @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   subjects   Subject[]
@@ -209,15 +230,16 @@ model BatchConfig {
 }
 
 model ResourceChunk {
-  id         String                 @id @default(cuid())
+  id         String                       @id @default(cuid())
   resourceId String
-  content    String                 @db.Text
-  embedding  Unsupported("vector(1536)")?
+  content    String                       @db.Text
+  embedding  Unsupported("vector(1024)")?
   chunkIndex Int
   pageNumber Int?
-  createdAt  DateTime               @default(now())
+  createdAt  DateTime                     @default(now())
 
-  resource   Resource               @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
   @@index([resourceId])
+  @@index([embedding], map: "ResourceChunk_embedding_hnsw_idx")
 }
