@@ -15,6 +15,7 @@ export async function getRelevantChunks(
   const vectorStr = `[${queryEmbedding.join(",")}]`;
 
   const results = await prisma.$queryRaw<{ content: string; pageNumber: number | null }[]>`
+    SET LOCAL hnsw.ef_search = 60;
     SELECT content, "pageNumber"
     FROM "ResourceChunk"
     WHERE "resourceId" = ${resourceId}

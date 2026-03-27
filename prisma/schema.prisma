@@ -25,6 +25,7 @@ model User {
   favorites    Favorite[]
   comments     Comment[]
   commentLikes CommentLike[]
+  chatMessages ChatMessage[]
 
   accounts Account[]
   sessions Session[]
@@ -58,6 +59,26 @@ model Resource {
   favorites Favorite[]
   comments  Comment[]
   chunks ResourceChunk[]
+  chatMessages ChatMessage[]
+}
+
+enum ChatRole {
+  user
+  assistant
+}
+
+model ChatMessage {
+  id         String    @id @default(cuid())
+  userId     String
+  resourceId String
+  role       ChatRole
+  content    String    @db.Text
+  createdAt  DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resource  Resource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@index([userId, resourceId, createdAt])
 }
 
 enum ResourceType {
@@ -212,7 +233,7 @@ model ResourceChunk {
   id         String                 @id @default(cuid())
   resourceId String
   content    String                 @db.Text
-  embedding  Unsupported("vector(1536)")?
+  embedding  Unsupported("vector(1024)")?
   chunkIndex Int
   pageNumber Int?
   createdAt  DateTime               @default(now())
@@ -220,4 +241,5 @@ model ResourceChunk {
   resource   Resource               @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
   @@index([resourceId])
+  @@index([embedding], map: "ResourceChunk_embedding_hnsw_idx")
 }

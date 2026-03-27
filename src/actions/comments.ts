@@ -18,9 +18,77 @@ export type CommentWithUser = {
     likes: number;
     replies: number;
   };
-  replies?: CommentWithUser[];
+  replies: CommentWithUser[];
   isLikedByCurrentUser?: boolean;
 };
+
+type FlatComment = {
+  id: string;
+  content: string;
+  createdAt: Date;
+  parentId: string | null;
+  user: {
+    id: string;
+    name: string | null;
+    image: string | null;
+  };
+  _count: {
+    likes: number;
+    replies: number;
+  };
+  likes?: { id: string }[];
+};
+
+function sortNestedComments(comments: CommentWithUser[], isTopLevel = false): CommentWithUser[] {
+  const sorted = [...comments].sort((a, b) => {
+    if (isTopLevel) {
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    }
+    return a.createdAt.getTime() - b.createdAt.getTime();
+  });
+
+  return sorted.map((comment) => ({
+    ...comment,
+    replies: sortNestedComments(comment.replies, false),
+  }));
+}
+
+function buildCommentTree(flatComments: FlatComment[], currentUserId?: string): CommentWithUser[] {
+  const nodeMap = new Map<string, CommentWithUser>();
+
+  for (const comment of flatComments) {
+    nodeMap.set(comment.id, {
+      id: comment.id,
+      content: comment.content,
+      createdAt: comment.createdAt,
+      parentId: comment.parentId,
+      user: comment.user,
+      _count: {
+        likes: comment._count.likes,
+        replies: comment._count.replies,
+      },
+      replies: [],
+      isLikedByCurrentUser: currentUserId
+        ? (comment.likes ?? []).length > 0
+        : false,
+    });
+  }
+
+  const roots: CommentWithUser[] = [];
+
+  for (const comment of flatComments) {
+    const currentNode = nodeMap.get(comment.id);
+    if (!currentNode) continue;
+
+    if (comment.parentId && nodeMap.has(comment.parentId)) {
+      nodeMap.get(comment.parentId)?.replies.push(currentNode);
+    } else {
+      roots.push(currentNode);
+    }
+  }
+
+  return sortNestedComments(roots, true);
+}
 
 export async function getResourceComments(
   resourceId: string
@@ -29,11 +97,8 @@ export async function getResourceComments(
   const currentUserId = session?.user?.id;
 
   const comments = await prisma.comment.findMany({
-    where: { 
-      resourceId,
-      parentId: null, // Only get top-level comments
-    },
-    orderBy: { createdAt: "desc" },
+    where: { resourceId },
+    orderBy: { createdAt: "asc" },
     include: {
       user: {
         select: {
@@ -46,34 +111,6 @@ export async function getResourceComments(
         select: {
           likes: true,
           replies: true,
-        },
-      },
-      replies: {
-        orderBy: { createdAt: "asc" },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-            },
-          },
-          _count: {
-            select: {
-              likes: true,
-              replies: true,
-            },
-          },
-          likes: currentUserId
-            ? {
-                where: {
-                  userId: currentUserId,
-                },
-                select: {
-                  id: true,
-                },
-              }
-            : false,
         },
       },
       likes: currentUserId
@@ -89,34 +126,7 @@ export async function getResourceComments(
     },
   });
 
-  return comments.map((comment) => ({
-    id: comment.id,
-    content: comment.content,
-    createdAt: comment.createdAt,
-    parentId: comment.parentId,
-    user: comment.user,
-    _count: {
-      likes: comment._count.likes,
-      replies: comment._count.replies,
-    },
-    replies: (comment.replies as any[]).map((reply) => ({
-      id: reply.id,
-      content: reply.content,
-      createdAt: reply.createdAt,
-      parentId: reply.parentId,
-      user: reply.user,
-      _count: {
-        likes: reply._count.likes,
-        replies: reply._count.replies,
-      },
-      isLikedByCurrentUser: currentUserId
-        ? (reply.likes as { id: string }[]).length > 0
-        : false,
-    })),
-    isLikedByCurrentUser: currentUserId
-      ? (comment.likes as { id: string }[]).length > 0
-      : false,
-  }));
+  return buildCommentTree(comments as FlatComment[], currentUserId);
 }
 
 export async function createComment(resourceId: string, content: string, parentId?: string) {
@@ -166,6 +176,7 @@ export async function createComment(resourceId: string, content: string, parentI
       likes: comment._count.likes,
       replies: comment._count.replies,
     },
+    replies: [],
     isLikedByCurrentUser: false,
   };
 }

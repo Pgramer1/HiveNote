@@ -19,6 +19,22 @@ type Message = {
   sources?: Source[];
 };
 
+function buildWelcomeMessage(
+  resourceTitle: string,
+  resourceType: "PDF" | "PPT" | "LINK",
+  hasExtractedText: boolean
+): Message {
+  return {
+    id: "welcome",
+    role: "assistant",
+    content: hasExtractedText
+      ? `Hi! I've read "${resourceTitle}" and I'm ready to help. Ask me anything about this document!`
+      : resourceType === "PPT"
+        ? `Hi! I can help you with "${resourceTitle}". Note: I can't read the slides directly, but ask me anything and I'll do my best!`
+        : `Hi! I can help you with "${resourceTitle}". Ask me anything!`,
+  };
+}
+
 export default function ResourceChatBot({
   resourceId,
   resourceTitle,
@@ -26,18 +42,11 @@ export default function ResourceChatBot({
   hasExtractedText,
 }: Props) {
   const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content: hasExtractedText
-        ? `Hi! I've read "${resourceTitle}" and I'm ready to help. Ask me anything about this document!`
-        : resourceType === "PPT"
-        ? `Hi! I can help you with "${resourceTitle}". Note: I can't read the slides directly, but ask me anything and I'll do my best!`
-        : `Hi! I can help you with "${resourceTitle}". Ask me anything!`,
-    },
+    buildWelcomeMessage(resourceTitle, resourceType, hasExtractedText),
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -46,8 +55,48 @@ export default function ResourceChatBot({
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadHistory = async () => {
+      setIsLoadingHistory(true);
+      setError(null);
+
+      try {
+        const res = await fetch(`/api/chat?resourceId=${encodeURIComponent(resourceId)}`);
+        if (!res.ok) throw new Error(`Failed to load chat history (${res.status})`);
+
+        const data = (await res.json()) as {
+          messages: Array<{ id: string; role: "user" | "assistant"; content: string }>;
+        };
+
+        if (!isMounted) return;
+
+        if (Array.isArray(data.messages) && data.messages.length > 0) {
+          setMessages(data.messages.map((msg) => ({ id: msg.id, role: msg.role, content: msg.content })));
+        } else {
+          setMessages([buildWelcomeMessage(resourceTitle, resourceType, hasExtractedText)]);
+        }
+      } catch (e) {
+        console.error("[Chat History]:", e);
+        if (!isMounted) return;
+        setMessages([buildWelcomeMessage(resourceTitle, resourceType, hasExtractedText)]);
+      } finally {
+        if (isMounted) {
+          setIsLoadingHistory(false);
+        }
+      }
+    };
+
+    loadHistory();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [resourceId, resourceTitle, resourceType, hasExtractedText]);
+
   const sendMessage = async (text: string) => {
-    if (!text.trim() || isLoading) return;
+    if (!text.trim() || isLoading || isLoadingHistory) return;
 
     const userMsg: Message = { id: Date.now().toString(), role: "user", content: text };
     const allMessages = [...messages, userMsg];
@@ -159,6 +208,13 @@ export default function ResourceChatBot({
 
       {/* Messages */}
       <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+        {isLoadingHistory && (
+          <div className="flex items-center justify-center py-4 text-xs text-muted-foreground gap-2">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            Loading previous conversation...
+          </div>
+        )}
+
         {messages.map((message) => (
           <div key={message.id} className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
             {message.role === "assistant" && (
@@ -226,12 +282,12 @@ export default function ResourceChatBot({
             onKeyDown={onKeyDown}
             placeholder="Ask about this resource..."
             rows={1}
-            disabled={isLoading}
+            disabled={isLoading || isLoadingHistory}
             className="flex-1 resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 min-h-11 max-h-32"
           />
           <button
             type="submit"
-            disabled={!input.trim() || isLoading}
+            disabled={!input.trim() || isLoading || isLoadingHistory}
             className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 w-11 shrink-0"
           >
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
