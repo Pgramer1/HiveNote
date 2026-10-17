@@ -14,7 +14,7 @@ The running record of what changed, why, and what it did to performance. The pla
 | PPTX slide text captured at upload | **0 slide words**; 12,458 chars of zip/XML junk embedded for a 2-slide deck | Unchanged (fix planned in Phase 1) | Ran the upload extraction code on a generated .pptx |
 | PDF structure kept at upload | Headings and line breaks lost; two-column text interleaved; headers/footers repeated per page | Unchanged (fix planned in Phase 1) | Ran the extraction code on a two-column test PDF |
 | Look-alike university domains accepted at sign-up | Yes (e.g. `notadaniuni.ac.in`) | No: exact domain or subdomain only | Unit tests |
-| Automated tests | 0 | 14 (13 unit + 1 pgvector integration) | `pnpm test` |
+| Automated tests | 0 | 41 (40 unit + 1 pgvector integration), after merging the eval harness | `pnpm test` |
 | Unused npm dependencies | 4 | 0 | Import search across `src/`, `scripts/`, `prisma/` |
 | Unused database tables | 2 (`Account`, `Session`, both empty) | 0 | Row counts on Neon before the migration |
 | Production schema drift vs `schema.prisma` | Not checked | None | `prisma migrate diff` against Neon after deploy |
@@ -46,8 +46,9 @@ Newest first.
 
 | Date | Change | Where | Status |
 | --- | --- | --- | --- |
-| 2026-10-17 | Chat model switched from `llama-3.3-70b-versatile` (reported retired by Groq) to `openai/gpt-oss-120b`, configurable through `GROQ_CHAT_MODEL`; model errors now surface in the chat stream | Commit `49d7ea0`, branch `claude/stoic-kirch-10a25a` | Not merged or pushed; that session reports tests, tsc and lint pass |
-| 2026-10-17 | Phase 0 evaluation harness: `pnpm eval`, recall@k / MRR / optional faithfulness, synthetic smoke-test data, question-set guide | Commit `8fc9663`, branch `claude/gracious-matsumoto-ecbe26` | Not merged; tests not re-run after rebase |
+| 2026-10-17 | Eval script now uses the chat's model from `src/lib/chat-model.ts` instead of a hard-coded retired one; plan and eval docs updated to the new model | Merge commit on `main` | Done; 40 tests pass, tsc clean, production build compiles |
+| 2026-10-17 | Chat model switched from `llama-3.3-70b-versatile` (reported retired by Groq) to `openai/gpt-oss-120b`, configurable through `GROQ_CHAT_MODEL`; model errors now surface in the chat stream | Commit `49d7ea0`, merged into `main` | Done |
+| 2026-10-17 | Phase 0 evaluation harness: `pnpm eval`, recall@k / MRR / optional faithfulness, synthetic smoke-test data, question-set guide | Commit `8fc9663`, merged into `main` | Done; real question set still to be written |
 | 2026-10-17 | Removed the Claude co-author trailer from the commit; history rewritten before merge | `fix/optimize` force-pushed | Done |
 | 2026-10-17 | Migration `20261017000000_remove_oauth_tables` applied to production Neon | Neon | Done; both tables were empty |
 | 2026-10-17 | Retrieval fix, domain check fix, OAuth removal, unused packages removed, Vitest added, `.env.example` completed, README cleaned up, `CLAUDE.md` and plan added | Commit `83c813d`, PR #11 merged into `main` | Done |
@@ -107,9 +108,12 @@ Python reads and writes the tables but never migrates them. LangGraph checkpoint
 **2026-10-17 · Standing rule**
 Per the repo owner. The one commit that had the line was rewritten before it reached `main`.
 
+### D-014 · Chat model: `openai/gpt-oss-120b`, set through `GROQ_CHAT_MODEL`
+**2026-10-17 · Done**
+Groq retired `llama-3.3-70b-versatile`, which `/api/chat` used. The model now lives in `src/lib/chat-model.ts` with an env override, so the next retirement is a config change rather than a code change. The eval harness reads the same constant, so evaluation always measures the model the chat actually uses.
+
 ### Open decisions
 
 - [ ] Hosting for the Python service: Railway or Cloud Run (one minimum instance)?
 - [ ] Keep accepting legacy `.ppt` (needs LibreOffice in the container) or `.pptx` only?
 - [ ] Which vision model or OCR provider for handwriting, and what per-page budget?
-- [ ] Confirm `openai/gpt-oss-120b` as the chat model (commit `49d7ea0`) and update the plan's model choices to match.

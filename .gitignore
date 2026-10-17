@@ -59,3 +59,6 @@ yarn-error.log*
 !CLAUDE.md
 !docs/RAG_OVERHAUL_PLAN.md
 !docs/DECISIONS.md
+
+# eval run outputs (force-add the baseline you keep)
+/eval/results/

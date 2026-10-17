@@ -87,7 +87,7 @@ flowchart TB
         ingest["<b>Ingestion worker</b><br/>Claims PENDING resources from Postgres<br/>Parse: PyMuPDF, python-pptx, OCR, vision<br/>Clean, chunk by structure, embed in batches<br/>Write chunks, set READY or FAILED"]
     end
     db[("<b>Neon Postgres + pgvector</b><br/>Resource, ResourceChunk (vector + full-text)<br/>ChatMessage; schema owned by Prisma")]
-    apis["<b>Model APIs</b><br/>Cloudflare Workers AI: bge-m3, reranker<br/>Groq: Llama answer and helper models<br/>Vision model: handwritten pages"]
+    apis["<b>Model APIs</b><br/>Cloudflare Workers AI: bge-m3, reranker<br/>Groq: gpt-oss answer and helper models<br/>Vision model: handwritten pages"]
 
     browser -->|uploads, chat| next
     next -->|store file| cloud
@@ -110,7 +110,7 @@ flowchart TD
     rewrite --> retrieve["Hybrid retrieve<br/><i>vector + full-text, top 20</i>"]
     retrieve --> rerank["Rerank to top 5<br/><i>Cloudflare reranker</i>"]
     rerank --> relevant{"Context relevant?"}
-    relevant -->|yes| cited["<b>Answer with citations</b><br/><i>70B model, page refs</i>"]
+    relevant -->|yes| cited["<b>Answer with citations</b><br/><i>gpt-oss-120b, page refs</i>"]
     relevant -->|no| retried{"Already retried?"}
     retried -->|no: rewrite, retry| rewrite
     retried -->|yes| general["General answer<br/><i>labelled: not from the notes</i>"]
@@ -118,7 +118,7 @@ flowchart TD
     general --> stream
 ```
 
-- **Models:** Groq `llama-3.3-70b-versatile` writes the answer; a small fast model (e.g. `llama-3.1-8b-instant`) rewrites and grades, so those steps add little delay.
+- **Models:** Groq `openai/gpt-oss-120b` writes the answer (the model `/api/chat` uses since `llama-3.3-70b-versatile` was retired; configurable through `GROQ_CHAT_MODEL`); a small fast model (e.g. `openai/gpt-oss-20b`) rewrites and grades, so those steps add little delay.
 - **Hybrid retrieve:** pgvector cosine top 20 plus Postgres full-text top 20, merged by reciprocal rank fusion, filtered to the resource (later: to a subject).
 - **State:** question, last 10 messages, rewritten query, candidates, final chunks, retry count, answer, sources.
 - **Memory:** `ChatMessage` stays the history the UI shows. A LangGraph Postgres checkpointer is optional; if used, it lives in a separate `langgraph` schema so Prisma never tries to drop its tables.
@@ -171,7 +171,7 @@ Prisma stays the only owner of the database schema; Python reads and writes thos
 | Embeddings | Cloudflare Workers AI `bge-m3`, batched | Same model and 1024 dimensions as today; no re-architecture of the vector column |
 | Reranking | Cloudflare `bge-reranker-base` | Reorders the top ~20 candidates |
 | Chat orchestration | LangGraph | Graph of rewrite → retrieve → grade → answer |
-| LLMs | Groq via `langchain-groq`: `llama-3.3-70b-versatile` to answer, a small fast model (e.g. `llama-3.1-8b-instant`) to rewrite and grade | Same provider as today |
+| LLMs | Groq via `langchain-groq`: `openai/gpt-oss-120b` to answer, a small fast model (e.g. `openai/gpt-oss-20b`) to rewrite and grade | Same provider and models as today's chat and eval judge |
 | Database | psycopg 3 + pgvector-python | Same Neon database, raw SQL |
 | Background jobs | Postgres job claim (`FOR UPDATE SKIP LOCKED` on PENDING resources) | No extra queue service needed |
 | Tests | pytest + a pgvector test container | Same approach as the Vitest integration test |

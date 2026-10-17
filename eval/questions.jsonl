@@ -1,0 +1,4 @@
+# HiveNote retrieval eval: real questions, one JSON object per line. See eval/README.md.
+# Fields: id, resourceId, question, expectedPages (1-based pages/slides), evidence (short quotes), referenceAnswer.
+# Template (remove the leading "# " and fill in):
+# {"id":"subject-topic-1","resourceId":"<Resource.id from /resources/<id>>","question":"...","expectedPages":[1],"evidence":["a short quote from that page"],"referenceAnswer":"..."}
