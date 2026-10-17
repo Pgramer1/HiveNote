@@ -17,6 +17,7 @@ pnpm exec prisma migrate deploy       # apply migrations
 pnpm exec prisma migrate dev --name x # create a new migration
 pnpm exec prisma generate             # regenerate client (also runs on postinstall)
 pnpm exec tsx scripts/backfill-embeddings.ts  # re-chunk/embed resources that have extractedText
+pnpm eval                             # retrieval eval (recall@k, MRR) on eval/questions.jsonl; needs EVAL_DATABASE_URL, see eval/README.md
 ```
 
 `src/lib/rag.integration.test.ts` runs the real pgvector SQL and is skipped unless `TEST_DATABASE_URL` points at a disposable, migrated Postgres with pgvector (instructions in the file header; the `pgvector/pgvector:pg17` Docker image works). Never point it at Neon. `pnpm lint` currently reports ~139 pre-existing problems, so lint only the files you touch.

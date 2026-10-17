@@ -9,7 +9,8 @@
     "postinstall": "prisma generate",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "eval": "tsx scripts/eval-retrieval.ts"
   },
   "dependencies": {
     "@ai-sdk/groq": "^3.0.26",

@@ -58,3 +58,6 @@ yarn-error.log*
 !README.md
 !CLAUDE.md
 !docs/RAG_OVERHAUL_PLAN.md
+
+# eval run outputs (force-add the baseline you keep)
+/eval/results/

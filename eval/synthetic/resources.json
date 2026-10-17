@@ -1,0 +1,26 @@
+{
+  "pdf": {
+    "id": "eval_synthetic_pdf",
+    "title": "Synthetic DBMS Notes (eval smoke test)",
+    "pages": [
+      "Unit 1: Indexing. A B-tree of order m keeps every leaf at the same depth, so a lookup reads one node per level. Internal nodes hold between ceil(m/2) and m children, except the root. Because each node fills a whole disk block, the height stays small even for millions of keys, which is why databases prefer B-trees over binary search trees for on-disk indexes.",
+      "B+ trees store all records in the leaves and link the leaves in a list. Internal nodes contain only separator keys, so more keys fit per node and the fan-out is higher. Range queries walk the leaf chain without going back up the tree. Most relational databases, including PostgreSQL and MySQL InnoDB, use B+ trees for their default index type.",
+      "Unit 2: Hashing. Static hashing maps a key to one of N buckets with h(k) mod N. When buckets overflow, chains of overflow pages make lookups slower. Extendible hashing avoids full rehashing by keeping a directory of 2^d pointers, where d is the global depth; only the bucket that overflows is split, and the directory doubles only when that bucket's local depth equals the global depth.",
+      "Unit 3: Transactions. ACID stands for atomicity, consistency, isolation and durability. Atomicity means a transaction's changes are applied completely or not at all. Isolation means concurrent transactions do not see each other's partial results. Durability means committed changes survive crashes, usually by forcing the log to stable storage before the commit is acknowledged.",
+      "Two-phase locking (2PL) has a growing phase, in which a transaction acquires locks and releases none, and a shrinking phase, in which it releases locks and acquires none. 2PL guarantees conflict-serializable schedules. Strict 2PL holds all exclusive locks until commit or abort, which also prevents cascading aborts. 2PL does not prevent deadlocks; a wait-for graph or timeouts are used to detect them.",
+      "Write-ahead logging (WAL): before a modified data page is written to disk, the log records describing the change must be written first. On recovery, the ARIES algorithm runs three passes: analysis to find dirty pages and active transactions, redo to repeat history from the oldest dirty page's LSN, and undo to roll back transactions that never committed.",
+      "Unit 4: Normalization. A relation is in first normal form when every attribute holds atomic values. Second normal form removes partial dependencies of non-key attributes on part of a composite key. Third normal form removes transitive dependencies. Boyce-Codd normal form requires that for every non-trivial functional dependency X -> Y, X is a superkey; BCNF decomposition is lossless but may not preserve all dependencies.",
+      "Unit 5: Query optimization. A cost-based optimizer enumerates join orders, estimates the cardinality of each intermediate result from table statistics and histograms, and picks the plan with the lowest estimated I/O and CPU cost. Selections and projections are pushed down as early as possible. The System R optimizer considers only left-deep join trees to keep the search space manageable."
+    ]
+  },
+  "ppt": {
+    "id": "eval_synthetic_ppt",
+    "title": "Synthetic OS Slides (eval smoke test)",
+    "slides": [
+      "Slide 1: CPU Scheduling. First-come first-served is simple but suffers from the convoy effect when a long job blocks short ones.",
+      "Slide 2: Round robin gives each process a fixed time quantum; a quantum that is too small wastes time on context switches.",
+      "Slide 3: Deadlock needs four conditions at once: mutual exclusion, hold and wait, no preemption, and circular wait.",
+      "Slide 4: The banker's algorithm avoids deadlock by granting a request only if the system stays in a safe state."
+    ]
+  }
+}
