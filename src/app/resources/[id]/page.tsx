@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import ResourcePageClient from "@/components/features/ResourcePageClient";
 import { getResourceComments } from "@/actions/comments";
 import { requireUniversityUser } from "@/lib/permissions";
-import { ragServiceConfigured } from "@/lib/rag-service";
+import { indexingConfigured } from "@/lib/rag-service";
 
 // CURRENT: Layout Option 2 - Two-Column with Tabbed Sidebar
 // PDF takes more space (wider), tabbed sidebar with Details, Discussion, and AI Assistant
@@ -46,9 +46,9 @@ export default async function ResourceDetailPage({ params }: Props) {
   // Fetch comments for the resource
   const comments = await getResourceComments(id);
 
-  // Without the indexing service nothing processes PENDING files, so don't claim it's underway.
+  // Without a Python indexer nothing processes PENDING files, so don't claim it's underway.
   const indexStatus =
-    resource.indexStatus === "PENDING" && !ragServiceConfigured() ? null : resource.indexStatus;
+    resource.indexStatus === "PENDING" && !indexingConfigured() ? null : resource.indexStatus;
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground animate-in fade-in duration-500">

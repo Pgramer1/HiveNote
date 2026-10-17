@@ -78,6 +78,7 @@ Newest first.
 
 | Date | Change | Where | Status |
 | --- | --- | --- | --- |
+| 2026-10-17 | Indexing runs on GitHub Actions: `rag-index.yml` (per-upload `workflow_dispatch` + daily PENDING retry), Next.js `queueIndexing()` picks the HTTP service or the workflow, chat copy says "within a few minutes"; service refuses API calls while its secret is unset, CLI exits 1 on failures | `.github/workflows/rag-index.yml`, `src/lib/rag-service.ts`, `services/rag/app/{main,config,cli}.py` | Tested locally (56 JS + 34 Python tests, actionlint); not merged, secrets not set, no workflow run yet |
 | 2026-10-17 | Phase 1 retrieval measured on production (read-only): recall@5 97.1%, MRR 0.880, slide decks 100%, identical to the local run | `eval/results/2026-10-17T12-25-36Z-phase1-prod.json` | Done |
 | 2026-10-17 | Production re-indexed with the Python service (`reindex --all`, service image run locally against Neon): 19 of 19 READY, 0 FAILED | Neon | Done |
 | 2026-10-17 | Service connects to Neon with certificate verification (`sslmode=verify-full`) using certifi's CA bundle (D-019); `certifi` is now a direct dependency, 3 tests added | `services/rag/app/db.py` | Done; 33 Python tests pass |
@@ -175,11 +176,26 @@ The header (`title › section › page`, embedded but not stored) is worth abou
 **2026-10-17 · Done**
 `createResource` hands indexing to the service only when `RAG_SERVICE_URL` and `RAG_SERVICE_SECRET` are set, and otherwise runs the old in-process extraction. The branch can therefore deploy before the service exists without breaking uploads. With the service set, the upload returns immediately and indexing runs after the response (`after()`).
 
-### D-018 · Free hosting for the Python service: Google Cloud Run
-**2026-10-17 · Decided: Cloud Run**
+### D-018 · Free hosting for the Python service
+**2026-10-17 · Decided: GitHub Actions as the indexer (no host)**
 The service is a plain Docker image (1.9 GB with LibreOffice) that needs no always-on worker: Next.js calls `/ingest` per upload, and `/ingest/pending` retries anything left PENDING. Free options: Google Cloud Run (free tier, scales to zero, needs a card on file), Hugging Face Spaces Docker (no card, sleeps when idle), Render free (512 MB RAM, too small for LibreOffice).
 
 Chosen: **Cloud Run** in `us-east1`, near Neon's `us-east-1`. Hugging Face's docs allow Spaces outbound traffic only on ports 80, 443 and 8080. A 2023 staff forum post says 5432 was opened, but the docs don't say so, and the service has to reach Neon on 5432 with psycopg.
+
+Update, same day: Cloud Run is blocked for now because setting up Google Cloud billing failed. Hugging Face Spaces is out on the free plan: creating a Docker Space returned HTTP 402 ("hosting Gradio and Docker Spaces on free cpu-basic requires a PRO subscription"); only static Spaces are free.
+
+**Chosen: no host. GitHub Actions runs the indexer.** After an upload, Next.js starts `.github/workflows/rag-index.yml` through the GitHub API (`workflow_dispatch` with the resource id). The workflow installs LibreOffice and the service's locked dependencies, then runs `python -m app.cli reindex --id`. A daily scheduled run indexes anything left PENDING, which covers retries (plan step 5). The repo is public, so Actions minutes cost nothing. The token on Vercel is fine-grained: this repository only, Actions read/write.
+
+Trade-offs:
+- A new upload becomes searchable after one workflow run instead of seconds (run time not measured yet). The chat already shows the indexing status.
+- Run logs are public. The CLI prints only resource ids, counts and error messages, and GitHub masks secret values.
+- Phase 2's chat needs a server that is always reachable, so hosting comes back then: Cloud Run once billing works, or the chat moves to Next.js.
+
+The HTTP service mode stays: `RAG_SERVICE_URL` takes precedence when set, so switching to a host later is a configuration change.
+
+Related changes:
+- The service now refuses every API request (503) while `RAG_SERVICE_SECRET` is unset, so the CLI no longer needs a dummy secret.
+- The CLI exits 1 if any resource FAILED, so a broken indexer turns the run red.
 
 ### D-019 · Verify Neon's TLS certificate with certifi's CA bundle
 **2026-10-17 · Done**
@@ -187,5 +203,5 @@ Neon connection strings now carry `sslmode=verify-full`. In the service image li
 
 ### Open decisions
 
-- [x] Hosting for the Python service (D-018): Cloud Run
+- [x] Indexing without a host (D-018): GitHub Actions. Hosting for Phase 2 chat is still open
 - [ ] Which vision model or OCR provider for handwriting, and what per-page budget?

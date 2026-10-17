@@ -13,8 +13,9 @@ class Settings(BaseSettings):
     database_url: str
     cloudflare_account_id: str
     cloudflare_api_token: str
-    # Shared secret the Next.js app sends as "Authorization: Bearer <secret>".
-    rag_service_secret: str
+    # Shared secret the Next.js app sends as "Authorization: Bearer <secret>". Only the HTTP API needs it
+    # (it refuses every request while unset); the CLI and the GitHub Actions indexer don't.
+    rag_service_secret: str = ""
 
     embed_batch_size: int = 50
     max_download_bytes: int = 25 * 1024 * 1024

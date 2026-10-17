@@ -17,6 +17,16 @@ def test_ingest_rejects_missing_or_wrong_secret():
     assert client.post("/ingest", json={"resourceId": "r1"}, headers={"Authorization": "Bearer nope"}).status_code == 401
 
 
+def test_ingest_refuses_everything_while_secret_is_unset(monkeypatch):
+    from types import SimpleNamespace
+
+    import app.main
+
+    monkeypatch.setattr(app.main, "get_settings", lambda: SimpleNamespace(rag_service_secret=""))
+    for headers in ({}, {"Authorization": "Bearer "}, {"Authorization": "Bearer anything"}):
+        assert client.post("/ingest", json={"resourceId": "r1"}, headers=headers).status_code == 503
+
+
 def test_ingest_runs_the_pipeline(monkeypatch):
     calls = []
 

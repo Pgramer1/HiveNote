@@ -13,8 +13,10 @@ app = FastAPI(title="HiveNote RAG service", version=PARSER_VERSION)
 
 
 def require_secret(authorization: str = Header(default="")) -> None:
-    expected = f"Bearer {get_settings().rag_service_secret}"
-    if not secrets.compare_digest(authorization.encode(), expected.encode()):
+    secret = get_settings().rag_service_secret
+    if not secret:
+        raise HTTPException(status_code=503, detail="RAG_SERVICE_SECRET is not configured")
+    if not secrets.compare_digest(authorization.encode(), f"Bearer {secret}".encode()):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 

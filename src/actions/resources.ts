@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import cloudinary from "@/lib/cloudinary";
 import { getSession } from "@/lib/auth";
 import { after } from "next/server";
-import { ragServiceConfigured, requestIndexing } from "@/lib/rag-service";
+import { indexingConfigured, queueIndexing } from "@/lib/rag-service";
 import { embedChunksAndStore, chunkPdfPages, chunkText, type ChunkWithPage } from "@/lib/embeddings";
 import {
   MAX_RESOURCE_BYTES,
@@ -72,7 +72,7 @@ export async function getResourceUploadSignature(input: {
   };
 }
 
-/** The original TypeScript extraction, used only when RAG_SERVICE_URL isn't configured. */
+/** The original TypeScript extraction, used only when no Python indexer is configured. */
 async function extractLegacy(
   buffer: Buffer,
   type: "PDF" | "PPT"
@@ -232,8 +232,8 @@ export async function createResource(formData: FormData): Promise<ActionResult> 
 
     finalUrl = asset.secure_url;
 
-    // Without the Python service, fall back to the old in-process extraction.
-    if (!ragServiceConfigured()) {
+    // Without the Python indexer (service or GitHub workflow), fall back to the old in-process extraction.
+    if (!indexingConfigured()) {
       const download = await fetch(asset.secure_url);
       if (!download.ok) {
         return { success: false, error: "The uploaded file could not be read. Please try again." };
@@ -268,9 +268,9 @@ export async function createResource(formData: FormData): Promise<ActionResult> 
 
   // ── Index for AI chat ───────────────────────────────────────────
   if (type !== "LINK") {
-    if (ragServiceConfigured()) {
+    if (indexingConfigured()) {
       // Runs after the response is sent, so the upload returns immediately.
-      after(() => requestIndexing(resource.id));
+      after(() => queueIndexing(resource.id));
     } else {
       await indexLegacy(resource.id, chunksToEmbed);
     }

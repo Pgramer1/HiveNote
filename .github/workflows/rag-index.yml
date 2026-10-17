@@ -1,0 +1,66 @@
+# Indexes uploaded PDFs/PPTs for AI chat with the Python service's CLI (services/rag).
+# The Next.js app starts it per upload through the GitHub API (src/lib/rag-service.ts) when
+# RAG_INDEX_GITHUB_TOKEN and RAG_INDEX_GITHUB_REPO are set; the daily run retries anything left PENDING.
+# Logs are public on this repo: the CLI prints only resource ids, counts and error messages.
+name: Index documents for AI chat
+
+on:
+  workflow_dispatch:
+    inputs:
+      resource_id:
+        description: "Resource id to (re)index; leave empty to index everything PENDING"
+        required: false
+        default: ""
+  schedule:
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rag-index-${{ inputs.resource_id || 'pending' }}
+  cancel-in-progress: false
+
+jobs:
+  index:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: services/rag
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: services/rag
+
+      # Converts legacy binary .ppt decks to .pptx (same packages as the service's Dockerfile).
+      - name: Install LibreOffice
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends libreoffice-impress fonts-dejavu-core
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.21"
+          enable-cache: true
+          cache-dependency-glob: services/rag/uv.lock
+
+      - name: Install dependencies
+        run: uv sync --frozen --no-dev
+
+      - name: Index
+        env:
+          # Neon DIRECT connection string (host without "-pooler").
+          DATABASE_URL: ${{ secrets.RAG_DATABASE_URL }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          RESOURCE_ID: ${{ inputs.resource_id }}
+        run: |
+          if [ -z "$RESOURCE_ID" ]; then
+            uv run --no-sync python -m app.cli reindex --pending
+          elif [[ "$RESOURCE_ID" =~ ^[A-Za-z0-9_-]{1,64}$ ]]; then
+            uv run --no-sync python -m app.cli reindex --id "$RESOURCE_ID"
+          else
+            echo "::error::resource_id must be 1-64 letters, digits, '-' or '_'"
+            exit 1
+          fi

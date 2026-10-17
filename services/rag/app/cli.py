@@ -8,6 +8,7 @@
 
 import argparse
 import logging
+import sys
 
 from app import db, pipeline
 
@@ -38,6 +39,9 @@ def main() -> None:
         print(f"{r.status:8} {r.resource_id}  {r.seconds:6.1f}s  {detail}")
     ok = sum(r.status == "READY" for r in results)
     print(f"\n{ok}/{len(results)} indexed")
+    # Non-zero exit marks the GitHub Actions run as failed, so a broken indexer gets noticed.
+    if any(r.status == "FAILED" for r in results):
+        sys.exit(1)
 
 
 if __name__ == "__main__":

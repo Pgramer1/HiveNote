@@ -211,7 +211,7 @@ export default function ResourceChatBot({
       {isIndexing ? (
         <div className="flex items-start gap-2 px-4 py-2 bg-primary/10 border-b border-primary/20 text-xs text-muted-foreground">
           <Loader2 className="w-3.5 h-3.5 mt-0.5 shrink-0 animate-spin" />
-          Reading this file for AI chat. Answers will use the document once that finishes (usually under a minute); refresh to check.
+          Reading this file for AI chat. Answers will use the document once that finishes (usually within a few minutes); refresh to check.
         </div>
       ) : indexStatus === "FAILED" ? (
         <div className="flex items-start gap-2 px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 text-xs text-amber-700 dark:text-amber-400">
