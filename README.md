@@ -10,12 +10,12 @@ A full-stack academic resource-sharing platform built for university students. U
 | --------------- | ---------------------------------------- |
 | Framework       | Next.js 16 (App Router)                  |
 | Language        | TypeScript                               |
-| UI              | React 19, Tailwind CSS v4, Framer Motion |
+| UI              | React 19, Tailwind CSS v4                |
 | Database        | PostgreSQL (Neon)                        |
 | ORM             | Prisma 7                                 |
-| Auth            | NextAuth v4 — Google OAuth + credentials |
+| Auth            | NextAuth v4 — university email + password |
 | File Storage    | Cloudinary                               |
-| AI              | Vercel AI SDK, Google Gemini, Groq       |
+| AI              | Vercel AI SDK + Groq, Cloudflare Workers AI embeddings |
 | Email           | Brevo (transactional)                    |
 | Package Manager | pnpm                                     |
 | Deployment      | Vercel                                   |
@@ -34,12 +34,11 @@ A full-stack academic resource-sharing platform built for university students. U
 ### AI Chat
 
 - Chat with any uploaded PDF using `/api/chat`
-- Powered by Vercel AI SDK with Google Gemini / Groq backends
+- Retrieval over pgvector embeddings (Cloudflare Workers AI `bge-m3`), answers streamed from Groq via the Vercel AI SDK
 
 ### Authentication
 
-- Google OAuth sign-in
-- Email/password credentials
+- Email/password credentials (university email domains only, email verification required)
 - University email detection (`isUniversityEmail` flag)
 - Protected routes via NextAuth sessions
 
@@ -132,18 +131,15 @@ DATABASE_URL=
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=
 
-# Google OAuth
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-
 # Cloudinary
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 
 # AI
-GOOGLE_GENERATIVE_AI_API_KEY=
 GROQ_API_KEY=
+CLOUDFLARE_ACCOUNT_ID=
+CLOUDFLARE_API_TOKEN=
 
 # Email (Brevo)
 BREVO_API_KEY=

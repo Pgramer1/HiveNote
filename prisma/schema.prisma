@@ -27,9 +27,7 @@ model User {
   commentLikes CommentLike[]
   chatMessages ChatMessage[]
 
-  accounts Account[]
-  sessions Session[]
-  votes    Vote[]
+  votes Vote[]
 }
 
 enum Role {
@@ -105,34 +103,6 @@ model Subject {
   resources        Resource[]
 
   @@unique([code, university, semester, batchId])
-}
-
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -241,5 +211,11 @@ model ResourceChunk {
   resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
   @@index([resourceId])
+  // The real index is HNSW (vector_cosine_ops), created by hand-written SQL in
+  // prisma/migrations/*_restore_hnsw_index. Prisma can't express HNSW, but it
+  // treats this declaration as matching the existing index, so `migrate dev`
+  // stops generating DROP INDEX for it. Don't remove or rename it. If
+  // migrations are ever squashed, rewrite the generated CREATE INDEX as
+  // `USING hnsw ("embedding" vector_cosine_ops)`: a btree on vector(1024) is useless.
   @@index([embedding], map: "ResourceChunk_embedding_hnsw_idx")
 }
