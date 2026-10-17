@@ -69,11 +69,12 @@ export const UNIVERSITIES: Record<string, UniversityConfig> = {
  * Detect which university an email belongs to
  */
 export function detectUniversityFromEmail(email: string): UniversityConfig | null {
-  const emailLower = email.toLowerCase();
-  
+  const emailDomain = email.toLowerCase().split("@").pop() ?? "";
+
   for (const university of Object.values(UNIVERSITIES)) {
     for (const domain of university.emailDomains) {
-      if (emailLower.endsWith(domain)) {
+      // Exact domain or a subdomain of it; a bare endsWith would also accept "notadaniuni.ac.in".
+      if (emailDomain === domain || emailDomain.endsWith(`.${domain}`)) {
         return university;
       }
     }

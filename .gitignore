@@ -56,3 +56,5 @@ yarn-error.log*
 # documentation
 *.md
 !README.md
+!CLAUDE.md
+!docs/RAG_OVERHAUL_PLAN.md

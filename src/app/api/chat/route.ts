@@ -117,7 +117,10 @@ export async function POST(req: Request) {
     let sources: SourceChunk[] = [];
 
     if (resource.extractedText && query) {
-      sources = await getRelevantChunks(resourceId, query).catch(() => []);
+      sources = await getRelevantChunks(resourceId, query).catch((err) => {
+        console.error("[RAG] Retrieval failed for resource", resourceId, err);
+        return [];
+      });
 
       systemPrompt = sources.length > 0
         ? `You are a helpful AI study assistant. The student is studying "${resource.title}".

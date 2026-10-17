@@ -1,6 +1,5 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { isUniversityEmail } from "@/lib/email";
 import bcrypt from "bcryptjs";
@@ -8,7 +7,6 @@ import bcrypt from "bcryptjs";
 export const runtime = "nodejs";
 
 export const authOptions = {
-  adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
       name: "credentials",

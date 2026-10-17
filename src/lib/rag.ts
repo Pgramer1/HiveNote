@@ -14,14 +14,21 @@ export async function getRelevantChunks(
   const queryEmbedding = await embedText(query);
   const vectorStr = `[${queryEmbedding.join(",")}]`;
 
-  const results = await prisma.$queryRaw<{ content: string; pageNumber: number | null }[]>`
-    SET LOCAL hnsw.ef_search = 60;
-    SELECT content, "pageNumber"
-    FROM "ResourceChunk"
-    WHERE "resourceId" = ${resourceId}
-    ORDER BY embedding <=> ${vectorStr}::vector
-    LIMIT ${topK}
-  `;
+  // Prisma sends raw queries as prepared statements, which reject multiple
+  // commands, so the HNSW settings must be separate statements. SET LOCAL only
+  // lasts for the enclosing transaction, hence the interactive transaction.
+  // iterative_scan (pgvector >= 0.8) keeps the HNSW index from returning fewer
+  // than topK rows when the planner uses it and then filters by resourceId.
+  return prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SET LOCAL hnsw.ef_search = 100`;
+    await tx.$executeRaw`SET LOCAL hnsw.iterative_scan = strict_order`;
 
-  return results;
+    return tx.$queryRaw<SourceChunk[]>`
+      SELECT content, "pageNumber"
+      FROM "ResourceChunk"
+      WHERE "resourceId" = ${resourceId}
+      ORDER BY embedding <=> ${vectorStr}::vector
+      LIMIT ${topK}
+    `;
+  });
 }
