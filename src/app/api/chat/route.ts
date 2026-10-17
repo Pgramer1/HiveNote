@@ -3,6 +3,7 @@ import { streamText } from "ai";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { getRelevantChunks, type SourceChunk } from "@/lib/rag";
+import { CHAT_MODEL } from "@/lib/chat-model";
 
 const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
 export const maxDuration = 30;
@@ -135,9 +136,16 @@ ${sources.map((s, i) => `[Excerpt ${i + 1}${s.pageNumber ? ` · p.${s.pageNumber
       systemPrompt = `You are a helpful AI study assistant for "${resource.title}" (${resource.type}). Answer helpfully.`;
     }
 
+    // streamText doesn't throw provider errors (e.g. an unknown model) from
+    // textStream; it reports them here and ends the stream empty.
+    let streamError: unknown;
     const result = streamText({
-      model: groq("llama-3.3-70b-versatile"),
+      model: groq(CHAT_MODEL),
       system: systemPrompt,
+      onError: ({ error }) => {
+        streamError = error;
+        console.error("[Chat API] Model stream failed", CHAT_MODEL, error);
+      },
       messages: normalizedMessages
         .filter((m): m is { role: "user" | "assistant"; content: string } =>
           (m.role === "user" || m.role === "assistant") && typeof m.content === "string"
@@ -163,6 +171,7 @@ ${sources.map((s, i) => `[Excerpt ${i + 1}${s.pageNumber ? ` · p.${s.pageNumber
             assistantContent += chunk;
             controller.enqueue(encoder.encode(chunk));
           }
+          if (streamError) throw streamError;
 
           if (assistantContent.trim()) {
             await prisma.chatMessage.create({
