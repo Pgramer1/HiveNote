@@ -58,3 +58,4 @@ yarn-error.log*
 !README.md
 !CLAUDE.md
 !docs/RAG_OVERHAUL_PLAN.md
+!docs/DECISIONS.md
