@@ -128,6 +128,7 @@ export default function TabbedSidebar({ resource, resourceId, initialComments }:
               resourceTitle={resource.title}
               resourceType={resource.type}
               hasExtractedText={!!resource.extractedText}
+              indexStatus={resource.indexStatus ?? null}
             />
           </div>
         )}

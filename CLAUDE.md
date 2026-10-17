@@ -52,6 +52,13 @@ University → department → batch → semester → subject. `DepartmentConfig`
 
 `scripts/backfill-embeddings.ts` inlines its own copy of the embed/chunk logic (to avoid Next module resolution) — keep it in sync with `src/lib/embeddings.ts`.
 
+### Python RAG service (`services/rag`)
+FastAPI service that indexes files: download from Cloudinary → parse (PyMuPDF/pymupdf4llm for PDFs, python-pptx for slides, LibreOffice converts legacy `.ppt`) → strip repeated headers/footers → chunk (one page or slide per chunk, split at paragraph/sentence boundaries, context header `title › section › page` prepended for embedding only) → batch-embed with the same Cloudflare `bge-m3` → replace `ResourceChunk` rows and set `Resource.indexStatus` (PENDING/PROCESSING/READY/FAILED) in one transaction. Prisma owns the schema; the service only reads/writes rows.
+
+- Next.js calls `POST /ingest {resourceId}` after an upload (`src/lib/rag-service.ts`, inside `after()`), with `Authorization: Bearer $RAG_SERVICE_SECRET`. If `RAG_SERVICE_URL` is unset, `createResource` falls back to the old in-process TypeScript extraction.
+- Commands (from `services/rag`, Python 3.12 via uv): `uv run pytest -q` (set `TEST_DATABASE_URL` to a migrated local pgvector DB to include the DB tests), `uv run python -m app.cli reindex --id <id> | --pending | --failed | --all`, `docker build -t hivenote-rag .` (LibreOffice, so `.ppt` tests only run in the image).
+- Config is env-driven (`app/config.py`); bump `PARSER_VERSION` when parsing/chunking changes and re-index with `--all`.
+
 ### pgvector / migration gotchas
 - `ResourceChunk.embedding` is `Unsupported("vector(1024)")`, so it can only be read/written with `$queryRaw` / `$executeRaw`. Changing the embedding model's dimension requires a migration and a full re-embed.
 - The HNSW index (`vector_cosine_ops`) is created by hand-written SQL migrations. The schema's `@@index([embedding], map: "ResourceChunk_embedding_hnsw_idx")` exists only so `migrate dev` sees no drift; Prisma itself would generate a btree from it (see the comment in `schema.prisma`). The earlier `reconcile_*` / `restore_hnsw_index` migrations exist because that line was missing. After any `prisma migrate dev`, check the generated SQL doesn't touch this index.

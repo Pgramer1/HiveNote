@@ -34,7 +34,9 @@ Filled from `pnpm eval` (see [eval/README.md](../eval/README.md)). Same question
 | **Baseline: current TypeScript pipeline, all** | 2026-10-17 | 68 | 58.8% | 70.6% | 72.1% | 0.651 | 0.0% | not measured | Run `2026-10-17T11-06-36Z-baseline.json`, code at `fb2588b` |
 | Baseline, PDFs only | 2026-10-17 | 52 | 76.9% | 92.3% | 94.2% | 0.851 | — | not measured | Same run |
 | Baseline, PDFs with more than 5 chunks | 2026-10-17 | 29 | 75.9% | 86.2% | 89.7% | 0.819 | — | not measured | Same run; the fairest PDF number (see below) |
-| Phase 1: Python ingestion | — | — | | | | | | | |
+| **Phase 1: Python ingestion, all** (local copy) | 2026-10-17 | 68 | 82.4% | 92.6% | 97.1% | 0.880 | 100.0% | not measured | Run `2026-10-17T11-58-38Z-phase1-local.json`; production not re-indexed yet |
+| Phase 1, PDFs only | 2026-10-17 | 52 | 78.8% | 90.4% | 96.2% | 0.852 | — | not measured | Same run |
+| Phase 1, PDFs with more than 5 chunks (baseline's group) | 2026-10-17 | 29 | 69.0% | 82.8% | 93.1% | 0.775 | — | not measured | Same run; see the note on recall@1 below |
 | Phase 2: LangGraph chat | — | — | | | | | | | |
 
 **Reading the baseline:**
@@ -44,13 +46,23 @@ Filled from `pnpm eval` (see [eval/README.md](../eval/README.md)). Same question
 - **The 3 genuine PDF misses:** `ae-loss` and `ae-sparse-rho`, whose answers sit on formula pages whose math symbols extract as garbled characters; and `rnn-bidirectional`, a paraphrased question that shares few words with its slide.
 - **Retrieval only.** Faithfulness (`--faithfulness`) wasn't run. The first attempt had one Cloudflare embedding timeout, so it was discarded and re-run; the recorded run had no errors.
 
+**Reading Phase 1:**
+
+- **Where it was measured.** The 13 evaluated resources were copied (titles and file URLs only) into a local Postgres + pgvector database and indexed by the Python service in its Docker image with real Cloudflare embeddings. Retrieval code is unchanged, so the gain is from ingestion alone. Production gets the same numbers once it is re-indexed.
+- **Slide decks: 0% → 100% recall@5** (16 questions). All 4 decks, including the 2 legacy `.ppt`, now have searchable text.
+- **Overall: recall@5 72.1% → 97.1%, MRR 0.651 → 0.880.** Only 2 questions miss: the 2 that missed in the baseline for the same reasons (a formula page and a heavily paraphrased question).
+- **Small PDFs are no longer trivial.** The 23 questions whose PDFs used to be 1–5 chunks now search 12–60 chunks, and still reach 100% recall@5 (recall@1 78.3% → 91.3%).
+- **Watch item: recall@1 on the larger PDFs fell 75.9% → 69.0%** (2 of 29 questions), while recall@5 rose 89.7% → 93.1%. Ranking the right page first is what Phase 2's re-ranker targets.
+- **Question labels corrected.** Real page counts (PyMuPDF) showed that the page numbers recovered from old text were wrong for 4 PDFs (Intro To Cloud, Lean Dev, Model comparisons, Process models): 16 questions' `expectedPages` were fixed, and `sns-whiskers` gained a spaced variant of its quote. The baseline is unaffected: those resources had no stored page numbers, so it matched on evidence quotes, which didn't change.
+
 Harness smoke test only, not a baseline: on 2026-10-17 the Phase 0 harness ran on 11 synthetic questions over 2 synthetic resources on a local DB. It scored recall@5 0.91 and MRR 0.91 (PDF 1.00, PPT 0.67). This only shows the harness works; synthetic data says nothing about real notes.
 
-### Speed and cost (to measure)
+### Speed and cost
 
 | What | Baseline | Target phase | Notes |
 | --- | --- | --- | --- |
-| Upload time, 100-page PDF | not measured | Phase 1 | Today indexing runs inside the upload request |
+| Upload time, 100-page PDF | not measured | Phase 1 | Uploads no longer wait for indexing: the service runs after the response |
+| Indexing time per resource (Python service, Docker, local) | — | Phase 1 | 0.8–9.5 s for the 13 evaluated resources (largest: 65-page PDF, 80-slide deck) |
 | Chat time to first token | not measured | Phase 2 | LangGraph adds rewrite + grade steps |
 | LLM calls per question | 1 | Phase 2 | Expected 3 (rewrite, grade, answer) |
 
@@ -60,6 +72,7 @@ Newest first.
 
 | Date | Change | Where | Status |
 | --- | --- | --- | --- |
+| 2026-10-17 | Phase 1 ingestion: Python service (`services/rag`: FastAPI, PyMuPDF, python-pptx, LibreOffice for `.ppt`, structure-aware chunking with context headers, batched embeddings, Postgres-tracked status), Prisma migration adding `indexStatus` and a generated full-text column, Next.js hand-off with fallback to the old pipeline, chat shows indexing status | Branch `feature/phase1-ingestion` | Tested locally (30 Python + 48 JS tests, local eval above); not deployed, production not migrated or re-indexed |
 | 2026-10-17 | Fixed uploads over 4.5 MB failing on the live site: files now go from the browser straight to Cloudinary with a server-signed request; the server action receives only the file id, looks it up, downloads it and extracts as before. Embeddings batched; upload errors now reach the user instead of a generic message; upload page timeout raised to 60 s | `src/actions/resources.ts`, `UploadForm.tsx`, `src/lib/upload-limits.ts`, `src/lib/embeddings.ts` | Tested against Cloudinary and with unit tests; not yet verified on the live site |
 | 2026-10-17 | Retrieval baseline recorded on production (read-only): recall@5 72.1% overall, 94.2% on PDFs, 0% on slide decks; MRR 0.651 | `eval/results/2026-10-17T11-06-36Z-baseline.json` | Done |
 | 2026-10-17 | Evaluation set: 68 questions over 13 production resources in 6 subjects (52 on 9 PDFs, 16 on all 4 slide decks), each with expected pages or slides, evidence quotes and a reference answer. PDF quotes checked against the stored chunks; slide quotes checked against the original decks (2 legacy `.ppt` converted with LibreOffice) | `eval/questions.jsonl` | Reviewed; frozen for comparisons (add new questions with new ids) |
@@ -135,8 +148,28 @@ Vercel rejects function request bodies over 4.5 MB before our code runs, so file
 
 Side finding: in a plain Node process, loading the Cloudinary SDK's `v2` module breaks `pdf-parse` 1.x ("bad XRef entry" on valid PDFs). It doesn't happen in the deployed Next bundle (May uploads parsed with the same imports), but it's another reason to replace `pdf-parse` in Phase 1.
 
+### D-016 · Page-level PDF chunks with a context header
+**2026-10-17 · Done**
+Four configurations were indexed and evaluated on the same 68 questions (local copy):
+
+| PDF chunks | Context header | recall@1 | recall@5 | MRR | Larger PDFs recall@1 |
+| --- | --- | --- | --- | --- | --- |
+| One page (chosen) | yes | 82.4% | 97.1% | 0.880 | 69.0% |
+| Pages packed per heading | yes | 80.9% | 97.1% | 0.871 | 65.5% |
+| One page | no | 75.0% | 91.2% | 0.820 | 58.6% |
+| Pages packed per heading | no | 76.5% | 91.2% | 0.822 | 62.1% |
+
+The header (`title › section › page`, embedded but not stored) is worth about 6 points of recall@5. Packing pages hurts ranking because lecture PDFs are often slides, where one heading spans several unrelated pages. Both are settings (`PDF_PACK_PAGES`, `CONTEXT_HEADER`) for future experiments. Slides keep one chunk per slide, with short continuation slides merged.
+
+### D-017 · The Next.js app falls back to the old pipeline until the service is configured
+**2026-10-17 · Done**
+`createResource` hands indexing to the service only when `RAG_SERVICE_URL` and `RAG_SERVICE_SECRET` are set, and otherwise runs the old in-process extraction. The branch can therefore deploy before the service exists without breaking uploads. With the service set, the upload returns immediately and indexing runs after the response (`after()`).
+
+### D-018 · Free hosting for the Python service
+**2026-10-17 · Open**
+The service is a plain Docker image (1.9 GB with LibreOffice) that needs no always-on worker: Next.js calls `/ingest` per upload, and `/ingest/pending` retries anything left PENDING. Free options: Google Cloud Run (free tier, scales to zero, needs a card on file), Hugging Face Spaces Docker (no card, sleeps when idle), Render free (512 MB RAM, too small for LibreOffice).
+
 ### Open decisions
 
-- [ ] Hosting for the Python service: Railway or Cloud Run (one minimum instance)?
-- [ ] Keep accepting legacy `.ppt` (needs LibreOffice in the container) or `.pptx` only? 2 of the 4 decks in production are `.ppt`, and LibreOffice converted both cleanly.
+- [ ] Hosting for the Python service (D-018): Cloud Run or Hugging Face Spaces?
 - [ ] Which vision model or OCR provider for handwriting, and what per-page budget?

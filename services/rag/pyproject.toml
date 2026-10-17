@@ -1,0 +1,26 @@
+[project]
+name = "hivenote-rag"
+version = "0.1.0"
+description = "HiveNote document ingestion (and later chat) service"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic-settings>=2.6",
+    "psycopg[binary]>=3.2",
+    "httpx>=0.28",
+    "pymupdf>=1.25",
+    "pymupdf4llm>=0.0.17",
+    "python-pptx>=1.0",
+    "langchain-text-splitters>=0.3",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.3"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

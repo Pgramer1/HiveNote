@@ -8,7 +8,10 @@ type Props = {
   resourceTitle: string;
   resourceType: "PDF" | "PPT" | "LINK";
   hasExtractedText: boolean;
+  indexStatus: IndexStatus | null;
 };
+
+type IndexStatus = "PENDING" | "PROCESSING" | "READY" | "FAILED";
 
 type Source = { pageNumber: number | null };
 
@@ -22,12 +25,16 @@ type Message = {
 function buildWelcomeMessage(
   resourceTitle: string,
   resourceType: "PDF" | "PPT" | "LINK",
-  hasExtractedText: boolean
+  hasExtractedText: boolean,
+  indexStatus: IndexStatus | null
 ): Message {
+  const indexing = indexStatus === "PENDING" || indexStatus === "PROCESSING";
   return {
     id: "welcome",
     role: "assistant",
-    content: hasExtractedText
+    content: indexing
+      ? `Hi! I'm still reading "${resourceTitle}". You can ask now, but answers will only use the document once that finishes.`
+      : hasExtractedText
       ? `Hi! I've read "${resourceTitle}" and I'm ready to help. Ask me anything about this document!`
       : resourceType === "PPT"
         ? `Hi! I can help you with "${resourceTitle}". Note: I can't read the slides directly, but ask me anything and I'll do my best!`
@@ -40,9 +47,11 @@ export default function ResourceChatBot({
   resourceTitle,
   resourceType,
   hasExtractedText,
+  indexStatus,
 }: Props) {
+  const isIndexing = indexStatus === "PENDING" || indexStatus === "PROCESSING";
   const [messages, setMessages] = useState<Message[]>([
-    buildWelcomeMessage(resourceTitle, resourceType, hasExtractedText),
+    buildWelcomeMessage(resourceTitle, resourceType, hasExtractedText, indexStatus),
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -75,12 +84,12 @@ export default function ResourceChatBot({
         if (Array.isArray(data.messages) && data.messages.length > 0) {
           setMessages(data.messages.map((msg) => ({ id: msg.id, role: msg.role, content: msg.content })));
         } else {
-          setMessages([buildWelcomeMessage(resourceTitle, resourceType, hasExtractedText)]);
+          setMessages([buildWelcomeMessage(resourceTitle, resourceType, hasExtractedText, indexStatus)]);
         }
       } catch (e) {
         console.error("[Chat History]:", e);
         if (!isMounted) return;
-        setMessages([buildWelcomeMessage(resourceTitle, resourceType, hasExtractedText)]);
+        setMessages([buildWelcomeMessage(resourceTitle, resourceType, hasExtractedText, indexStatus)]);
       } finally {
         if (isMounted) {
           setIsLoadingHistory(false);
@@ -93,7 +102,7 @@ export default function ResourceChatBot({
     return () => {
       isMounted = false;
     };
-  }, [resourceId, resourceTitle, resourceType, hasExtractedText]);
+  }, [resourceId, resourceTitle, resourceType, hasExtractedText, indexStatus]);
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading || isLoadingHistory) return;
@@ -199,11 +208,24 @@ export default function ResourceChatBot({
         <Sparkles className="w-4 h-4 text-primary animate-pulse" />
       </div>
 
-      {!hasExtractedText && resourceType === "PDF" && (
+      {isIndexing ? (
+        <div className="flex items-start gap-2 px-4 py-2 bg-primary/10 border-b border-primary/20 text-xs text-muted-foreground">
+          <Loader2 className="w-3.5 h-3.5 mt-0.5 shrink-0 animate-spin" />
+          Reading this file for AI chat. Answers will use the document once that finishes (usually under a minute); refresh to check.
+        </div>
+      ) : indexStatus === "FAILED" ? (
         <div className="flex items-start gap-2 px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 text-xs text-amber-700 dark:text-amber-400">
           <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-          This PDF was uploaded before AI support was added. Re-upload it to enable document-aware answers.
+          AI chat couldn&apos;t read this file (it may be scanned or image-only), so answers won&apos;t use the document.
         </div>
+      ) : (
+        !hasExtractedText &&
+        resourceType !== "LINK" && (
+          <div className="flex items-start gap-2 px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 text-xs text-amber-700 dark:text-amber-400">
+            <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+            This file hasn&apos;t been read for AI chat yet, so answers won&apos;t use the document.
+          </div>
+        )
       )}
 
       {/* Messages */}

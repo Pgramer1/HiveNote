@@ -51,6 +51,12 @@ model Resource {
   subjectId     String? // Which subject this resource is for
   extractedText String?      @db.Text // Extracted text content for AI chat
 
+  // Search indexing, done by the Python RAG service (services/rag). Null for links.
+  indexStatus   IndexStatus?
+  indexError    String?      @db.Text
+  indexedAt     DateTime?
+  parserVersion String? // e.g. "rag-1"; "legacy-ts" for chunks made by the old TypeScript pipeline
+
   user         User            @relation(fields: [uploadedBy], references: [id])
   subject      Subject?        @relation(fields: [subjectId], references: [id])
   votes        Vote[]
@@ -58,6 +64,15 @@ model Resource {
   comments     Comment[]
   chunks       ResourceChunk[]
   chatMessages ChatMessage[]
+
+  @@index([indexStatus])
+}
+
+enum IndexStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
 }
 
 enum ChatRole {
@@ -200,17 +215,24 @@ model BatchConfig {
 }
 
 model ResourceChunk {
-  id         String                       @id @default(cuid())
-  resourceId String
-  content    String                       @db.Text
-  embedding  Unsupported("vector(1024)")?
-  chunkIndex Int
-  pageNumber Int?
-  createdAt  DateTime                     @default(now())
+  id           String                       @id @default(cuid())
+  resourceId   String
+  content      String                       @db.Text
+  embedding    Unsupported("vector(1024)")?
+  chunkIndex   Int
+  pageNumber   Int? // page for PDFs, slide for decks
+  sectionTitle String?
+  chunkType    String? // text | slide | notes | table | ocr
+  // Really GENERATED ALWAYS AS (to_tsvector('english', content)) STORED, created by hand-written
+  // SQL in *_add_index_status_and_fulltext; Prisma introspects that as this dbgenerated default.
+  // Never write to it: Postgres keeps it in sync with content.
+  contentTsv   Unsupported("tsvector")?     @default(dbgenerated("to_tsvector('english'::regconfig, content)"))
+  createdAt    DateTime                     @default(now())
 
   resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
 
   @@index([resourceId])
+  @@index([contentTsv], map: "ResourceChunk_contentTsv_gin_idx", type: Gin)
   // The real index is HNSW (vector_cosine_ops), created by hand-written SQL in
   // prisma/migrations/*_restore_hnsw_index. Prisma can't express HNSW, but it
   // treats this declaration as matching the existing index, so `migrate dev`
