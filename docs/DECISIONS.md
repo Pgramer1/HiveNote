@@ -19,6 +19,8 @@ The running record of what changed, why, and what it did to performance. The pla
 | Unused database tables | 2 (`Account`, `Session`, both empty) | 0 | Row counts on Neon before the migration |
 | Production schema drift vs `schema.prisma` | Not checked | None | `prisma migrate diff` against Neon after deploy |
 | ESLint problems | 139 | 139 (none added) | `pnpm lint` |
+| Largest file that can be uploaded on the live site | Under 4.5 MB (Vercel function body limit; larger files failed with "unexpected response") | 10 MB (Cloudinary free-plan raw limit), uploaded directly from the browser | Real signed upload, lookup and download against Cloudinary, 2026-10-17 |
+| Cloudflare embedding calls per upload | 1 per chunk, sequential (a 47-page PDF = 47 calls) | 1 per 50 chunks | Unit test of the batching |
 | Production resources with searchable text (chunks stored) | 9 of 19 (47%); PPT 0 of 4, PDF 9 of 15 | Not changed yet (Phase 1) | Read-only query on Neon, 2026-10-17 |
 | Searchable PDFs with page numbers stored | 2 of 9 (older uploads were embedded without pages) | Not changed yet (Phase 1) | Same query |
 | Slide decks that are legacy binary `.ppt` | 2 of 4 (RBAC, Kerberos); today's pipeline can't read either format | Not changed yet (Phase 1) | File signatures of the downloaded decks |
@@ -58,6 +60,7 @@ Newest first.
 
 | Date | Change | Where | Status |
 | --- | --- | --- | --- |
+| 2026-10-17 | Fixed uploads over 4.5 MB failing on the live site: files now go from the browser straight to Cloudinary with a server-signed request; the server action receives only the file id, looks it up, downloads it and extracts as before. Embeddings batched; upload errors now reach the user instead of a generic message; upload page timeout raised to 60 s | `src/actions/resources.ts`, `UploadForm.tsx`, `src/lib/upload-limits.ts`, `src/lib/embeddings.ts` | Tested against Cloudinary and with unit tests; not yet verified on the live site |
 | 2026-10-17 | Retrieval baseline recorded on production (read-only): recall@5 72.1% overall, 94.2% on PDFs, 0% on slide decks; MRR 0.651 | `eval/results/2026-10-17T11-06-36Z-baseline.json` | Done |
 | 2026-10-17 | Evaluation set: 68 questions over 13 production resources in 6 subjects (52 on 9 PDFs, 16 on all 4 slide decks), each with expected pages or slides, evidence quotes and a reference answer. PDF quotes checked against the stored chunks; slide quotes checked against the original decks (2 legacy `.ppt` converted with LibreOffice) | `eval/questions.jsonl` | Reviewed; frozen for comparisons (add new questions with new ids) |
 | 2026-10-17 | Eval script now uses the chat's model from `src/lib/chat-model.ts` instead of a hard-coded retired one; plan and eval docs updated to the new model | Merge commit on `main` | Done; 40 tests pass, tsc clean, production build compiles |
@@ -125,6 +128,12 @@ Per the repo owner. The one commit that had the line was rewritten before it rea
 ### D-014 · Chat model: `openai/gpt-oss-120b`, set through `GROQ_CHAT_MODEL`
 **2026-10-17 · Done**
 Groq retired `llama-3.3-70b-versatile`, which `/api/chat` used. The model now lives in `src/lib/chat-model.ts` with an env override, so the next retirement is a config change rather than a code change. The eval harness reads the same constant, so evaluation always measures the model the chat actually uses.
+
+### D-015 · Upload files directly from the browser to Cloudinary
+**2026-10-17 · Done**
+Vercel rejects function request bodies over 4.5 MB before our code runs, so files can't pass through a server action. The server signs a one-off upload (fixed folder and public id, so the signature can't be reused elsewhere), the browser posts the file to Cloudinary, and `createResource` verifies the id with the Admin API before downloading it. PDF ids carry no `.pdf` extension, because this Cloudinary account blocks delivery of `.pdf` URLs (401 "deny or ACL failure"); the browser sends the file under the signed id so Cloudinary doesn't append one. Limit: 10 MB, the free plan's raw-file cap. Rejected: raising Next's body limit (Vercel's cap still applies) and Vercel Blob (a second storage service).
+
+Side finding: in a plain Node process, loading the Cloudinary SDK's `v2` module breaks `pdf-parse` 1.x ("bad XRef entry" on valid PDFs). It doesn't happen in the deployed Next bundle (May uploads parsed with the same imports), but it's another reason to replace `pdf-parse` in Phase 1.
 
 ### Open decisions
 

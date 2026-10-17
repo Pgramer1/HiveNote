@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { chunkPdfPages, chunkText } from "./embeddings";
+import { describe, expect, it, vi } from "vitest";
+import { chunkPdfPages, chunkText, embedTexts } from "./embeddings";
 
 const words = (n: number, prefix = "w") =>
   Array.from({ length: n }, (_, i) => `${prefix}${i}`).join(" ");
@@ -63,5 +63,41 @@ describe("chunkPdfPages", () => {
     expect(chunks).toHaveLength(2);
     expect(chunks[0].content).not.toContain("b0");
     expect(chunks[1].content).not.toContain("a0");
+  });
+});
+
+describe("embedTexts", () => {
+  it("sends texts in batches of 50 and keeps their order", async () => {
+    const calls: string[][] = [];
+    const fetchMock = vi.fn(async (_url: string, init: { body: string }) => {
+      const { text } = JSON.parse(init.body) as { text: string[] };
+      calls.push(text);
+      return new Response(
+        JSON.stringify({ success: true, result: { data: text.map((t) => [Number(t.slice(1))]) } }),
+        { status: 200 }
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      const texts = Array.from({ length: 120 }, (_, i) => `t${i}`);
+      const vectors = await embedTexts(texts);
+
+      expect(calls.map((c) => c.length)).toEqual([50, 50, 20]);
+      expect(vectors.map((v) => v[0])).toEqual(texts.map((_, i) => i));
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("fails when the API returns the wrong number of vectors", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ success: true, result: { data: [[1]] } }), { status: 200 }))
+    );
+    try {
+      await expect(embedTexts(["a", "b"])).rejects.toThrow("1 vectors for 2 texts");
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

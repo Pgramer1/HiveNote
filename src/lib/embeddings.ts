@@ -4,21 +4,37 @@ const CF_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID!;
 const CF_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN!;
 const CF_EMBED_URL = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/run/@cf/baai/bge-m3`;
 
+// bge-m3 on Workers AI takes a list of texts per call; 50 keeps each request small.
+const EMBED_BATCH_SIZE = 50;
+
+export async function embedTexts(texts: string[]): Promise<number[][]> {
+  const vectors: number[][] = [];
+  for (let i = 0; i < texts.length; i += EMBED_BATCH_SIZE) {
+    const batch = texts.slice(i, i + EMBED_BATCH_SIZE);
+    const res = await fetch(CF_EMBED_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${CF_API_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text: batch }),
+    });
+
+    if (!res.ok) throw new Error(`Cloudflare embedding failed: ${await res.text()}`);
+
+    const json = await res.json() as { result: { data: number[][] }; success: boolean };
+    if (!json.success) throw new Error("Cloudflare embedding returned success=false");
+    if (json.result.data.length !== batch.length) {
+      throw new Error(`Cloudflare embedding returned ${json.result.data.length} vectors for ${batch.length} texts`);
+    }
+    vectors.push(...json.result.data);
+  }
+  return vectors;
+}
+
 export async function embedText(text: string): Promise<number[]> {
-  const res = await fetch(CF_EMBED_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${CF_API_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ text: [text] }),
-  });
-
-  if (!res.ok) throw new Error(`Cloudflare embedding failed: ${await res.text()}`);
-
-  const json = await res.json() as { result: { data: number[][] }; success: boolean };
-  if (!json.success) throw new Error("Cloudflare embedding returned success=false");
-  return json.result.data[0];
+  const [vector] = await embedTexts([text]);
+  return vector;
 }
 
 export type ChunkWithPage = {
@@ -73,13 +89,15 @@ export async function embedChunksAndStore(
   resourceId: string,
   chunks: ChunkWithPage[]
 ) {
-  await prisma.resourceChunk.deleteMany({ where: { resourceId } });
-
   console.log(`[RAG] Embedding ${chunks.length} chunks for resource ${resourceId}`);
 
-  for (const chunk of chunks) {
-    const embedding = await embedText(chunk.content);
-    const vectorStr = `[${embedding.join(",")}]`;
+  // Embed first, so a failed embedding call leaves any existing chunks in place.
+  const embeddings = await embedTexts(chunks.map((c) => c.content));
+
+  await prisma.resourceChunk.deleteMany({ where: { resourceId } });
+
+  for (const [i, chunk] of chunks.entries()) {
+    const vectorStr = `[${embeddings[i].join(",")}]`;
 
     await prisma.$executeRaw`
       INSERT INTO "ResourceChunk" (id, "resourceId", content, embedding, "chunkIndex", "pageNumber", "createdAt")

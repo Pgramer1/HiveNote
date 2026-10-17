@@ -5,6 +5,9 @@ import UploadForm from "./UploadForm";
 import Breadcrumbs from "@/components/layout/Breadcrumbs";
 
 export const runtime = "nodejs";
+// The createResource server action runs under this page: downloading, parsing and
+// embedding a large PDF can take longer than the default function timeout.
+export const maxDuration = 60;
 
 export default async function UploadPage({
   searchParams,

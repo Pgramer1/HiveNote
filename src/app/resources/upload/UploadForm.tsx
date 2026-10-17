@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { createResource } from "@/actions/resources";
+import { createResource, getResourceUploadSignature } from "@/actions/resources";
+import { MAX_RESOURCE_BYTES } from "@/lib/upload-limits";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -52,10 +53,58 @@ export default function UploadForm({ user, subjects = [] }: UploadFormProps) {
     }
   }, [filteredSubjects, selectedSubject]);
 
+  // Sends the file straight to Cloudinary: Vercel rejects function request bodies over
+  // 4.5 MB, so files can't go through the server action. Returns an error message or null.
+  const uploadFileDirectly = async (formData: FormData): Promise<string | null> => {
+    const type = formData.get("type");
+    const file = formData.get("file");
+    formData.delete("file");
+    if (type !== "PDF" && type !== "PPT") return null;
+    if (!(file instanceof File) || file.size === 0) return "Please choose a file to upload.";
+    if (file.size > MAX_RESOURCE_BYTES) {
+      return `Files can be at most ${MAX_RESOURCE_BYTES / (1024 * 1024)} MB.`;
+    }
+
+    const sig = await getResourceUploadSignature({ type, fileName: file.name, fileSize: file.size });
+    if (!sig.success) return sig.error;
+
+    const body = new FormData();
+    // Cloudinary appends the uploaded file name's extension to raw public ids, and the
+    // account blocks .pdf URLs, so send the file under the extension-less id we signed.
+    body.append("file", file, sig.publicId);
+    body.append("api_key", sig.apiKey);
+    body.append("timestamp", String(sig.timestamp));
+    body.append("signature", sig.signature);
+    body.append("folder", sig.folder);
+    body.append("public_id", sig.publicId);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloudName}/raw/upload`, {
+      method: "POST",
+      body,
+    });
+    const json = (await res.json().catch(() => null)) as { public_id?: string; error?: { message?: string } } | null;
+    if (!res.ok || !json?.public_id) {
+      return json?.error?.message ? `Upload failed: ${json.error.message}` : "Upload failed. Please try again.";
+    }
+
+    formData.set("uploadedPublicId", json.public_id);
+    return null;
+  };
+
   const handleSubmit = async (formData: FormData) => {
     startTransition(async () => {
       try {
-        await createResource(formData);
+        const uploadError = await uploadFileDirectly(formData);
+        if (uploadError) {
+          showToast(uploadError, "error");
+          return;
+        }
+
+        const result = await createResource(formData);
+        if (!result.success) {
+          showToast(result.error, "error");
+          return;
+        }
         showToast("Resource uploaded successfully!", "success");
         
         // Redirect back to subject page if they came from there
@@ -140,6 +189,7 @@ export default function UploadForm({ user, subjects = [] }: UploadFormProps) {
             required
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
           />
+          <p className="mt-1 text-xs text-muted-foreground">Up to {MAX_RESOURCE_BYTES / (1024 * 1024)} MB</p>
         </div>
       ) : resourceType === "PPT" ? (
         <div>
@@ -153,6 +203,7 @@ export default function UploadForm({ user, subjects = [] }: UploadFormProps) {
             required
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
           />
+          <p className="mt-1 text-xs text-muted-foreground">Up to {MAX_RESOURCE_BYTES / (1024 * 1024)} MB</p>
         </div>
       ) : (
         <div>

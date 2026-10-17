@@ -4,21 +4,94 @@ import { prisma } from "@/lib/prisma";
 import cloudinary from "@/lib/cloudinary";
 import { getSession } from "@/lib/auth";
 import { embedChunksAndStore, chunkPdfPages, chunkText, type ChunkWithPage } from "@/lib/embeddings";
+import {
+  MAX_RESOURCE_BYTES,
+  RESOURCE_EXTENSIONS,
+  RESOURCE_FOLDER,
+  fileExtension,
+  isResourcePublicId,
+  newResourcePublicId,
+} from "@/lib/upload-limits";
 
-export async function createResource(formData: FormData) {
+// Expected failures are returned, not thrown: Next.js replaces thrown server action
+// errors with a generic message in production, so users would never see the reason.
+export type ActionResult = { success: true } | { success: false; error: string };
+
+export type UploadSignature =
+  | {
+      success: true;
+      cloudName: string;
+      apiKey: string;
+      folder: string;
+      publicId: string;
+      timestamp: number;
+      signature: string;
+    }
+  | { success: false; error: string };
+
+const MAX_MB = MAX_RESOURCE_BYTES / (1024 * 1024);
+
+/**
+ * Signs a direct browser-to-Cloudinary upload. Files can't go through a server action:
+ * Vercel rejects function request bodies over 4.5 MB before our code runs.
+ */
+export async function getResourceUploadSignature(input: {
+  type: "PDF" | "PPT";
+  fileName: string;
+  fileSize: number;
+}): Promise<UploadSignature> {
   const session = await getSession();
-  if (!session?.user?.email) throw new Error("Unauthorized");
+  if (!session?.user?.email) return { success: false, error: "Please sign in to upload." };
+
+  const allowed: readonly string[] = RESOURCE_EXTENSIONS[input.type] ?? [];
+  const ext = fileExtension(input.fileName);
+  if (!ext || !allowed.includes(ext)) {
+    return { success: false, error: `Please choose a ${allowed.map((e) => `.${e}`).join(" or ")} file.` };
+  }
+  if (input.fileSize > MAX_RESOURCE_BYTES) {
+    return { success: false, error: `Files can be at most ${MAX_MB} MB.` };
+  }
+
+  const publicId = newResourcePublicId(input.type, ext);
+  const timestamp = Math.round(Date.now() / 1000);
+  const signature = cloudinary.utils.api_sign_request(
+    { folder: RESOURCE_FOLDER, public_id: publicId, timestamp },
+    process.env.CLOUDINARY_API_SECRET!
+  );
+
+  return {
+    success: true,
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME!,
+    apiKey: process.env.CLOUDINARY_API_KEY!,
+    folder: RESOURCE_FOLDER,
+    publicId,
+    timestamp,
+    signature,
+  };
+}
+
+async function deleteUploadedFile(publicId: string | null) {
+  if (!publicId || !isResourcePublicId(publicId)) return;
+  await cloudinary.uploader.destroy(publicId, { resource_type: "raw" }).catch((err) => {
+    console.error("[Upload] Failed to delete orphaned file", publicId, err);
+  });
+}
+
+export async function createResource(formData: FormData): Promise<ActionResult> {
+  const session = await getSession();
+  if (!session?.user?.email) return { success: false, error: "Please sign in to upload." };
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
   });
-  if (!user) throw new Error("User not found");
+  if (!user) return { success: false, error: "User not found." };
 
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
   const type = formData.get("type") as "PDF" | "PPT" | "LINK";
   const link = formData.get("link") as string | null;
-  const file = formData.get("file") as File | null;
+  // Set by the upload form after it sends the file straight to Cloudinary.
+  const uploadedPublicId = formData.get("uploadedPublicId") as string | null;
   const department = formData.get("department") as string | null;
   const batch = formData.get("batch") as string | null;
   const semesterStr = formData.get("semester") as string | null;
@@ -28,7 +101,8 @@ export async function createResource(formData: FormData) {
 
   if (user.isUniversityEmail) {
     if (!department || !batch || !semester || !subjectId) {
-      throw new Error("Department, batch, semester, and subject are required for university uploads");
+      await deleteUploadedFile(uploadedPublicId);
+      return { success: false, error: "Department, batch, semester, and subject are required for university uploads." };
     }
 
     const validSubject = await prisma.subject.findFirst({
@@ -43,7 +117,8 @@ export async function createResource(formData: FormData) {
     });
 
     if (!validSubject) {
-      throw new Error("Please select a valid subject for the selected department and semester");
+      await deleteUploadedFile(uploadedPublicId);
+      return { success: false, error: "Please select a valid subject for the selected department and semester." };
     }
   }
 
@@ -51,9 +126,28 @@ export async function createResource(formData: FormData) {
   let extractedText: string | null = null;
   let chunksToEmbed: ChunkWithPage[] = [];
 
-  if ((type === "PDF" || type === "PPT") && file && file.size > 0) {
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+  if (type === "PDF" || type === "PPT") {
+    if (!uploadedPublicId || !isResourcePublicId(uploadedPublicId)) {
+      return { success: false, error: "The file upload didn't finish. Please try again." };
+    }
+
+    // Look the file up instead of trusting a URL from the browser.
+    const asset = await cloudinary.api
+      .resource(uploadedPublicId, { resource_type: "raw" })
+      .catch(() => null);
+    if (!asset?.secure_url) {
+      return { success: false, error: "The uploaded file could not be found. Please try again." };
+    }
+    if (asset.bytes > MAX_RESOURCE_BYTES) {
+      await deleteUploadedFile(uploadedPublicId);
+      return { success: false, error: `Files can be at most ${MAX_MB} MB.` };
+    }
+
+    const download = await fetch(asset.secure_url);
+    if (!download.ok) {
+      return { success: false, error: "The uploaded file could not be read. Please try again." };
+    }
+    const buffer = Buffer.from(await download.arrayBuffer());
 
     // ── PDF extraction ──────────────────────────────────────────────
 if (type === "PDF") {
@@ -112,31 +206,11 @@ if (type === "PDF") {
       }
     }
 
-    // ── Cloudinary upload ───────────────────────────────────────────
-    const uploadOptions: Record<string, any> = {
-      resource_type: "raw",
-      folder: "hivenote-resources",
-    };
-
-    if (type === "PPT") {
-      const ext = file.name.split(".").pop()?.toLowerCase() || "pptx";
-      uploadOptions.public_id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
-    }
-
-    const uploadResponse = await new Promise<any>((resolve, reject) => {
-      cloudinary.uploader
-        .upload_stream(uploadOptions, (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        })
-        .end(buffer);
-    });
-
-    finalUrl = uploadResponse.secure_url;
+    finalUrl = asset.secure_url;
   } else if (type === "LINK" && link) {
     finalUrl = link;
   } else {
-    throw new Error("Invalid upload: provide either a file (for PDF/PPT) or a link");
+    return { success: false, error: "Please provide a link." };
   }
 
   // ── Save resource ───────────────────────────────────────────────
