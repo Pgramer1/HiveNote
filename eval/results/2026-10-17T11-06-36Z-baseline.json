@@ -1,0 +1,2374 @@
+{
+  "label": "baseline",
+  "runAt": "2026-10-17T11:06:36.931Z",
+  "gitCommit": "fb2588b-dirty",
+  "database": "ep-late-heart-aimbkp0u.c-4.us-east-1.aws.neon.tech/neondb",
+  "questionsFile": "eval/questions.jsonl",
+  "retrieval": {
+    "function": "src/lib/rag.ts getRelevantChunks",
+    "topK": 5,
+    "embeddingModel": "@cf/baai/bge-m3"
+  },
+  "summary": {
+    "questions": 68,
+    "recall": {
+      "@1": 0.5882352941176471,
+      "@3": 0.7058823529411765,
+      "@5": 0.7205882352941176
+    },
+    "mrr": 0.6507352941176471,
+    "byResourceType": {
+      "PDF": {
+        "questions": 52,
+        "recall": {
+          "@1": 0.7692307692307693,
+          "@3": 0.9230769230769231,
+          "@5": 0.9423076923076923
+        },
+        "mrr": 0.8509615384615384
+      },
+      "PPT": {
+        "questions": 16,
+        "recall": {
+          "@1": 0,
+          "@3": 0,
+          "@5": 0
+        },
+        "mrr": 0
+      }
+    },
+    "errors": 16
+  },
+  "questions": [
+    {
+      "id": "ae-architecture",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "What are the three components of an autoencoder's basic architecture?",
+      "expectedPages": [
+        3
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 3,
+          "match": "page",
+          "preview": "Basic Architecture Three components: • Encoder : x → z • Latent Space : compressed representation • Decoder : z → x • Symmetric or asymmetric architectures poss"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "What is an Autoencoder? Autoencoders are unsupervised neural networks Learn to: • Compress data • Reconstruct original input Used for: • Feature learning • Dime"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 21,
+          "match": null,
+          "preview": "Denoising Autoencoder (DAE) • A type of autoencoder trained to reconstruct clean input from noisy data • Learns robust and noise - invariant representations • I"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 11,
+          "match": null,
+          "preview": "Vanilla Autoencoder"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 26,
+          "match": null,
+          "preview": "Convolutional Autoencoder"
+        }
+      ]
+    },
+    {
+      "id": "ae-loss",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "Which loss functions are commonly used to train an autoencoder, and for what kind of data?",
+      "expectedPages": [
+        8
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 43,
+          "match": null,
+          "preview": "Summary • Autoencoder learns compressed representation of data. • That representation enables: Capability Application Compression Dimensionality reduction Repre"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "What is an Autoencoder? Autoencoders are unsupervised neural networks Learn to: • Compress data • Reconstruct original input Used for: • Feature learning • Dime"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 22,
+          "match": null,
+          "preview": "Denoising Autoencoder (DAE) Loss Function (High - level) • Compare clean input and reconstructed output : 퐿 = ∣ ∣ 푥 − ො 푥 ∣ ∣ 2 • Not: • ෤ 푥 vs ො 푥 • Always ori"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 31,
+          "match": null,
+          "preview": "Variational Autoencoder (VAE) Loss Function (High - level) • Reconstruction Loss → ∣ ∣ 푥 − ො 푥 ∣ ∣ 2 • KL Divergence → ensures latent space follows normal distr"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 26,
+          "match": null,
+          "preview": "Convolutional Autoencoder"
+        }
+      ]
+    },
+    {
+      "id": "ae-bottleneck",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "why cant an autoencoder just copy its input straight to the output",
+      "expectedPages": [
+        9
+      ],
+      "firstRelevantRank": 4,
+      "reciprocalRank": 0.25,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "What is an Autoencoder? Autoencoders are unsupervised neural networks Learn to: • Compress data • Reconstruct original input Used for: • Feature learning • Dime"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 21,
+          "match": null,
+          "preview": "Denoising Autoencoder (DAE) • A type of autoencoder trained to reconstruct clean input from noisy data • Learns robust and noise - invariant representations • I"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 11,
+          "match": null,
+          "preview": "Vanilla Autoencoder"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 9,
+          "match": "page",
+          "preview": "Working of Autoencoder • Pipeline: – Input → Encoder → Latent → Decoder → Output • Learns compressed representation • Reconstruction forces feature learning • K"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 37,
+          "match": null,
+          "preview": "Feature Extraction • Problem – Labelled data is expensive and limited. – We want useful features without labels . • How Autoencoder Solves It – Train autoencode"
+        }
+      ]
+    },
+    {
+      "id": "ae-sparse-rho",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "In a sparse autoencoder, what does rho represent and what is a typical value?",
+      "expectedPages": [
+        18
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 17,
+          "match": null,
+          "preview": "Sparse Autoencoder • A regularized autoencoder that enforces sparsity constraint • Only a small number of neurons are active at a time • Encourages learning of "
+        },
+        {
+          "rank": 2,
+          "pageNumber": 15,
+          "match": null,
+          "preview": "Sparse Autoencoder (SAE)"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 16,
+          "match": null,
+          "preview": "Sparse Autoencoder Source: Introduction to Autoencoders: From The Basics to Advanced Applications in PyTorch | DataCamp"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 19,
+          "match": null,
+          "preview": "Sparse Autoencoder Advantages • Prevents trivial identity mapping • Learns better feature representations • Improves generalization Limitations • Additional hyp"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 26,
+          "match": null,
+          "preview": "Convolutional Autoencoder"
+        }
+      ]
+    },
+    {
+      "id": "ae-denoising-loss",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "When training a denoising autoencoder, is the loss computed against the noisy input or the clean input?",
+      "expectedPages": [
+        22,
+        23
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 22,
+          "match": "page",
+          "preview": "Denoising Autoencoder (DAE) Loss Function (High - level) • Compare clean input and reconstructed output : 퐿 = ∣ ∣ 푥 − ො 푥 ∣ ∣ 2 • Not: • ෤ 푥 vs ො 푥 • Always ori"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 21,
+          "match": null,
+          "preview": "Denoising Autoencoder (DAE) • A type of autoencoder trained to reconstruct clean input from noisy data • Learns robust and noise - invariant representations • I"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 39,
+          "match": null,
+          "preview": "Image Denoising • Images often contain noise: – Low light – Sensor noise – Transmission errors • Training Trick – Instead of normal training: – Input = Noisy Im"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 46,
+          "match": null,
+          "preview": "Methodology – Autoencoder Approach Core Idea • Train model using: • Noisy input ෤ 푥 • Clean target 푥 Learn mapping: Noisy → Clean Pipeline Noisy Image → Encoder"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 45,
+          "match": null,
+          "preview": "Case Study: Image Denoising Problem Statement • Images often get corrupted due to: – Sensor noise – Low - light conditions – Transmission errors • Goal: Recover"
+        }
+      ]
+    },
+    {
+      "id": "ae-vae-reparam",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "What is the reparameterization trick in a variational autoencoder?",
+      "expectedPages": [
+        32
+      ],
+      "firstRelevantRank": 2,
+      "reciprocalRank": 0.5,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 11,
+          "match": null,
+          "preview": "Vanilla Autoencoder"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 32,
+          "match": "page",
+          "preview": "Variational Autoencoder (VAE) Architecture Encoder: Input → Neural Network → outputs: Mean ( 휇 ) Variance ( 휎 ) Latent Space: Sample: 푧 = 휇 + 휎 ⋅ 휖 (Reparameter"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 30,
+          "match": null,
+          "preview": "Variational Autoencoder (VAE)"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 28,
+          "match": null,
+          "preview": "Variational Autoencoder (VAE)"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 26,
+          "match": null,
+          "preview": "Convolutional Autoencoder"
+        }
+      ]
+    },
+    {
+      "id": "ae-vs-pca",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "Why are autoencoders better than PCA for dimensionality reduction?",
+      "expectedPages": [
+        36,
+        35
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 36,
+          "match": "page",
+          "preview": "Dimensionality reduction • Problem – Real datasets have hundreds or thousands of features → slow training, overfitting, hard visualization. • How Autoencoder So"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "What is an Autoencoder? Autoencoders are unsupervised neural networks Learn to: • Compress data • Reconstruct original input Used for: • Feature learning • Dime"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 26,
+          "match": null,
+          "preview": "Convolutional Autoencoder"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 43,
+          "match": null,
+          "preview": "Summary • Autoencoder learns compressed representation of data. • That representation enables: Capability Application Compression Dimensionality reduction Repre"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 25,
+          "match": null,
+          "preview": "Convolutional Autoencoder • A type of autoencoder that uses Convolutional Neural Networks (CNNs) • Designed specifically for image and spatial data • Preserves "
+        }
+      ]
+    },
+    {
+      "id": "ae-anomaly",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "how can autoencoders catch fraud or weird network traffic",
+      "expectedPages": [
+        38,
+        35
+      ],
+      "firstRelevantRank": 2,
+      "reciprocalRank": 0.5,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "What is an Autoencoder? Autoencoders are unsupervised neural networks Learn to: • Compress data • Reconstruct original input Used for: • Feature learning • Dime"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 38,
+          "match": "page",
+          "preview": "Anomaly Detection • This is one of the most important real - world uses. • Autoencoder learns to reconstruct normal data only. So it becomes bad at reconstructi"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 11,
+          "match": null,
+          "preview": "Vanilla Autoencoder"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 43,
+          "match": null,
+          "preview": "Summary • Autoencoder learns compressed representation of data. • That representation enables: Capability Application Compression Dimensionality reduction Repre"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 37,
+          "match": null,
+          "preview": "Feature Extraction • Problem – Labelled data is expensive and limited. – We want useful features without labels . • How Autoencoder Solves It – Train autoencode"
+        }
+      ]
+    },
+    {
+      "id": "ae-784-bottleneck",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "In the dimensionality reduction example, how many neurons does the bottleneck have for a 784-pixel image?",
+      "expectedPages": [
+        36,
+        5
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 36,
+          "match": "page",
+          "preview": "Dimensionality reduction • Problem – Real datasets have hundreds or thousands of features → slow training, overfitting, hard visualization. • How Autoencoder So"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 9,
+          "match": null,
+          "preview": "Working of Autoencoder • Pipeline: – Input → Encoder → Latent → Decoder → Output • Learns compressed representation • Reconstruction forces feature learning • K"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 44,
+          "match": null,
+          "preview": "Case Study: Image Denoising"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 17,
+          "match": null,
+          "preview": "Sparse Autoencoder • A regularized autoencoder that enforces sparsity constraint • Only a small number of neurons are active at a time • Encourages learning of "
+        },
+        {
+          "rank": 5,
+          "pageNumber": 34,
+          "match": null,
+          "preview": "Summary Type Key Idea Main Modification Advantage Limitation Typical Use Vanilla AE Basic reconstruction No constraint Simple, fast Learns identity mapping Base"
+        }
+      ]
+    },
+    {
+      "id": "rnn-why",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "Why do we need recurrent neural networks instead of a normal feed-forward network?",
+      "expectedPages": [
+        3
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 3,
+          "match": "page",
+          "preview": "Why RNN? • Traditional NN: assumes independent data • Many problems are sequential: • Need memory of past • Traditional neural network limitation: no memory. • "
+        },
+        {
+          "rank": 2,
+          "pageNumber": 1,
+          "match": null,
+          "preview": "Recurrent Neural Network (RNN)"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "Idea Behind RNN • RNN introduces memory • Output depends on: • Current input • Previous hidden state • The hidden state acts as the memory of the network, stori"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 56,
+          "match": null,
+          "preview": "Graph Recurrent Neural Network • Works on graph structured data • Nodes update using: • Neighbor nodes • Previous state • Applications: • Traffic prediction • S"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 49,
+          "match": null,
+          "preview": "Gated Recurrent Unit (GRU) • Gated Recurrent Unit (GRU) is a variant of RNN designed to solve the vanishing gradient problem • It is simpler than LSTM with a fe"
+        }
+      ]
+    },
+    {
+      "id": "rnn-elman",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "What is a vanilla RNN also called, and who is it named after?",
+      "expectedPages": [
+        12
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 12,
+          "match": "page",
+          "preview": "(Vanilla) Recurrent Neural Network The state consists of a single “hidden” vector h : x RNN y Sometimes called a “Vanilla RNN” or an “Elman RNN” after Prof. Jef"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 39,
+          "match": null,
+          "preview": "Major Problems of Vanilla RNN • Vanishing Gradient • Gradients become very small • Model forgets early inputs • Exploding Gradient • Gradients become huge • Tra"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 1,
+          "match": null,
+          "preview": "Recurrent Neural Network (RNN)"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "Objectives • Why RNN? • What is RNN? • Types of RNN • Training in RNN • LSTM • GRU • Advance concepts in RNN"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 58,
+          "match": null,
+          "preview": "Why Attention is Powerful • RNN bottleneck: All info → single vector • Attention: Dynamic weighted focus • Allows model to: • Align input & output • Handle long"
+        }
+      ]
+    },
+    {
+      "id": "rnn-many-to-one",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "Give examples of tasks that use a many-to-one RNN.",
+      "expectedPages": [
+        25,
+        22
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 22,
+          "match": "page",
+          "preview": "Type 3: Many - to - One RNN • Sequence input → Single output • Architecture: x₁ → x₂ → x₃ → ... → Output • Uses entire sequence to make decision."
+        },
+        {
+          "rank": 2,
+          "pageNumber": 15,
+          "match": null,
+          "preview": "One - to - Many RNN • Single input → Sequence output • Model generates a sequence from one input. • Architecture: Input → RNN → y₁, y₂, y₃..."
+        },
+        {
+          "rank": 3,
+          "pageNumber": 17,
+          "match": null,
+          "preview": "h 0 f W h 1 f W h 2 f W h 3 y T ... x W RNN: Computational Graph: One to Many h T y 3 y 2 y 1 ? ? ?"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 23,
+          "match": null,
+          "preview": "h 0 f W h 1 f W h 2 f W h 3 x 3 y ... x 2 x 1 W RNN: Computational Graph: Many to One h T"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 24,
+          "match": null,
+          "preview": "h 0 f W h 1 f W h 2 f W h 3 x 3 y ... x 2 x 1 W RNN: Computational Graph: Many to One h T"
+        }
+      ]
+    },
+    {
+      "id": "rnn-bptt",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "How is an RNN trained?",
+      "expectedPages": [
+        36,
+        37
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 36,
+          "match": "page",
+          "preview": "Training RNN: Backpropagation Through Time (BPTT) • RNN training involves learning optimal weight parameters by minimizing a loss function across a sequence of "
+        },
+        {
+          "rank": 2,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "Objectives • Why RNN? • What is RNN? • Types of RNN • Training in RNN • LSTM • GRU • Advance concepts in RNN"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "Idea Behind RNN • RNN introduces memory • Output depends on: • Current input • Previous hidden state • The hidden state acts as the memory of the network, stori"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 1,
+          "match": null,
+          "preview": "Recurrent Neural Network (RNN)"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 3,
+          "match": null,
+          "preview": "Why RNN? • Traditional NN: assumes independent data • Many problems are sequential: • Need memory of past • Traditional neural network limitation: no memory. • "
+        }
+      ]
+    },
+    {
+      "id": "rnn-long-term",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "Why can't a vanilla RNN learn long-term dependencies?",
+      "expectedPages": [
+        39,
+        40
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 39,
+          "match": "page",
+          "preview": "Major Problems of Vanilla RNN • Vanishing Gradient • Gradients become very small • Model forgets early inputs • Exploding Gradient • Gradients become huge • Tra"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 3,
+          "match": null,
+          "preview": "Why RNN? • Traditional NN: assumes independent data • Many problems are sequential: • Need memory of past • Traditional neural network limitation: no memory. • "
+        },
+        {
+          "rank": 3,
+          "pageNumber": 40,
+          "match": "page",
+          "preview": "Long - Term Dependency Problem • Example: “I grew up in France... I speak fluent ___” • RNN fails to connect France → French • Need long - term memory mechanism"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 12,
+          "match": null,
+          "preview": "(Vanilla) Recurrent Neural Network The state consists of a single “hidden” vector h : x RNN y Sometimes called a “Vanilla RNN” or an “Elman RNN” after Prof. Jef"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 41,
+          "match": null,
+          "preview": "Introduction to LSTM (Long Short Term Memory) • Why LSTM? • Traditional RNN fails • for long sequences • LSTM selectively remembers and forgets • What is LSTM? "
+        }
+      ]
+    },
+    {
+      "id": "rnn-lstm-gates",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "What are the three gates in an LSTM?",
+      "expectedPages": [
+        42
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 42,
+          "match": "page",
+          "preview": "LSTM Architecture • Components: • Cell state (C ₜ ) → long - term memory highway • Hidden state (h ₜ ) • 3 Gates: • Forget gate • Input gate • Output gate"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 52,
+          "match": null,
+          "preview": "LSTM vs GRU Feature LSTM GRU Gates 3 2 Parameters More Fewer Training speed Slower Faster Performance Slightly better Comparable"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 41,
+          "match": null,
+          "preview": "Introduction to LSTM (Long Short Term Memory) • Why LSTM? • Traditional RNN fails • for long sequences • LSTM selectively remembers and forgets • What is LSTM? "
+        },
+        {
+          "rank": 4,
+          "pageNumber": 48,
+          "match": null,
+          "preview": "Limitations of LSTM • LSTM is computationally expensive • Slower in training than RNN"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 47,
+          "match": null,
+          "preview": "Advantages of LSTM • Learns long sequences • Solves vanishing gradient • Applications: • Language Modeling • Speech Recognition • Time Series Forecasting • Anom"
+        }
+      ]
+    },
+    {
+      "id": "rnn-gru-vs-lstm",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "How many gates does a GRU have compared to an LSTM, and which one trains faster?",
+      "expectedPages": [
+        52
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 52,
+          "match": "page",
+          "preview": "LSTM vs GRU Feature LSTM GRU Gates 3 2 Parameters More Fewer Training speed Slower Faster Performance Slightly better Comparable"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 49,
+          "match": null,
+          "preview": "Gated Recurrent Unit (GRU) • Gated Recurrent Unit (GRU) is a variant of RNN designed to solve the vanishing gradient problem • It is simpler than LSTM with a fe"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 42,
+          "match": null,
+          "preview": "LSTM Architecture • Components: • Cell state (C ₜ ) → long - term memory highway • Hidden state (h ₜ ) • 3 Gates: • Forget gate • Input gate • Output gate"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 48,
+          "match": null,
+          "preview": "Limitations of LSTM • LSTM is computationally expensive • Slower in training than RNN"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 51,
+          "match": null,
+          "preview": "GRU Architecture • Reset Gate → what to forget • Update Gate → what to remember • Candidate hidden state: This is the potential new hidden state calculated base"
+        }
+      ]
+    },
+    {
+      "id": "rnn-bidirectional",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "how can a model use words that come later in a sentence to understand an earlier word",
+      "expectedPages": [
+        53
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 25,
+          "match": null,
+          "preview": "Application • Sentiment analysis • Spam detection • Emotion detection • Model reads whole sentence before prediction."
+        },
+        {
+          "rank": 2,
+          "pageNumber": 55,
+          "match": null,
+          "preview": "Hierarchical RNN • Multi - level sequence modeling. • Example NLP: Characters → Words → Sentences → Documents • Applications: • Document classification • Speech"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 11,
+          "match": null,
+          "preview": "Terms to remember x ₜ → input at time step t h ₜ → hidden state (memory) y ₜ → output f W → neural network with weights W xh → input to hidden W hh → hidden to "
+        },
+        {
+          "rank": 4,
+          "pageNumber": 34,
+          "match": null,
+          "preview": "Applications: • Part - of - speech tagging • Input sentence: “I love AI” • Output: I → Pronoun love → Verb AI → Noun • Model predicts label for each word • Name"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 47,
+          "match": null,
+          "preview": "Advantages of LSTM • Learns long sequences • Solves vanishing gradient • Applications: • Language Modeling • Speech Recognition • Time Series Forecasting • Anom"
+        }
+      ]
+    },
+    {
+      "id": "rnn-attention",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "What problem of RNNs does the attention mechanism solve?",
+      "expectedPages": [
+        58,
+        57
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 58,
+          "match": "page",
+          "preview": "Why Attention is Powerful • RNN bottleneck: All info → single vector • Attention: Dynamic weighted focus • Allows model to: • Align input & output • Handle long"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "Idea Behind RNN • RNN introduces memory • Output depends on: • Current input • Previous hidden state • The hidden state acts as the memory of the network, stori"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 57,
+          "match": "page",
+          "preview": "Attention Mechanism • Key idea: “Focus on important inputs” • Instead of compressing entire sequence → choose relevant parts. • Improves: • Translation • Long t"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 3,
+          "match": null,
+          "preview": "Why RNN? • Traditional NN: assumes independent data • Many problems are sequential: • Need memory of past • Traditional neural network limitation: no memory. • "
+        },
+        {
+          "rank": 5,
+          "pageNumber": 49,
+          "match": null,
+          "preview": "Gated Recurrent Unit (GRU) • Gated Recurrent Unit (GRU) is a variant of RNN designed to solve the vanishing gradient problem • It is simpler than LSTM with a fe"
+        }
+      ]
+    },
+    {
+      "id": "sns-what",
+      "resourceId": "cmn6w1zo10000iosops0uee7l",
+      "resourceType": "PDF",
+      "question": "What is Seaborn and what library is it built on?",
+      "expectedPages": [
+        4
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "10 LowCost/ Technical Expertise Data Visualization SEM VI CSE & ICT Prepared by: Dr. Indu Chandran, Dept. of ICT MODULE 3 1.Introduction to Seaborn: Installing "
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "faster over the years? How did the total number of airline passengers change from 1949 to 1960? In a chosen year (e.g., 1955), which months had higher passenger"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "the relationship between the total bill amount and tip amount. Differentiate smokers and non-smokers and represent gender. Solution: Hue vs. Palette Color Hue P"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "imported as px) •An accessible, high-level interface for creating data visualizations •Create figures in just one line of code. •Makes graphs quick and easy to "
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "amounts for males and females (Use a dashed curve). Solution: bw_method=\"scott\" bw_method=\"silverman\" 6. Show the variation in spending behavior for males and f"
+        }
+      ]
+    },
+    {
+      "id": "sns-relplot-pairplot",
+      "resourceId": "cmn6w1zo10000iosops0uee7l",
+      "resourceType": "PDF",
+      "question": "What is the difference between relplot and pairplot?",
+      "expectedPages": [
+        13,
+        12
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "faster over the years? How did the total number of airline passengers change from 1949 to 1960? In a chosen year (e.g., 1955), which months had higher passenger"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "plot simultaneously displays feature-wise completeness using percentages (left axis) and absolute counts (right axis), while the top labels provide exact non-nu"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "amounts for males and females (Use a dashed curve). Solution: bw_method=\"scott\" bw_method=\"silverman\" 6. Show the variation in spending behavior for males and f"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "the relationship between the total bill amount and tip amount. Differentiate smokers and non-smokers and represent gender. Solution: Hue vs. Palette Color Hue P"
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "10 LowCost/ Technical Expertise Data Visualization SEM VI CSE & ICT Prepared by: Dr. Indu Chandran, Dept. of ICT MODULE 3 1.Introduction to Seaborn: Installing "
+        }
+      ]
+    },
+    {
+      "id": "sns-ffill",
+      "resourceId": "cmn6w1zo10000iosops0uee7l",
+      "resourceType": "PDF",
+      "question": "How do you fill missing values with the previous row's value?",
+      "expectedPages": [
+        14
+      ],
+      "firstRelevantRank": 2,
+      "reciprocalRank": 0.5,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": null,
+          "preview": "plot simultaneously displays feature-wise completeness using percentages (left axis) and absolute counts (right axis), while the top labels provide exact non-nu"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "faster over the years? How did the total number of airline passengers change from 1949 to 1960? In a chosen year (e.g., 1955), which months had higher passenger"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "life expectancy across different continents. Use data from the year 2007. Modify it to achieve the following: 1. Display Individual Data Points (Show all indivi"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "10 LowCost/ Technical Expertise Data Visualization SEM VI CSE & ICT Prepared by: Dr. Indu Chandran, Dept. of ICT MODULE 3 1.Introduction to Seaborn: Installing "
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "amounts for males and females (Use a dashed curve). Solution: bw_method=\"scott\" bw_method=\"silverman\" 6. Show the variation in spending behavior for males and f"
+        }
+      ]
+    },
+    {
+      "id": "sns-missingno-minus1",
+      "resourceId": "cmn6w1zo10000iosops0uee7l",
+      "resourceType": "PDF",
+      "question": "In a missingno correlation heatmap, what does a value of -1 mean?",
+      "expectedPages": [
+        20
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "plot simultaneously displays feature-wise completeness using percentages (left axis) and absolute counts (right axis), while the top labels provide exact non-nu"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "faster over the years? How did the total number of airline passengers change from 1949 to 1960? In a chosen year (e.g., 1955), which months had higher passenger"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "the relationship between the total bill amount and tip amount. Differentiate smokers and non-smokers and represent gender. Solution: Hue vs. Palette Color Hue P"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "10 LowCost/ Technical Expertise Data Visualization SEM VI CSE & ICT Prepared by: Dr. Indu Chandran, Dept. of ICT MODULE 3 1.Introduction to Seaborn: Installing "
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "amounts for males and females (Use a dashed curve). Solution: bw_method=\"scott\" bw_method=\"silverman\" 6. Show the variation in spending behavior for males and f"
+        }
+      ]
+    },
+    {
+      "id": "sns-hue-palette",
+      "resourceId": "cmn6w1zo10000iosops0uee7l",
+      "resourceType": "PDF",
+      "question": "What is the difference between hue and palette in seaborn?",
+      "expectedPages": [
+        30
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "the relationship between the total bill amount and tip amount. Differentiate smokers and non-smokers and represent gender. Solution: Hue vs. Palette Color Hue P"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "10 LowCost/ Technical Expertise Data Visualization SEM VI CSE & ICT Prepared by: Dr. Indu Chandran, Dept. of ICT MODULE 3 1.Introduction to Seaborn: Installing "
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "plot simultaneously displays feature-wise completeness using percentages (left axis) and absolute counts (right axis), while the top labels provide exact non-nu"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "faster over the years? How did the total number of airline passengers change from 1949 to 1960? In a chosen year (e.g., 1955), which months had higher passenger"
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "amounts for males and females (Use a dashed curve). Solution: bw_method=\"scott\" bw_method=\"silverman\" 6. Show the variation in spending behavior for males and f"
+        }
+      ]
+    },
+    {
+      "id": "sns-whiskers",
+      "resourceId": "cmn6w1zo10000iosops0uee7l",
+      "resourceType": "PDF",
+      "question": "how far do the whiskers go in a box plot",
+      "expectedPages": [
+        44
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "amounts for males and females (Use a dashed curve). Solution: bw_method=\"scott\" bw_method=\"silverman\" 6. Show the variation in spending behavior for males and f"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "plot simultaneously displays feature-wise completeness using percentages (left axis) and absolute counts (right axis), while the top labels provide exact non-nu"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "the relationship between the total bill amount and tip amount. Differentiate smokers and non-smokers and represent gender. Solution: Hue vs. Palette Color Hue P"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "imported as px) •An accessible, high-level interface for creating data visualizations •Create figures in just one line of code. •Makes graphs quick and easy to "
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "life expectancy across different continents. Use data from the year 2007. Modify it to achieve the following: 1. Display Individual Data Points (Show all indivi"
+        }
+      ]
+    },
+    {
+      "id": "plotly-express-vs-go",
+      "resourceId": "cmn6w1zo10000iosops0uee7l",
+      "resourceType": "PDF",
+      "question": "How does Plotly Express relate to Plotly Graph Objects?",
+      "expectedPages": [
+        50
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "imported as px) •An accessible, high-level interface for creating data visualizations •Create figures in just one line of code. •Makes graphs quick and easy to "
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "amounts for males and females (Use a dashed curve). Solution: bw_method=\"scott\" bw_method=\"silverman\" 6. Show the variation in spending behavior for males and f"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "plot simultaneously displays feature-wise completeness using percentages (left axis) and absolute counts (right axis), while the top labels provide exact non-nu"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "10 LowCost/ Technical Expertise Data Visualization SEM VI CSE & ICT Prepared by: Dr. Indu Chandran, Dept. of ICT MODULE 3 1.Introduction to Seaborn: Installing "
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "the relationship between the total bill amount and tip amount. Differentiate smokers and non-smokers and represent gender. Solution: Hue vs. Palette Color Hue P"
+        }
+      ]
+    },
+    {
+      "id": "mpl-creator",
+      "resourceId": "cmm856krb00009ksodqisfo3l",
+      "resourceType": "PDF",
+      "question": "Who created Matplotlib and in which year?",
+      "expectedPages": [
+        4
+      ],
+      "firstRelevantRank": 2,
+      "reciprocalRank": 0.5,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": null,
+          "preview": "MUST be before plt.show () plt.savefig(fname, dpi, bbox_inches, transparent, format) For plotting, use the available plot functions in Matplotlib to create the "
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "Data Visualization using MODULE 2 Installation and setup, basic plotting: line plots, scatter plots, bar plots, customizing plots: labels, titles, colors, style"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "rotates around text center 'anchor' → rotates around alignment point (ha, va) # Text layout - Control how Matplotlib interprets and renders text. wrap=False, # "
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "reference line across the axes. ax.get_position() Position: Bbox(x0=0.125, y0=0.10999999999999999, x1=0.45, y1=0.64) Axes Figure ax.clear() # Clears everything "
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "time values as data (usually on the x-axis), instead of plain numbers. Issue: Time-stamping Plots Axes box (0,1) (1,1) (0,0) (1,0) Basic 2D Plotting: Line, Scat"
+        }
+      ]
+    },
+    {
+      "id": "mpl-savefig-order",
+      "resourceId": "cmm856krb00009ksodqisfo3l",
+      "resourceType": "PDF",
+      "question": "Should plt.savefig() be called before or after plt.show()?",
+      "expectedPages": [
+        7
+      ],
+      "firstRelevantRank": 2,
+      "reciprocalRank": 0.5,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": null,
+          "preview": "MUST be before plt.show () plt.savefig(fname, dpi, bbox_inches, transparent, format) For plotting, use the available plot functions in Matplotlib to create the "
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "Data Visualization using MODULE 2 Installation and setup, basic plotting: line plots, scatter plots, bar plots, customizing plots: labels, titles, colors, style"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "reference line across the axes. ax.get_position() Position: Bbox(x0=0.125, y0=0.10999999999999999, x1=0.45, y1=0.64) Axes Figure ax.clear() # Clears everything "
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "time values as data (usually on the x-axis), instead of plain numbers. Issue: Time-stamping Plots Axes box (0,1) (1,1) (0,0) (1,0) Basic 2D Plotting: Line, Scat"
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "rotates around text center 'anchor' → rotates around alignment point (ha, va) # Text layout - Control how Matplotlib interprets and renders text. wrap=False, # "
+        }
+      ]
+    },
+    {
+      "id": "mpl-patches",
+      "resourceId": "cmm856krb00009ksodqisfo3l",
+      "resourceType": "PDF",
+      "question": "Which matplotlib sub-library gives you shapes like rectangles, circles and polygons?",
+      "expectedPages": [
+        9
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "MUST be before plt.show () plt.savefig(fname, dpi, bbox_inches, transparent, format) For plotting, use the available plot functions in Matplotlib to create the "
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Data Visualization using MODULE 2 Installation and setup, basic plotting: line plots, scatter plots, bar plots, customizing plots: labels, titles, colors, style"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "rotates around text center 'anchor' → rotates around alignment point (ha, va) # Text layout - Control how Matplotlib interprets and renders text. wrap=False, # "
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "reference line across the axes. ax.get_position() Position: Bbox(x0=0.125, y0=0.10999999999999999, x1=0.45, y1=0.64) Axes Figure ax.clear() # Clears everything "
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "time values as data (usually on the x-axis), instead of plain numbers. Issue: Time-stamping Plots Axes box (0,1) (1,1) (0,0) (1,0) Basic 2D Plotting: Line, Scat"
+        }
+      ]
+    },
+    {
+      "id": "mpl-sharex-twinx",
+      "resourceId": "cmm856krb00009ksodqisfo3l",
+      "resourceType": "PDF",
+      "question": "What is the difference between sharex and twinx?",
+      "expectedPages": [
+        23
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "reference line across the axes. ax.get_position() Position: Bbox(x0=0.125, y0=0.10999999999999999, x1=0.45, y1=0.64) Axes Figure ax.clear() # Clears everything "
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "time values as data (usually on the x-axis), instead of plain numbers. Issue: Time-stamping Plots Axes box (0,1) (1,1) (0,0) (1,0) Basic 2D Plotting: Line, Scat"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "rotates around text center 'anchor' → rotates around alignment point (ha, va) # Text layout - Control how Matplotlib interprets and renders text. wrap=False, # "
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Data Visualization using MODULE 2 Installation and setup, basic plotting: line plots, scatter plots, bar plots, customizing plots: labels, titles, colors, style"
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "MUST be before plt.show () plt.savefig(fname, dpi, bbox_inches, transparent, format) For plotting, use the available plot functions in Matplotlib to create the "
+        }
+      ]
+    },
+    {
+      "id": "mpl-fancybox",
+      "resourceId": "cmm856krb00009ksodqisfo3l",
+      "resourceType": "PDF",
+      "question": "What does the fancybox option do in ax.legend()?",
+      "expectedPages": [
+        28
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "reference line across the axes. ax.get_position() Position: Bbox(x0=0.125, y0=0.10999999999999999, x1=0.45, y1=0.64) Axes Figure ax.clear() # Clears everything "
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "rotates around text center 'anchor' → rotates around alignment point (ha, va) # Text layout - Control how Matplotlib interprets and renders text. wrap=False, # "
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Data Visualization using MODULE 2 Installation and setup, basic plotting: line plots, scatter plots, bar plots, customizing plots: labels, titles, colors, style"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "time values as data (usually on the x-axis), instead of plain numbers. Issue: Time-stamping Plots Axes box (0,1) (1,1) (0,0) (1,0) Basic 2D Plotting: Line, Scat"
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "MUST be before plt.show () plt.savefig(fname, dpi, bbox_inches, transparent, format) For plotting, use the available plot functions in Matplotlib to create the "
+        }
+      ]
+    },
+    {
+      "id": "dva-shape",
+      "resourceId": "cmm9a3b3j000004jpdu6unxng",
+      "resourceType": "PDF",
+      "question": "How many rows and columns does the supermarket sales dataset have?",
+      "expectedPages": [
+        1
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "Task 1: DataFrame (CSV file) import pandas as pd # Read the CSV file df = pd.read_csv('supermarket_sales.csv') print(\"Data loaded successfully!\") print(f\"Shape:"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "234.17651 min 10.080000 1.000000 0.508500 10.678500 10.17000 25% 32.875000 3.000000 5.924875 124.422375 118.49750 50% 55.230000 5.000000 12.088000 253.848000 24"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "gross income Rating \\ 0 13:08 Ewallet 522.83 4.761905 26.1415 9.1 1 10:29 Cash 76.40 4.761905 3.8200 9.6 2 13:23 Credit card 324.31 4.761905 16.2155 7.4 3 20:33"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "'Unit price', 'Quantity', 'Tax 5%', 'Total', 'Date', 'Time', 'Payment', 'cogs', 'gross marg in percentage', 'gross income', 'Rating'] Dataframe after deletion: "
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "plt.tight_layout() ax.set_xlim(0,100) ax.set_ylim(0,5) ax.set_xlabel(\"Time\") ax.set_ylabel(\"Signal amplitude\") ax.legend([\"Signal\", \"Glitch Start\", \"Glitch End\""
+        }
+      ]
+    },
+    {
+      "id": "dva-twinx",
+      "resourceId": "cmm9a3b3j000004jpdu6unxng",
+      "resourceType": "PDF",
+      "question": "In the assignment, how was a second y-axis added that shares the same x-axis?",
+      "expectedPages": [
+        14,
+        13
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "ax.add_patch(rect3) # Add a circle patch circle1 = Circle((8,4), radius=0.5, facecolor='purple', edgecolor='black', alpha=0.5, label ax.add_patch(circle1) In [3"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "plt.tight_layout() ax.set_xlim(0,100) ax.set_ylim(0,5) ax.set_xlabel(\"Time\") ax.set_ylabel(\"Signal amplitude\") ax.legend([\"Signal\", \"Glitch Start\", \"Glitch End\""
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "plt.legend(fontsize=12) plt.grid(True, linestyle='--', color='gray', alpha=0.7) plt.show() #advanced plotting using subplots fig, ax = plt.subplots(2, 2, figsiz"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "]: # using matplotlib.animation sub-library import matplotlib.pyplot as plt from matplotlib.animation import FuncAnimation fig,ax = plt.subplots() ax.set_xlim(0"
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "'Unit price', 'Quantity', 'Tax 5%', 'Total', 'Date', 'Time', 'Payment', 'cogs', 'gross marg in percentage', 'gross income', 'Rating'] Dataframe after deletion: "
+        }
+      ]
+    },
+    {
+      "id": "dva-donut",
+      "resourceId": "cmm9a3b3j000004jpdu6unxng",
+      "resourceType": "PDF",
+      "question": "How do you turn a pie chart into a donut chart?",
+      "expectedPages": [
+        19
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "plt.tight_layout() ax.set_xlim(0,100) ax.set_ylim(0,5) ax.set_xlabel(\"Time\") ax.set_ylabel(\"Signal amplitude\") ax.legend([\"Signal\", \"Glitch Start\", \"Glitch End\""
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "plt.legend(fontsize=12) plt.grid(True, linestyle='--', color='gray', alpha=0.7) plt.show() #advanced plotting using subplots fig, ax = plt.subplots(2, 2, figsiz"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "'Unit price', 'Quantity', 'Tax 5%', 'Total', 'Date', 'Time', 'Payment', 'cogs', 'gross marg in percentage', 'gross income', 'Rating'] Dataframe after deletion: "
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "ax.add_patch(rect3) # Add a circle patch circle1 = Circle((8,4), radius=0.5, facecolor='purple', edgecolor='black', alpha=0.5, label ax.add_patch(circle1) In [3"
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "gross income Rating \\ 0 13:08 Ewallet 522.83 4.761905 26.1415 9.1 1 10:29 Cash 76.40 4.761905 3.8200 9.6 2 13:23 Credit card 324.31 4.761905 16.2155 7.4 3 20:33"
+        }
+      ]
+    },
+    {
+      "id": "dva-tick-formatters",
+      "resourceId": "cmm9a3b3j000004jpdu6unxng",
+      "resourceType": "PDF",
+      "question": "Which ticker classes were used to place minor ticks automatically and format tick labels?",
+      "expectedPages": [
+        10,
+        11
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "plt.legend(fontsize=12) plt.grid(True, linestyle='--', color='gray', alpha=0.7) plt.show() #advanced plotting using subplots fig, ax = plt.subplots(2, 2, figsiz"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "plt.tight_layout() ax.set_xlim(0,100) ax.set_ylim(0,5) ax.set_xlabel(\"Time\") ax.set_ylabel(\"Signal amplitude\") ax.legend([\"Signal\", \"Glitch Start\", \"Glitch End\""
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "ax.add_patch(rect3) # Add a circle patch circle1 = Circle((8,4), radius=0.5, facecolor='purple', edgecolor='black', alpha=0.5, label ax.add_patch(circle1) In [3"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "gross income Rating \\ 0 13:08 Ewallet 522.83 4.761905 26.1415 9.1 1 10:29 Cash 76.40 4.761905 3.8200 9.6 2 13:23 Credit card 324.31 4.761905 16.2155 7.4 3 20:33"
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "234.17651 min 10.080000 1.000000 0.508500 10.678500 10.17000 25% 32.875000 3.000000 5.924875 124.422375 118.49750 50% 55.230000 5.000000 12.088000 253.848000 24"
+        }
+      ]
+    },
+    {
+      "id": "cc-early-models",
+      "resourceId": "cmm95p73o000004jsotifc8j8",
+      "resourceType": "PDF",
+      "question": "What were the two early models of cloud computing?",
+      "expectedPages": [
+        10
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "Introduction Cloud Computing Lecture Contents ▪What is Cloud Computing? ▪Early models of Cloud Computing. ▪Delivery models and services. ▪Ethical issues in Clou"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "involve a large number of files.” from Wikipedia 2.Utility computing – initiated in 2005-2006 by IT companies and targeted at enterprise computing. ▪“Utility co"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "familiar environments rather than in idiosyncratic ones. 9 Types of clouds 1.Public Cloud - the infrastructure is made available to the general public or a larg"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Service (PaaS) 3.Infrastructure as a Service (IaaS) (low level) 14 Infrastructure-as-a-Service (IaaS) ▪Infrastructure is compute resources, CPU, VMs, storage, e"
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "to third party services. ▪Data is stored on multiple sites administered by several organizations. ▪Multiple services interoperate across the network. ▪Implicati"
+        }
+      ]
+    },
+    {
+      "id": "cc-elastic",
+      "resourceId": "cmm95p73o000004jsotifc8j8",
+      "resourceType": "PDF",
+      "question": "What does elastic computing mean?",
+      "expectedPages": [
+        11
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "involve a large number of files.” from Wikipedia 2.Utility computing – initiated in 2005-2006 by IT companies and targeted at enterprise computing. ▪“Utility co"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Introduction Cloud Computing Lecture Contents ▪What is Cloud Computing? ▪Early models of Cloud Computing. ▪Delivery models and services. ▪Ethical issues in Clou"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Service (PaaS) 3.Infrastructure as a Service (IaaS) (low level) 14 Infrastructure-as-a-Service (IaaS) ▪Infrastructure is compute resources, CPU, VMs, storage, e"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "familiar environments rather than in idiosyncratic ones. 9 Types of clouds 1.Public Cloud - the infrastructure is made available to the general public or a larg"
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "to third party services. ▪Data is stored on multiple sites administered by several organizations. ▪Multiple services interoperate across the network. ▪Implicati"
+        }
+      ]
+    },
+    {
+      "id": "cc-hybrid",
+      "resourceId": "cmm95p73o000004jsotifc8j8",
+      "resourceType": "PDF",
+      "question": "What is a hybrid cloud?",
+      "expectedPages": [
+        29
+      ],
+      "firstRelevantRank": 2,
+      "reciprocalRank": 0.5,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Introduction Cloud Computing Lecture Contents ▪What is Cloud Computing? ▪Early models of Cloud Computing. ▪Delivery models and services. ▪Ethical issues in Clou"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "familiar environments rather than in idiosyncratic ones. 9 Types of clouds 1.Public Cloud - the infrastructure is made available to the general public or a larg"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "involve a large number of files.” from Wikipedia 2.Utility computing – initiated in 2005-2006 by IT companies and targeted at enterprise computing. ▪“Utility co"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "to third party services. ▪Data is stored on multiple sites administered by several organizations. ▪Multiple services interoperate across the network. ▪Implicati"
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Service (PaaS) 3.Infrastructure as a Service (IaaS) (low level) 14 Infrastructure-as-a-Service (IaaS) ▪Infrastructure is compute resources, CPU, VMs, storage, e"
+        }
+      ]
+    },
+    {
+      "id": "cc-iaas-control",
+      "resourceId": "cmm95p73o000004jsotifc8j8",
+      "resourceType": "PDF",
+      "question": "In IaaS, what does the user control and what don't they control?",
+      "expectedPages": [
+        43
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "Service (PaaS) 3.Infrastructure as a Service (IaaS) (low level) 14 Infrastructure-as-a-Service (IaaS) ▪Infrastructure is compute resources, CPU, VMs, storage, e"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "familiar environments rather than in idiosyncratic ones. 9 Types of clouds 1.Public Cloud - the infrastructure is made available to the general public or a larg"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "to third party services. ▪Data is stored on multiple sites administered by several organizations. ▪Multiple services interoperate across the network. ▪Implicati"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "involve a large number of files.” from Wikipedia 2.Utility computing – initiated in 2005-2006 by IT companies and targeted at enterprise computing. ▪“Utility co"
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Introduction Cloud Computing Lecture Contents ▪What is Cloud Computing? ▪Early models of Cloud Computing. ▪Delivery models and services. ▪Ethical issues in Clou"
+        }
+      ]
+    },
+    {
+      "id": "cc-lock-in",
+      "resourceId": "cmm95p73o000004jsotifc8j8",
+      "resourceType": "PDF",
+      "question": "why is it hard to switch from one cloud provider to another",
+      "expectedPages": [
+        35
+      ],
+      "firstRelevantRank": 2,
+      "reciprocalRank": 0.5,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": null,
+          "preview": "to third party services. ▪Data is stored on multiple sites administered by several organizations. ▪Multiple services interoperate across the network. ▪Implicati"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "familiar environments rather than in idiosyncratic ones. 9 Types of clouds 1.Public Cloud - the infrastructure is made available to the general public or a larg"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "involve a large number of files.” from Wikipedia 2.Utility computing – initiated in 2005-2006 by IT companies and targeted at enterprise computing. ▪“Utility co"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Service (PaaS) 3.Infrastructure as a Service (IaaS) (low level) 14 Infrastructure-as-a-Service (IaaS) ▪Infrastructure is compute resources, CPU, VMs, storage, e"
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Introduction Cloud Computing Lecture Contents ▪What is Cloud Computing? ▪Early models of Cloud Computing. ▪Delivery models and services. ▪Ethical issues in Clou"
+        }
+      ]
+    },
+    {
+      "id": "cc-2012-outage",
+      "resourceId": "cmm95p73o000004jsotifc8j8",
+      "resourceType": "PDF",
+      "question": "What caused the 2012 outage at Amazon mentioned under cloud vulnerabilities?",
+      "expectedPages": [
+        63
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "to third party services. ▪Data is stored on multiple sites administered by several organizations. ▪Multiple services interoperate across the network. ▪Implicati"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Service (PaaS) 3.Infrastructure as a Service (IaaS) (low level) 14 Infrastructure-as-a-Service (IaaS) ▪Infrastructure is compute resources, CPU, VMs, storage, e"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "familiar environments rather than in idiosyncratic ones. 9 Types of clouds 1.Public Cloud - the infrastructure is made available to the general public or a larg"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "involve a large number of files.” from Wikipedia 2.Utility computing – initiated in 2005-2006 by IT companies and targeted at enterprise computing. ▪“Utility co"
+        },
+        {
+          "rank": 5,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Introduction Cloud Computing Lecture Contents ▪What is Cloud Computing? ▪Early models of Cloud Computing. ▪Delivery models and services. ▪Ethical issues in Clou"
+        }
+      ]
+    },
+    {
+      "id": "lean-principle",
+      "resourceId": "cmm96bom7000104l2sgg953c5",
+      "resourceType": "PDF",
+      "question": "What is the fundamental principle of Lean software development?",
+      "expectedPages": [
+        18
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "Agile in Practice Approach •Break bigger problems into smaller ones •Focus on stuff that is important; leave the rest •Make sure whatever you deliver, actually "
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "2.This principle is all about learning from what you do and using feedback to keep improving Lean Thinking 3.Make every important decision for your project when"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "team members as work proceeds, and blocking issues are identified during daily meetings. Kanban •At its most basic, kanban is a system that uses visual cues to "
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Commitment Point •This is where customers and teammates put ideas for projects that the team can pick up when they are ready. •The commitment point is the momen"
+        }
+      ]
+    },
+    {
+      "id": "lean-extra-features",
+      "resourceId": "cmm96bom7000104l2sgg953c5",
+      "resourceType": "PDF",
+      "question": "Why is adding extra features just in case they are needed considered waste?",
+      "expectedPages": [
+        24
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "Agile in Practice Approach •Break bigger problems into smaller ones •Focus on stuff that is important; leave the rest •Make sure whatever you deliver, actually "
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "team members as work proceeds, and blocking issues are identified during daily meetings. Kanban •At its most basic, kanban is a system that uses visual cues to "
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "2.This principle is all about learning from what you do and using feedback to keep improving Lean Thinking 3.Make every important decision for your project when"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Commitment Point •This is where customers and teammates put ideas for projects that the team can pick up when they are ready. •The commitment point is the momen"
+        }
+      ]
+    },
+    {
+      "id": "lean-defect-waste",
+      "resourceId": "cmm96bom7000104l2sgg953c5",
+      "resourceType": "PDF",
+      "question": "What determines how much waste a defect causes?",
+      "expectedPages": [
+        31,
+        33
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "Agile in Practice Approach •Break bigger problems into smaller ones •Focus on stuff that is important; leave the rest •Make sure whatever you deliver, actually "
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "team members as work proceeds, and blocking issues are identified during daily meetings. Kanban •At its most basic, kanban is a system that uses visual cues to "
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "2.This principle is all about learning from what you do and using feedback to keep improving Lean Thinking 3.Make every important decision for your project when"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Commitment Point •This is where customers and teammates put ideas for projects that the team can pick up when they are ready. •The commitment point is the momen"
+        }
+      ]
+    },
+    {
+      "id": "kanban-principles",
+      "resourceId": "cmm96bom7000104l2sgg953c5",
+      "resourceType": "PDF",
+      "question": "What are the three Kanban principles?",
+      "expectedPages": [
+        48
+      ],
+      "firstRelevantRank": 2,
+      "reciprocalRank": 0.5,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": null,
+          "preview": "team members as work proceeds, and blocking issues are identified during daily meetings. Kanban •At its most basic, kanban is a system that uses visual cues to "
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "2.This principle is all about learning from what you do and using feedback to keep improving Lean Thinking 3.Make every important decision for your project when"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Commitment Point •This is where customers and teammates put ideas for projects that the team can pick up when they are ready. •The commitment point is the momen"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Agile in Practice Approach •Break bigger problems into smaller ones •Focus on stuff that is important; leave the rest •Make sure whatever you deliver, actually "
+        }
+      ]
+    },
+    {
+      "id": "kanban-wip-limit",
+      "resourceId": "cmm96bom7000104l2sgg953c5",
+      "resourceType": "PDF",
+      "question": "what is a WIP limit on a kanban board",
+      "expectedPages": [
+        60
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "team members as work proceeds, and blocking issues are identified during daily meetings. Kanban •At its most basic, kanban is a system that uses visual cues to "
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "2.This principle is all about learning from what you do and using feedback to keep improving Lean Thinking 3.Make every important decision for your project when"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Commitment Point •This is where customers and teammates put ideas for projects that the team can pick up when they are ready. •The commitment point is the momen"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Agile in Practice Approach •Break bigger problems into smaller ones •Focus on stuff that is important; leave the rest •Make sure whatever you deliver, actually "
+        }
+      ]
+    },
+    {
+      "id": "kanban-vs-scrum",
+      "resourceId": "cmm96bom7000104l2sgg953c5",
+      "resourceType": "PDF",
+      "question": "How does Kanban differ from Scrum in terms of roles and changes?",
+      "expectedPages": [
+        70
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "Commitment Point •This is where customers and teammates put ideas for projects that the team can pick up when they are ready. •The commitment point is the momen"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "team members as work proceeds, and blocking issues are identified during daily meetings. Kanban •At its most basic, kanban is a system that uses visual cues to "
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "2.This principle is all about learning from what you do and using feedback to keep improving Lean Thinking 3.Make every important decision for your project when"
+        },
+        {
+          "rank": 4,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Agile in Practice Approach •Break bigger problems into smaller ones •Focus on stuff that is important; leave the rest •Make sure whatever you deliver, actually "
+        }
+      ]
+    },
+    {
+      "id": "pm-waterfall-when",
+      "resourceId": "cmm96ccpr000204l2b45olifx",
+      "resourceType": "PDF",
+      "question": "When is the waterfall model a good choice?",
+      "expectedPages": [
+        6
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "Business Process Models A Comparison Selection of Appropriate Model Prior to selection one must understand the strengths and weaknesses of each of the models Wa"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "on requirements may be delayed –Allows early delivery of parts of the system –Supports easier integration of sub-systems –Lower risk of project failure –Deliver"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "requirement are easier to understand and analyse G4: Model as structured as possible Reference: Seven Process Modeling Guidelines (7PMG), J. Mendling , H.A. Rei"
+        }
+      ]
+    },
+    {
+      "id": "pm-cbse-disadvantages",
+      "resourceId": "cmm96ccpr000204l2b45olifx",
+      "resourceType": "PDF",
+      "question": "What are the disadvantages of component-based software engineering?",
+      "expectedPages": [
+        16
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "Business Process Models A Comparison Selection of Appropriate Model Prior to selection one must understand the strengths and weaknesses of each of the models Wa"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "on requirements may be delayed –Allows early delivery of parts of the system –Supports easier integration of sub-systems –Lower risk of project failure –Deliver"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "requirement are easier to understand and analyse G4: Model as structured as possible Reference: Seven Process Modeling Guidelines (7PMG), J. Mendling , H.A. Rei"
+        }
+      ]
+    },
+    {
+      "id": "pm-guideline-g5",
+      "resourceId": "cmm96ccpr000204l2b45olifx",
+      "resourceType": "PDF",
+      "question": "What does process modeling guideline G5 say about activity labels?",
+      "expectedPages": [
+        35
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "requirement are easier to understand and analyse G4: Model as structured as possible Reference: Seven Process Modeling Guidelines (7PMG), J. Mendling , H.A. Rei"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "on requirements may be delayed –Allows early delivery of parts of the system –Supports easier integration of sub-systems –Lower risk of project failure –Deliver"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Business Process Models A Comparison Selection of Appropriate Model Prior to selection one must understand the strengths and weaknesses of each of the models Wa"
+        }
+      ]
+    },
+    {
+      "id": "pm-decompose-50",
+      "resourceId": "cmm96ccpr000204l2b45olifx",
+      "resourceType": "PDF",
+      "question": "At what size should a process model be decomposed into smaller models?",
+      "expectedPages": [
+        36
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "requirement are easier to understand and analyse G4: Model as structured as possible Reference: Seven Process Modeling Guidelines (7PMG), J. Mendling , H.A. Rei"
+        },
+        {
+          "rank": 2,
+          "pageNumber": null,
+          "match": null,
+          "preview": "on requirements may be delayed –Allows early delivery of parts of the system –Supports easier integration of sub-systems –Lower risk of project failure –Deliver"
+        },
+        {
+          "rank": 3,
+          "pageNumber": null,
+          "match": null,
+          "preview": "Business Process Models A Comparison Selection of Appropriate Model Prior to selection one must understand the strengths and weaknesses of each of the models Wa"
+        }
+      ]
+    },
+    {
+      "id": "proc-erp-increments",
+      "resourceId": "cmm96avtg000004l2qis5fgq9",
+      "resourceType": "PDF",
+      "question": "In the University ERP example, which module was added in the second increment?",
+      "expectedPages": [
+        10
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "Process Models We can't solve problems by using the same kind of thinking we used when we created them. Build and Fix Models Waterfall Model Reuse Oriented Deve"
+        }
+      ]
+    },
+    {
+      "id": "proc-rup-practices",
+      "resourceId": "cmm96avtg000004l2qis5fgq9",
+      "resourceType": "PDF",
+      "question": "What does the Rational Unified Process describe?",
+      "expectedPages": [
+        26
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": null,
+          "match": "evidence",
+          "preview": "Process Models We can't solve problems by using the same kind of thinking we used when we created them. Build and Fix Models Waterfall Model Reuse Oriented Deve"
+        }
+      ]
+    },
+    {
+      "id": "rbac-principles",
+      "resourceId": "cmm9fg553000004l103ekmd80",
+      "resourceType": "PPT",
+      "question": "Which three security principles does RBAC support?",
+      "expectedPages": [
+        8
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [],
+      "error": "resource has no extractedText (chat skips retrieval)"
+    },
+    {
+      "id": "rbac-nist-components",
+      "resourceId": "cmm9fg553000004l103ekmd80",
+      "resourceType": "PPT",
+      "question": "What are the four components of the NIST RBAC standard?",
+      "expectedPages": [
+        15,
+        13
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [],
+      "error": "resource has no extractedText (chat skips retrieval)"
+    },
+    {
+      "id": "rbac-limited-hierarchy",
+      "resourceId": "cmm9fg553000004l103ekmd80",
+      "resourceType": "PPT",
+      "question": "What restriction does a limited role hierarchy impose?",
+      "expectedPages": [
+        48,
+        40
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [],
+      "error": "resource has no extractedText (chat skips retrieval)"
+    },
+    {
+      "id": "rbac-ssd-vs-dsd",
+      "resourceId": "cmm9fg553000004l103ekmd80",
+      "resourceType": "PPT",
+      "question": "how is dynamic separation of duty different from static separation of duty",
+      "expectedPages": [
+        55,
+        69
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [],
+      "error": "resource has no extractedText (chat skips retrieval)"
+    },
+    {
+      "id": "rbac-checkaccess",
+      "resourceId": "cmm9fg553000004l103ekmd80",
+      "resourceType": "PPT",
+      "question": "What does the CheckAccess function do in Core RBAC?",
+      "expectedPages": [
+        61
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [],
+      "error": "resource has no extractedText (chat skips retrieval)"
+    },
+    {
+      "id": "ac-dac-acl",
+      "resourceId": "cmm9fh0ae000004jmaf32mwmw",
+      "resourceType": "PPT",
+      "question": "How is discretionary access control usually implemented?",
+      "expectedPages": [
+        5
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [],
+      "error": "resource has no extractedText (chat skips retrieval)"
+    },
+    {
+      "id": "ac-blp",
+      "resourceId": "cmm9fh0ae000004jmaf32mwmw",
+      "resourceType": "PPT",
+      "question": "What does no read up, no write down mean in the Bell-LaPadula model?",
+      "expectedPages": [
+        13
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [],
+      "error": "resource has no extractedText (chat skips retrieval)"
+    },
+    {
+      "id": "ac-biba",
+      "resourceId": "cmm9fh0ae000004jmaf32mwmw",
+      "resourceType": "PPT",
+      "question": "which access control model protects data integrity instead of confidentiality",
+      "expectedPages": [
+        13,
+        10
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [],
+      "error": "resource has no extractedText (chat skips retrieval)"
+    },
+    {
+      "id": "ac-abac-attributes",
+      "resourceId": "cmm9fh0ae000004jmaf32mwmw",
+      "resourceType": "PPT",
+      "question": "What kinds of attributes does ABAC evaluate when making a decision?",
+      "expectedPages": [
+        25
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [],
+      "error": "resource has no extractedText (chat skips retrieval)"
+    },
+    {
+      "id": "ac-dac-trojan",
+      "resourceId": "cmm9fh0ae000004jmaf32mwmw",
+      "resourceType": "PPT",
+      "question": "Why is DAC vulnerable to the Trojan horse problem?",
+      "expectedPages": [
+        8
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [],
+      "error": "resource has no extractedText (chat skips retrieval)"
+    },
+    {
+      "id": "krb-origin",
+      "resourceId": "cmm9fiza8000104jm8ka6q7k7",
+      "resourceType": "PPT",
+      "question": "Who developed Kerberos and when?",
+      "expectedPages": [
+        1
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [],
+      "error": "resource has no extractedText (chat skips retrieval)"
+    },
+    {
+      "id": "krb-weak-link",
+      "resourceId": "cmm9fiza8000104jm8ka6q7k7",
+      "resourceType": "PPT",
+      "question": "What does Kerberos assume is the weak link in network security, unlike firewalls?",
+      "expectedPages": [
+        4
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [],
+      "error": "resource has no extractedText (chat skips retrieval)"
+    },
+    {
+      "id": "krb-stolen-tgt",
+      "resourceId": "cmm9fiza8000104jm8ka6q7k7",
+      "resourceType": "PPT",
+      "question": "what happens if someone steals a ticket granting ticket",
+      "expectedPages": [
+        12
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [],
+      "error": "resource has no extractedText (chat skips retrieval)"
+    },
+    {
+      "id": "gd-negative-gradient",
+      "resourceId": "cmm9foh4j000004l12gkhil1r",
+      "resourceType": "PPT",
+      "question": "Why does gradient descent step in the direction of the negative gradient?",
+      "expectedPages": [
+        5,
+        8
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [],
+      "error": "resource has no extractedText (chat skips retrieval)"
+    },
+    {
+      "id": "gd-learning-rate",
+      "resourceId": "cmm9foh4j000004l12gkhil1r",
+      "resourceType": "PPT",
+      "question": "What happens if the learning rate is too large or too small?",
+      "expectedPages": [
+        18,
+        3
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [],
+      "error": "resource has no extractedText (chat skips retrieval)"
+    },
+    {
+      "id": "gd-saddle-point",
+      "resourceId": "cmm9foh4j000004l12gkhil1r",
+      "resourceType": "PPT",
+      "question": "What is a saddle point?",
+      "expectedPages": [
+        17
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [],
+      "error": "resource has no extractedText (chat skips retrieval)"
+    }
+  ]
+}

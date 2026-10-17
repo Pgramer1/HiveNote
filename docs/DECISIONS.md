@@ -19,16 +19,28 @@ The running record of what changed, why, and what it did to performance. The pla
 | Unused database tables | 2 (`Account`, `Session`, both empty) | 0 | Row counts on Neon before the migration |
 | Production schema drift vs `schema.prisma` | Not checked | None | `prisma migrate diff` against Neon after deploy |
 | ESLint problems | 139 | 139 (none added) | `pnpm lint` |
+| Production resources with searchable text (chunks stored) | 9 of 19 (47%); PPT 0 of 4, PDF 9 of 15 | Not changed yet (Phase 1) | Read-only query on Neon, 2026-10-17 |
+| Searchable PDFs with page numbers stored | 2 of 9 (older uploads were embedded without pages) | Not changed yet (Phase 1) | Same query |
+| Slide decks that are legacy binary `.ppt` | 2 of 4 (RBAC, Kerberos); today's pipeline can't read either format | Not changed yet (Phase 1) | File signatures of the downloaded decks |
 
 ### Retrieval and answer quality (evaluation set)
 
-Filled from `pnpm eval` (see [eval/README.md](../eval/README.md) on the Phase 0 branch). Same question set for every row, so the rows are comparable.
+Filled from `pnpm eval` (see [eval/README.md](../eval/README.md)). Same question set for every row, so the rows are comparable.
 
 | Version | Date | Questions | recall@1 | recall@3 | recall@5 | MRR | PPT recall@5 | Faithfulness | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Baseline: current TypeScript pipeline | — | — | not measured | not measured | not measured | not measured | not measured | not measured | Needs the real ~50-question set in `eval/questions.jsonl` |
+| **Baseline: current TypeScript pipeline, all** | 2026-10-17 | 68 | 58.8% | 70.6% | 72.1% | 0.651 | 0.0% | not measured | Run `2026-10-17T11-06-36Z-baseline.json`, code at `fb2588b` |
+| Baseline, PDFs only | 2026-10-17 | 52 | 76.9% | 92.3% | 94.2% | 0.851 | — | not measured | Same run |
+| Baseline, PDFs with more than 5 chunks | 2026-10-17 | 29 | 75.9% | 86.2% | 89.7% | 0.819 | — | not measured | Same run; the fairest PDF number (see below) |
 | Phase 1: Python ingestion | — | — | | | | | | | |
 | Phase 2: LangGraph chat | — | — | | | | | | | |
+
+**Reading the baseline:**
+
+- **Slide decks score 0%.** All 4 decks have no extracted text, so chat never searches them (16 of 68 questions). That alone costs 23.5 points of overall recall@5.
+- **Small PDFs flatter recall@5.** 23 questions are on PDFs stored as 5 or fewer chunks, where the top 5 is the whole document and recall@3/@5 is 100% by construction. Use recall@1 and MRR for those, and the "more than 5 chunks" row for PDF recall@5.
+- **The 3 genuine PDF misses:** `ae-loss` and `ae-sparse-rho`, whose answers sit on formula pages whose math symbols extract as garbled characters; and `rnn-bidirectional`, a paraphrased question that shares few words with its slide.
+- **Retrieval only.** Faithfulness (`--faithfulness`) wasn't run. The first attempt had one Cloudflare embedding timeout, so it was discarded and re-run; the recorded run had no errors.
 
 Harness smoke test only, not a baseline: on 2026-10-17 the Phase 0 harness ran on 11 synthetic questions over 2 synthetic resources on a local DB. It scored recall@5 0.91 and MRR 0.91 (PDF 1.00, PPT 0.67). This only shows the harness works; synthetic data says nothing about real notes.
 
@@ -46,6 +58,8 @@ Newest first.
 
 | Date | Change | Where | Status |
 | --- | --- | --- | --- |
+| 2026-10-17 | Retrieval baseline recorded on production (read-only): recall@5 72.1% overall, 94.2% on PDFs, 0% on slide decks; MRR 0.651 | `eval/results/2026-10-17T11-06-36Z-baseline.json` | Done |
+| 2026-10-17 | Evaluation set: 68 questions over 13 production resources in 6 subjects (52 on 9 PDFs, 16 on all 4 slide decks), each with expected pages or slides, evidence quotes and a reference answer. PDF quotes checked against the stored chunks; slide quotes checked against the original decks (2 legacy `.ppt` converted with LibreOffice) | `eval/questions.jsonl` | Reviewed; frozen for comparisons (add new questions with new ids) |
 | 2026-10-17 | Eval script now uses the chat's model from `src/lib/chat-model.ts` instead of a hard-coded retired one; plan and eval docs updated to the new model | Merge commit on `main` | Done; 40 tests pass, tsc clean, production build compiles |
 | 2026-10-17 | Chat model switched from `llama-3.3-70b-versatile` (reported retired by Groq) to `openai/gpt-oss-120b`, configurable through `GROQ_CHAT_MODEL`; model errors now surface in the chat stream | Commit `49d7ea0`, merged into `main` | Done |
 | 2026-10-17 | Phase 0 evaluation harness: `pnpm eval`, recall@k / MRR / optional faithfulness, synthetic smoke-test data, question-set guide | Commit `8fc9663`, merged into `main` | Done; real question set still to be written |
@@ -85,7 +99,7 @@ Vitest needs no Next.js-specific setup. The pgvector integration test inserts an
 Python's document parsers (PyMuPDF, python-pptx, Docling, OCR) fix the extraction failures measured above. LangGraph runs the multi-step chat: rewrite, retrieve, grade, answer. Next.js keeps the UI, auth and access checks, and proxies the chat stream. Rejected: staying in TypeScript (weaker parsing libraries), LangChain.js (same parsing gap), and a full rewrite of the app (no benefit for the non-RAG parts).
 
 ### D-008 · Evaluation before rebuilding
-**2026-10-17 · In progress (Phase 0)**
+**2026-10-17 · Done (Phase 0 gate met: baseline recorded)**
 Every later phase has to beat a recorded baseline on the same question set before the next phase starts (gates in the plan's roadmap). Without that, improvements can't be shown.
 
 ### D-009 · Structure-aware chunking first; semantic chunking only if it wins on the evaluation set
@@ -115,5 +129,5 @@ Groq retired `llama-3.3-70b-versatile`, which `/api/chat` used. The model now li
 ### Open decisions
 
 - [ ] Hosting for the Python service: Railway or Cloud Run (one minimum instance)?
-- [ ] Keep accepting legacy `.ppt` (needs LibreOffice in the container) or `.pptx` only?
+- [ ] Keep accepting legacy `.ppt` (needs LibreOffice in the container) or `.pptx` only? 2 of the 4 decks in production are `.ppt`, and LibreOffice converted both cleanly.
 - [ ] Which vision model or OCR provider for handwriting, and what per-page budget?
