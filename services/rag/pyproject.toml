@@ -13,6 +13,7 @@ dependencies = [
     "pymupdf4llm>=0.0.17",
     "python-pptx>=1.0",
     "langchain-text-splitters>=0.3",
+    "certifi>=2024.8",
 ]
 
 [dependency-groups]

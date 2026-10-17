@@ -21,9 +21,10 @@ The running record of what changed, why, and what it did to performance. The pla
 | ESLint problems | 139 | 139 (none added) | `pnpm lint` |
 | Largest file that can be uploaded on the live site | Under 4.5 MB (Vercel function body limit; larger files failed with "unexpected response") | 10 MB (Cloudinary free-plan raw limit), uploaded directly from the browser | Real signed upload, lookup and download against Cloudinary, 2026-10-17 |
 | Cloudflare embedding calls per upload | 1 per chunk, sequential (a 47-page PDF = 47 calls) | 1 per 50 chunks | Unit test of the batching |
-| Production resources with searchable text (chunks stored) | 9 of 19 (47%); PPT 0 of 4, PDF 9 of 15 | Not changed yet (Phase 1) | Read-only query on Neon, 2026-10-17 |
-| Searchable PDFs with page numbers stored | 2 of 9 (older uploads were embedded without pages) | Not changed yet (Phase 1) | Same query |
-| Slide decks that are legacy binary `.ppt` | 2 of 4 (RBAC, Kerberos); today's pipeline can't read either format | Not changed yet (Phase 1) | File signatures of the downloaded decks |
+| Production resources with searchable text (chunks stored) | 9 of 19 (47%); PPT 0 of 4, PDF 9 of 15 | **19 of 19** after the Phase 1 re-index (814 chunks over 773 pages/slides) | Read-only query on Neon before; `reindex --all` output after, 2026-10-17 |
+| Searchable PDFs with page numbers stored | 2 of 9 (older uploads were embedded without pages) | 15 of 15 (every Python-service chunk carries its page or slide) | Same |
+| Slide decks that are legacy binary `.ppt` | 2 of 4 (RBAC, Kerberos); today's pipeline can't read either format | Both indexed (LibreOffice conversion in the service image) | File signatures; `reindex --all` |
+| Production pages with no extractable text | not measured | 107 of 773, concentrated in 4 PDFs (21/50, 15/31 twice, 30/65): image-only pages, candidates for OCR (D-011) | `reindex --all` output |
 
 ### Retrieval and answer quality (evaluation set)
 
@@ -37,6 +38,9 @@ Filled from `pnpm eval` (see [eval/README.md](../eval/README.md)). Same question
 | **Phase 1: Python ingestion, all** (local copy) | 2026-10-17 | 68 | 82.4% | 92.6% | 97.1% | 0.880 | 100.0% | not measured | Run `2026-10-17T11-58-38Z-phase1-local.json`; production not re-indexed yet |
 | Phase 1, PDFs only | 2026-10-17 | 52 | 78.8% | 90.4% | 96.2% | 0.852 | — | not measured | Same run |
 | Phase 1, PDFs with more than 5 chunks (baseline's group) | 2026-10-17 | 29 | 69.0% | 82.8% | 93.1% | 0.775 | — | not measured | Same run; see the note on recall@1 below |
+| **Phase 1 on production, all** | 2026-10-17 | 68 | 82.4% | 92.6% | 97.1% | 0.880 | 100.0% | not measured | Run `2026-10-17T12-25-36Z-phase1-prod.json` (read-only), after migrating and re-indexing Neon; code at `0d242de` plus the Python-only TLS fix (D-019) |
+| Phase 1 on production, PDFs only | 2026-10-17 | 52 | 78.8% | 90.4% | 96.2% | 0.852 | — | not measured | Same run |
+| Phase 1 on production, PDFs with more than 5 chunks | 2026-10-17 | 29 | 69.0% | 82.8% | 93.1% | 0.775 | — | not measured | Same run; every question's first relevant rank equals the local run's |
 | Phase 2: LangGraph chat | — | — | | | | | | | |
 
 **Reading the baseline:**
@@ -53,6 +57,7 @@ Filled from `pnpm eval` (see [eval/README.md](../eval/README.md)). Same question
 - **Overall: recall@5 72.1% → 97.1%, MRR 0.651 → 0.880.** Only 2 questions miss: the 2 that missed in the baseline for the same reasons (a formula page and a heavily paraphrased question).
 - **Small PDFs are no longer trivial.** The 23 questions whose PDFs used to be 1–5 chunks now search 12–60 chunks, and still reach 100% recall@5 (recall@1 78.3% → 91.3%).
 - **Watch item: recall@1 on the larger PDFs fell 75.9% → 69.0%** (2 of 29 questions), while recall@5 rose 89.7% → 93.1%. Ranking the right page first is what Phase 2's re-ranker targets.
+- **Production confirms it.** After the migration and a full re-index of Neon, the same 68 questions scored exactly as on the local copy: all 68 first-relevant ranks are identical, as are the same 2 misses (`ae-loss`, `rnn-bidirectional`).
 - **Question labels corrected.** Real page counts (PyMuPDF) showed that the page numbers recovered from old text were wrong for 4 PDFs (Intro To Cloud, Lean Dev, Model comparisons, Process models): 16 questions' `expectedPages` were fixed, and `sns-whiskers` gained a spaced variant of its quote. The baseline is unaffected: those resources had no stored page numbers, so it matched on evidence quotes, which didn't change.
 
 Harness smoke test only, not a baseline: on 2026-10-17 the Phase 0 harness ran on 11 synthetic questions over 2 synthetic resources on a local DB. It scored recall@5 0.91 and MRR 0.91 (PDF 1.00, PPT 0.67). This only shows the harness works; synthetic data says nothing about real notes.
@@ -63,6 +68,7 @@ Harness smoke test only, not a baseline: on 2026-10-17 the Phase 0 harness ran o
 | --- | --- | --- | --- |
 | Upload time, 100-page PDF | not measured | Phase 1 | Uploads no longer wait for indexing: the service runs after the response |
 | Indexing time per resource (Python service, Docker, local) | — | Phase 1 | 0.8–9.5 s for the 13 evaluated resources (largest: 65-page PDF, 80-slide deck) |
+| Indexing time per resource, production re-index (Docker on a laptop → Neon us-east-1) | — | Phase 1 | 2.3–14.4 s each, 146 s for all 19 (includes the network round trips to Neon and Cloudflare) |
 | Chat time to first token | not measured | Phase 2 | LangGraph adds rewrite + grade steps |
 | LLM calls per question | 1 | Phase 2 | Expected 3 (rewrite, grade, answer) |
 
@@ -72,7 +78,11 @@ Newest first.
 
 | Date | Change | Where | Status |
 | --- | --- | --- | --- |
-| 2026-10-17 | Phase 1 ingestion: Python service (`services/rag`: FastAPI, PyMuPDF, python-pptx, LibreOffice for `.ppt`, structure-aware chunking with context headers, batched embeddings, Postgres-tracked status), Prisma migration adding `indexStatus` and a generated full-text column, Next.js hand-off with fallback to the old pipeline, chat shows indexing status | Branch `feature/phase1-ingestion` | Tested locally (30 Python + 48 JS tests, local eval above); not deployed, production not migrated or re-indexed |
+| 2026-10-17 | Phase 1 retrieval measured on production (read-only): recall@5 97.1%, MRR 0.880, slide decks 100%, identical to the local run | `eval/results/2026-10-17T12-25-36Z-phase1-prod.json` | Done |
+| 2026-10-17 | Production re-indexed with the Python service (`reindex --all`, service image run locally against Neon): 19 of 19 READY, 0 FAILED | Neon | Done |
+| 2026-10-17 | Service connects to Neon with certificate verification (`sslmode=verify-full`) using certifi's CA bundle (D-019); `certifi` is now a direct dependency, 3 tests added | `services/rag/app/db.py` | Done; 33 Python tests pass |
+| 2026-10-17 | Migration `20261017120000_add_index_status_and_fulltext` applied to production Neon; `migrate diff` shows no drift afterwards | Neon | Done |
+| 2026-10-17 | Phase 1 ingestion: Python service (`services/rag`: FastAPI, PyMuPDF, python-pptx, LibreOffice for `.ppt`, structure-aware chunking with context headers, batched embeddings, Postgres-tracked status), Prisma migration adding `indexStatus` and a generated full-text column, Next.js hand-off with fallback to the old pipeline, chat shows indexing status | Branch `feature/phase1-ingestion` | Tested locally (30 Python + 48 JS tests, local eval above); production migrated and re-indexed 2026-10-17; service not deployed yet |
 | 2026-10-17 | Fixed uploads over 4.5 MB failing on the live site: files now go from the browser straight to Cloudinary with a server-signed request; the server action receives only the file id, looks it up, downloads it and extracts as before. Embeddings batched; upload errors now reach the user instead of a generic message; upload page timeout raised to 60 s | `src/actions/resources.ts`, `UploadForm.tsx`, `src/lib/upload-limits.ts`, `src/lib/embeddings.ts` | Tested against Cloudinary and with unit tests; not yet verified on the live site |
 | 2026-10-17 | Retrieval baseline recorded on production (read-only): recall@5 72.1% overall, 94.2% on PDFs, 0% on slide decks; MRR 0.651 | `eval/results/2026-10-17T11-06-36Z-baseline.json` | Done |
 | 2026-10-17 | Evaluation set: 68 questions over 13 production resources in 6 subjects (52 on 9 PDFs, 16 on all 4 slide decks), each with expected pages or slides, evidence quotes and a reference answer. PDF quotes checked against the stored chunks; slide quotes checked against the original decks (2 legacy `.ppt` converted with LibreOffice) | `eval/questions.jsonl` | Reviewed; frozen for comparisons (add new questions with new ids) |
@@ -165,11 +175,17 @@ The header (`title › section › page`, embedded but not stored) is worth abou
 **2026-10-17 · Done**
 `createResource` hands indexing to the service only when `RAG_SERVICE_URL` and `RAG_SERVICE_SECRET` are set, and otherwise runs the old in-process extraction. The branch can therefore deploy before the service exists without breaking uploads. With the service set, the upload returns immediately and indexing runs after the response (`after()`).
 
-### D-018 · Free hosting for the Python service
-**2026-10-17 · Open**
+### D-018 · Free hosting for the Python service: Google Cloud Run
+**2026-10-17 · Decided: Cloud Run**
 The service is a plain Docker image (1.9 GB with LibreOffice) that needs no always-on worker: Next.js calls `/ingest` per upload, and `/ingest/pending` retries anything left PENDING. Free options: Google Cloud Run (free tier, scales to zero, needs a card on file), Hugging Face Spaces Docker (no card, sleeps when idle), Render free (512 MB RAM, too small for LibreOffice).
+
+Chosen: **Cloud Run** in `us-east1`, near Neon's `us-east-1`. Hugging Face's docs allow Spaces outbound traffic only on ports 80, 443 and 8080. A 2023 staff forum post says 5432 was opened, but the docs don't say so, and the service has to reach Neon on 5432 with psycopg.
+
+### D-019 · Verify Neon's TLS certificate with certifi's CA bundle
+**2026-10-17 · Done**
+Neon connection strings now carry `sslmode=verify-full`. In the service image libpq then looks for `~/.postgresql/root.crt` and refuses to connect. `sslrootcert=system` also failed ("certificate verify failed"), because the `psycopg[binary]` wheel bundles its own OpenSSL, which doesn't know where Debian keeps its CA certificates. `db.connection_params` now sets `sslrootcert` to certifi's bundle whenever the URL asks for verification and names no root certificate. This works on any host, Windows included. Rejected: downgrading to `sslmode=require` (it drops server verification) and setting `SSL_CERT_FILE` in the Dockerfile (it fixes only the image).
 
 ### Open decisions
 
-- [ ] Hosting for the Python service (D-018): Cloud Run or Hugging Face Spaces?
+- [x] Hosting for the Python service (D-018): Cloud Run
 - [ ] Which vision model or OCR provider for handwriting, and what per-page budget?

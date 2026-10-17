@@ -2,7 +2,9 @@
 
 from dataclasses import dataclass
 
+import certifi
 import psycopg
+from psycopg.conninfo import conninfo_to_dict
 
 from app.chunking import Chunk
 from app.config import PARSER_VERSION, get_settings
@@ -19,8 +21,18 @@ class ResourceRow:
 _RETURNING = 'RETURNING id, type::text, title, "fileUrl"'
 
 
+def connection_params(url: str) -> dict[str, str]:
+    """Neon URLs carry sslmode=verify-full; without a root cert libpq looks for ~/.postgresql/root.crt,
+    which no container has. "sslrootcert=system" doesn't help either: the psycopg wheel bundles its own
+    OpenSSL, which doesn't know the OS's CA path. Use certifi's CA bundle instead."""
+    params = conninfo_to_dict(url)
+    if str(params.get("sslmode", "")).startswith("verify") and "sslrootcert" not in params:
+        params["sslrootcert"] = certifi.where()
+    return params
+
+
 def connect() -> psycopg.Connection:
-    return psycopg.connect(get_settings().database_url)
+    return psycopg.connect(**connection_params(get_settings().database_url))
 
 
 def _row(cur: psycopg.Cursor) -> ResourceRow | None:
