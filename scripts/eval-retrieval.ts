@@ -31,6 +31,7 @@ import {
   type RetrievalSummary,
 } from "../src/lib/rag-eval";
 import { CHAT_MODEL } from "../src/lib/chat-model"; // what /api/chat uses
+import { buildChatSystemPrompt } from "../src/lib/chat-system-prompt"; // no DB access: safe to import before connectEvalDb
 
 const TOP_K = 5; // what /api/chat uses (getRelevantChunks default)
 const DEFAULT_JUDGE_MODEL = "openai/gpt-oss-20b";
@@ -129,28 +130,9 @@ function warnAboutResources(questions: EvalQuestion[], resources: Map<string, Re
 
 // --- Faithfulness (optional) -------------------------------------------------------------
 
-// Same prompts as src/app/api/chat/route.ts. Keep in sync.
-const FORMAT_RULES = `How to write the answer (it is shown as Markdown in a narrow chat panel):
-- Start with a direct answer in one or two sentences, then add only the detail that helps.
-- Prefer short paragraphs and bullet lists. Use a table only to compare two or more things across several aspects, with at most 3 columns and short cells.
-- Use **bold** sparingly, for key terms. No headings for short answers.
-- Write formulas in LaTeX: \\( … \\) inline, or \\[ … \\] on their own line.
-- Keep it under about 200 words unless the student asks for more detail.
-- Never mention "excerpts" or number them; refer to "your notes".`;
-
+// The chat's own prompt builder; eval questions name topics, so they take the search path.
 function chatSystemPrompt(title: string, sources: RetrievedChunk[]): string {
-  return sources.length > 0
-    ? `You are a helpful AI study assistant. The student is studying "${title}".
-Answer using the excerpts from their notes below. Be concise and educational.
-If the answer isn't in the notes, say so and help from general knowledge.
-Cite the page of each fact taken from the notes in brackets, exactly as the excerpt is labelled, e.g. [p. 12]. Excerpts labelled [notes] have no page number: use them without a citation.
-
-${FORMAT_RULES}
-
---- EXCERPTS FROM THE NOTES ---
-${sources.map((s) => `[${s.pageNumber ? `p. ${s.pageNumber}` : "notes"}]\n${s.content}`).join("\n\n---\n\n")}
---- END EXCERPTS ---`
-    : `You are a helpful AI study assistant for "${title}". Answer from general knowledge.\n\n${FORMAT_RULES}`;
+  return buildChatSystemPrompt({ title, searchable: true, pageCount: null, sources, focus: { kind: "search" } });
 }
 
 function judgePrompt(q: EvalQuestion, sources: RetrievedChunk[], answer: string): string {

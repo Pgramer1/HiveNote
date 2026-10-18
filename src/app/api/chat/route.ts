@@ -3,20 +3,13 @@ import { streamText } from "ai";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { getRelevantChunks, type SourceChunk } from "@/lib/rag";
+import { planRetrieval } from "@/lib/page-refs";
+import { getOverviewChunks, getPageChunks, getPageCount } from "@/lib/page-retrieval";
+import { buildChatSystemPrompt, type PassageFocus } from "@/lib/chat-system-prompt";
 import { CHAT_MODEL } from "@/lib/chat-model";
 
 const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
 export const maxDuration = 30;
-
-// How answers should look: ResourceChatBot renders them as Markdown (tables, KaTeX math) in a narrow
-// side panel. scripts/eval-retrieval.ts keeps a copy of these prompts; keep the two in sync.
-const FORMAT_RULES = `How to write the answer (it is shown as Markdown in a narrow chat panel):
-- Start with a direct answer in one or two sentences, then add only the detail that helps.
-- Prefer short paragraphs and bullet lists. Use a table only to compare two or more things across several aspects, with at most 3 columns and short cells.
-- Use **bold** sparingly, for key terms. No headings for short answers.
-- Write formulas in LaTeX: \\( … \\) inline, or \\[ … \\] on their own line.
-- Keep it under about 200 words unless the student asks for more detail.
-- Never mention "excerpts" or number them; refer to "your notes".`;
 
 async function authorizeChatAccess(resourceId: string) {
   const session = await getSession();
@@ -124,30 +117,35 @@ export async function POST(req: Request) {
       });
     }
 
-    let systemPrompt: string;
+    const searchable = Boolean(resource.extractedText);
     let sources: SourceChunk[] = [];
+    let focus: PassageFocus = { kind: "search" };
+    let pageCount: number | null = null;
 
-    if (resource.extractedText && query) {
-      sources = await getRelevantChunks(resourceId, query).catch((err) => {
+    if (searchable) {
+      try {
+        pageCount = await getPageCount(resourceId);
+        const plan = planRetrieval(query);
+        // Page lookups need stored page numbers; older resources without them fall back to search.
+        if (plan.kind === "pages" && pageCount !== null) {
+          const pages = [...new Set([...plan.pages, ...(plan.last ? [pageCount] : [])])].sort((a, b) => a - b);
+          sources = await getPageChunks(resourceId, pages);
+          const found = new Set(sources.map((s) => s.pageNumber));
+          focus = { kind: "pages", pages, missing: pages.filter((p) => !found.has(p)) };
+        } else if (plan.kind === "overview") {
+          sources = await getOverviewChunks(resourceId);
+          focus = { kind: "overview" };
+        } else {
+          sources = await getRelevantChunks(resourceId, query);
+        }
+      } catch (err) {
         console.error("[RAG] Retrieval failed for resource", resourceId, err);
-        return [];
-      });
-
-      systemPrompt = sources.length > 0
-        ? `You are a helpful AI study assistant. The student is studying "${resource.title}".
-Answer using the excerpts from their notes below. Be concise and educational.
-If the answer isn't in the notes, say so and help from general knowledge.
-Cite the page of each fact taken from the notes in brackets, exactly as the excerpt is labelled, e.g. [p. 12]. Excerpts labelled [notes] have no page number: use them without a citation.
-
-${FORMAT_RULES}
-
---- EXCERPTS FROM THE NOTES ---
-${sources.map((s) => `[${s.pageNumber ? `p. ${s.pageNumber}` : "notes"}]\n${s.content}`).join("\n\n---\n\n")}
---- END EXCERPTS ---`
-        : `You are a helpful AI study assistant for "${resource.title}". Answer from general knowledge.\n\n${FORMAT_RULES}`;
-    } else {
-      systemPrompt = `You are a helpful AI study assistant for "${resource.title}" (${resource.type}). Answer helpfully.\n\n${FORMAT_RULES}`;
+        sources = [];
+        focus = { kind: "search" };
+      }
     }
+
+    const systemPrompt = buildChatSystemPrompt({ title: resource.title, searchable, pageCount, sources, focus });
 
     // streamText doesn't throw provider errors (e.g. an unknown model) from
     // textStream; it reports them here and ends the stream empty.

@@ -79,6 +79,7 @@ Newest first.
 
 | Date | Change | Where | Status |
 | --- | --- | --- | --- |
+| 2026-10-18 | Page-aware chat on `main`: questions naming pages or slides fetch those pages, whole-document questions get passages spread across it, and the prompt says the assistant can read the document (D-025) | `src/lib/page-refs.ts`, `page-retrieval.ts`, `chat-system-prompt.ts`, `src/app/api/chat/route.ts`, `scripts/eval-retrieval.ts` | Tested (105 JS tests incl. pgvector, tsc, build; live replay of 4 questions) |
 | 2026-10-18 | Readability hotfix on `main`, ahead of Phase 2: assistant answers render as Markdown (tables, lists, KaTeX math via `ChatMarkdown.tsx`) instead of raw `**`, pipes and LaTeX; the live prompt labels sources `[p. 12]` instead of "Excerpt N" and adds layout rules for the narrow panel (the eval's copy kept in sync). Write-up: D-024 on `feature/phase2-chat` | `ChatMarkdown.tsx`, `ResourceChatBot.tsx`, `src/app/api/chat/route.ts`, `scripts/eval-retrieval.ts` | Tested (63 JS tests, tsc, build; one live answer on the local copy: direct answer, displayed formula, `[p. 32]` citation, no excerpt numbers) |
 | 2026-10-17 | Phase 1 merged into `main` (fast-forward to `2347507`), pushed, and deployed on Vercel with `RAG_INDEX_GITHUB_TOKEN`/`RAG_INDEX_GITHUB_REPO`. First manual workflow run and first real upload both indexed successfully (timings in Speed and cost). Workflow moved to `actions/checkout@v5` and `astral-sh/setup-uv@v7` (Node 24; the first run warned that Node 20 is deprecated) | `main`, `.github/workflows/rag-index.yml` | Done; the chat answering from the new upload is checked by hand |
 | 2026-10-17 | Indexing runs on GitHub Actions: `rag-index.yml` (per-upload `workflow_dispatch` + daily PENDING retry), Next.js `queueIndexing()` picks the HTTP service or the workflow, chat copy says "within a few minutes"; service refuses API calls while its secret is unset, CLI exits 1 on failures | `.github/workflows/rag-index.yml`, `src/lib/rag-service.ts`, `services/rag/app/{main,config,cli}.py` | Merged and live (see the row above) |
@@ -203,6 +204,38 @@ Related changes:
 ### D-019 · Verify Neon's TLS certificate with certifi's CA bundle
 **2026-10-17 · Done**
 Neon connection strings now carry `sslmode=verify-full`. In the service image libpq then looks for `~/.postgresql/root.crt` and refuses to connect. `sslrootcert=system` also failed ("certificate verify failed"), because the `psycopg[binary]` wheel bundles its own OpenSSL, which doesn't know where Debian keeps its CA certificates. `db.connection_params` now sets `sslrootcert` to certifi's bundle whenever the URL asks for verification and names no root certificate. This works on any host, Windows included. Rejected: downgrading to `sslmode=require` (it drops server verification) and setting `SSL_CERT_FILE` in the Dockerfile (it fixes only the image).
+
+### D-025 · Page questions fetch pages; the chat knows it can read the document
+**2026-10-18 · Done (on `main`, ahead of Phase 2)**
+Reported by the repo owner from the live site: "explain 3rd page of this pdf" got "I don't have the text from the third page", and "do you have pdf context?" got "I don't have the PDF itself". There were two causes:
+- **Retrieval matches meaning, not page numbers.** A question that names a page but no topic retrieved arbitrary chunks (pages 5, 35, 47, 63 and 66 in the screenshot, never page 3).
+- **The prompt never said the assistant had the document.** It only said "answer using the excerpts", so the model fell back to "I can't open files".
+
+Changes:
+- **Page detection (`src/lib/page-refs.ts`):** `planRetrieval` spots page and slide references ("page 3", "p. 12", "3rd page", "third page", "page three", "slides 2, 4 and 9", "pages 3-5", "last page") and whole-document questions ("summarize this pdf", "what is this about", "do you have the pdf?").
+  - Page questions fetch those pages directly (`src/lib/page-retrieval.ts`): up to 6 pages, 10 chunks.
+  - Whole-document questions get up to 8 chunks spaced evenly through the document, 700 characters each.
+  - Everything else uses vector search as before. Resources without stored page numbers fall back to search.
+- **Prompt (`src/lib/chat-system-prompt.ts`, shared with the eval):**
+  - it names the document and its page count, says the model can read it, and forbids claiming otherwise;
+  - asked whether it has the document, the model says yes;
+  - it explains what the passages are (named pages, a spread through the document, or search results);
+  - it flags requested pages that have no text or are past the last page with text;
+  - with nothing found, it suggests a topic or page range;
+  - citations are plain text, never inside LaTeX.
+- **Tests:** 32 for page and overview detection, including near-misses such as "step 3", "page rank", "write 2 pages" and "p-value"; 6 for the prompt; 3 against real pgvector (page lookup, a picture-only page, evenly spaced overview). 105 JS tests pass.
+- **Live check** (route steps replayed on the local copy of Autoencoders, real `gpt-oss-120b` answers):
+
+| Question | Result |
+| --- | --- |
+| "explain 3rd page of this pdf" | Explained page 3 (encoder, latent space, decoder; symmetric vs asymmetric) with `[p. 3]` citations |
+| "summarize this pdf" | Ordered overview citing pages 1–47 |
+| "explain page 60" | "isn't in the document, the text only goes up to page 47", plus an offer to help |
+| "do you have pdf context?" | First version: "I don't have the original PDF file, but I have the key excerpts". After adding the explicit rule: "Yes, I can see the PDF you're studying…" |
+
+  The first version also put citations inside LaTeX (`\([p. 3]\)`); the plain-text rule fixed that.
+
+Phase 2's chat graph should use `planRetrieval` in its retrieve step when it is merged.
 
 ### Open decisions
 
