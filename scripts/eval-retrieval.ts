@@ -130,16 +130,27 @@ function warnAboutResources(questions: EvalQuestion[], resources: Map<string, Re
 // --- Faithfulness (optional) -------------------------------------------------------------
 
 // Same prompts as src/app/api/chat/route.ts. Keep in sync.
+const FORMAT_RULES = `How to write the answer (it is shown as Markdown in a narrow chat panel):
+- Start with a direct answer in one or two sentences, then add only the detail that helps.
+- Prefer short paragraphs and bullet lists. Use a table only to compare two or more things across several aspects, with at most 3 columns and short cells.
+- Use **bold** sparingly, for key terms. No headings for short answers.
+- Write formulas in LaTeX: \\( … \\) inline, or \\[ … \\] on their own line.
+- Keep it under about 200 words unless the student asks for more detail.
+- Never mention "excerpts" or number them; refer to "your notes".`;
+
 function chatSystemPrompt(title: string, sources: RetrievedChunk[]): string {
   return sources.length > 0
     ? `You are a helpful AI study assistant. The student is studying "${title}".
-Answer using the relevant excerpts below. Be concise and educational.
-If the answer isn't in the excerpts, say so and help from general knowledge.
+Answer using the excerpts from their notes below. Be concise and educational.
+If the answer isn't in the notes, say so and help from general knowledge.
+Cite the page of each fact taken from the notes in brackets, exactly as the excerpt is labelled, e.g. [p. 12]. Excerpts labelled [notes] have no page number: use them without a citation.
 
---- RELEVANT EXCERPTS ---
-${sources.map((s, i) => `[Excerpt ${i + 1}${s.pageNumber ? ` · p.${s.pageNumber}` : ""}]\n${s.content}`).join("\n\n---\n\n")}
+${FORMAT_RULES}
+
+--- EXCERPTS FROM THE NOTES ---
+${sources.map((s) => `[${s.pageNumber ? `p. ${s.pageNumber}` : "notes"}]\n${s.content}`).join("\n\n---\n\n")}
 --- END EXCERPTS ---`
-    : `You are a helpful AI study assistant for "${title}". Answer from general knowledge.`;
+    : `You are a helpful AI study assistant for "${title}". Answer from general knowledge.\n\n${FORMAT_RULES}`;
 }
 
 function judgePrompt(q: EvalQuestion, sources: RetrievedChunk[], answer: string): string {

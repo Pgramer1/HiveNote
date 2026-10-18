@@ -24,6 +24,7 @@
     "cloudinary": "^2.9.0",
     "clsx": "^2.1.1",
     "dotenv": "^17.2.3",
+    "katex": "^0.16.47",
     "lucide-react": "^0.563.0",
     "next": "16.1.4",
     "next-auth": "^4.24.7",
@@ -32,6 +33,10 @@
     "pptxgenjs": "^4.0.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-markdown": "10.1.0",
+    "rehype-katex": "7.0.1",
+    "remark-gfm": "4.0.1",
+    "remark-math": "6.0.0",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {

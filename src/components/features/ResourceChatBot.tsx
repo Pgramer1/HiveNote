@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Bot, User, Loader2, Sparkles, Send, AlertCircle, BookOpen } from "lucide-react";
+import ChatMarkdown from "./ChatMarkdown";
 
 type Props = {
   resourceId: string;
@@ -244,13 +245,18 @@ export default function ResourceChatBot({
                 <Bot className="w-4 h-4 text-primary" />
               </div>
             )}
-            <div className="max-w-[80%] flex flex-col gap-1.5">
-              <div className={`rounded-lg px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
-                message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
+            <div className="max-w-[80%] min-w-0 flex flex-col gap-1.5">
+              <div className={`rounded-lg px-4 py-2.5 text-sm leading-relaxed min-w-0 ${
+                message.role === "user" ? "bg-primary text-primary-foreground whitespace-pre-wrap" : "bg-muted"
               }`}>
-                {message.content || (message.role === "assistant" && isLoading && (
-                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                ))}
+                {/* Assistant answers are Markdown (lists, tables, math); what the student typed stays plain text. */}
+                {message.role === "assistant" && message.content ? (
+                  <ChatMarkdown content={message.content} />
+                ) : (
+                  message.content || (message.role === "assistant" && isLoading && (
+                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                  ))
+                )}
               </div>
 
               {/* Sources — only show on assistant messages with page numbers */}
