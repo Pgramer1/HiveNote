@@ -15,8 +15,10 @@ class Block:
 class ParsedDocument:
     blocks: list[Block]
     page_count: int
-    # Pages with (almost) no extractable text: scans, handwriting or picture-only slides, read by OCR.
+    # Pages to read with OCR: PDF pages with (almost) no text (scans, handwriting, picture-only slides),
+    # and deck slides with little text that show a picture.
     empty_pages: list[int] = field(default_factory=list)
+    slides: bool = False  # parsed from a deck: chunk per slide and label chunks "slide N"
 
     @property
     def full_text(self) -> str:

@@ -1,8 +1,8 @@
 from app.parsing.model import Block, ParsedDocument, UnsupportedDocument
 from app.parsing.pdf import parse_pdf
-from app.parsing.slides import convert_ppt_to_pptx, parse_pptx
+from app.parsing.slides import convert_deck_to_pdf, convert_ppt_to_pptx, parse_pptx
 
-__all__ = ["Block", "ParsedDocument", "UnsupportedDocument", "parse_document"]
+__all__ = ["Block", "ParsedDocument", "UnsupportedDocument", "convert_deck_to_pdf", "parse_document"]
 
 _PDF = b"%PDF"
 _ZIP = b"PK\x03\x04"  # .pptx (Office Open XML)

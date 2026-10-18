@@ -8,6 +8,7 @@ import os
 import uuid
 
 import psycopg
+import pymupdf
 import pytest
 
 from app import pipeline
@@ -150,6 +151,27 @@ def test_a_deferred_resource_is_not_claimed_again_in_the_same_run(resource, ocr_
     results = pipeline.ingest_pending(5)
 
     assert [(r.resource_id, r.status) for r in results] == [(resource_id, "DEFERRED")]
+
+
+def test_picture_slides_in_a_deck_are_read_by_ocr(resource, ocr_on, picture_pptx, monkeypatch):
+    resource_id, state = resource
+    with psycopg.connect(TEST_DB) as conn:
+        conn.execute('UPDATE "Resource" SET type = \'PPT\' WHERE id = %s', (resource_id,))
+    rendered = pymupdf.open()
+    for _ in range(4):
+        rendered.new_page()
+    monkeypatch.setattr(pipeline, "download", lambda url, max_bytes: picture_pptx)
+    monkeypatch.setattr(pipeline, "convert_deck_to_pdf", lambda data: rendered.tobytes())
+    monkeypatch.setattr(pipeline, "ocr_pages", lambda pdf, pages, s: ({p: f"{OCR_TEXT} (slide {p})" for p in pages}, 150.0))
+
+    result = pipeline.ingest(resource_id)
+
+    assert (result.status, result.ocr_pages, result.empty_pages) == ("READY", 2, 0)
+    _, chunks = state()
+    # slide, ocr (title "Waiting" kept as section), the hidden "Thank you" slide, ocr (with its notes)
+    assert [(c[1], c[2], c[3]) for c in chunks] == [
+        (1, "Kerberos", "slide"), (2, "Waiting", "ocr"), (3, "Thank you", "slide"), (4, None, "ocr"),
+    ]
 
 
 def test_an_already_processing_resource_is_skipped(resource):

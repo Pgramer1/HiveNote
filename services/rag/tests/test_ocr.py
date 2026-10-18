@@ -22,6 +22,7 @@ def test_clean_transcription_drops_fences_and_a_preamble():
     assert ocr.clean_transcription("```\nx = 1\n```") == "x = 1"
     assert ocr.clean_transcription("Here is the transcription:\nAssignment 2") == "Assignment 2"
     assert ocr.clean_transcription("Here we go") == "Here we go"  # a one-line page is kept as is
+    assert ocr.clean_transcription("Click to add Title\n\nGradient Descent - step size") == "Gradient Descent - step size"
 
 
 def test_render_page_is_a_jpeg_within_the_size_limit(lecture_pdf):

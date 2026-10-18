@@ -28,6 +28,8 @@ PROMPT = (
 
 _FENCE = re.compile(r"^\s*```[\w-]*\s*$")
 _PREAMBLE = re.compile(r"^\s*(here is|here's|the transcription|transcription:)", re.IGNORECASE)
+# Empty PowerPoint placeholders render their prompt when LibreOffice exports a deck to PDF.
+_PLACEHOLDER = re.compile(r"^\s*click to add (title|text|subtitle|notes)\s*$", re.IGNORECASE)
 
 
 class OcrError(Exception):
@@ -48,7 +50,7 @@ def render_page(doc: pymupdf.Document, page_number: int, max_side: int) -> bytes
 
 
 def clean_transcription(text: str) -> str:
-    lines = [line for line in text.strip().splitlines() if not _FENCE.match(line)]
+    lines = [line for line in text.strip().splitlines() if not _FENCE.match(line) and not _PLACEHOLDER.match(line)]
     if lines and _PREAMBLE.match(lines[0]) and len(lines) > 1:
         lines = lines[1:]
     return "\n".join(lines).strip()

@@ -14,12 +14,16 @@ class Chunk:
     content: str  # stored and shown to the model
     page: int  # first page/slide the chunk covers
     section: str | None
-    kind: str  # text | slide | notes | table
+    kind: str  # text | slide | notes | table | ocr
     embed_text: str  # content with its context header, used only for the embedding
 
 
 def _is_slides(doc: ParsedDocument) -> bool:
-    return any(b.kind in ("slide", "notes") for b in doc.blocks)
+    return doc.slides or any(b.kind in ("slide", "notes") for b in doc.blocks)
+
+
+def _has_ocr(blocks: list[Block]) -> bool:
+    return any(b.kind == "ocr" for b in blocks)
 
 
 def _group_pdf(blocks: list[Block], chunk_size: int, pack_pages: bool = True) -> list[list[Block]]:
@@ -41,7 +45,8 @@ def _group_pdf(blocks: list[Block], chunk_size: int, pack_pages: bool = True) ->
 
 def _group_slides(blocks: list[Block], chunk_size: int, min_chars: int) -> list[list[Block]]:
     """One group per slide (with its notes); a short slide is merged with the next slide
-    when that slide continues the same title (or the short slide has none)."""
+    when that slide continues the same title (or the short slide has none). Slides read by OCR
+    are never merged, so each stays one 'ocr' chunk that the daily OCR budget can count."""
     per_slide: dict[int, list[Block]] = {}
     for block in blocks:
         per_slide.setdefault(block.page, []).append(block)
@@ -50,7 +55,7 @@ def _group_slides(blocks: list[Block], chunk_size: int, min_chars: int) -> list[
     groups: list[list[Block]] = []
     for slide in slides:
         current = groups[-1] if groups else None
-        if current:
+        if current and not _has_ocr(current) and not _has_ocr(slide):
             size = sum(len(b.text) for b in current)
             same_topic = current[0].section is None or current[0].section == slide[0].section
             if size < min_chars and same_topic and size + sum(len(b.text) for b in slide) <= chunk_size:
@@ -90,7 +95,7 @@ def build_chunks(
     chunks: list[Chunk] = []
     for group in groups:
         first = group[0]
-        kind = "slide" if slides else first.kind
+        kind = "ocr" if _has_ocr(group) else "slide" if slides else first.kind
         text = "\n\n".join(b.text for b in group)
         # A group can only exceed the size when a single block does (packing stops before).
         pieces = splitter.split_text(text) if len(text) > chunk_size else [text]

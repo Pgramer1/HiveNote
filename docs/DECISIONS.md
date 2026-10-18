@@ -79,7 +79,7 @@ Newest first.
 
 | Date | Change | Where | Status |
 | --- | --- | --- | --- |
-| 2026-10-18 | Phase 3: OCR for text-less PDF pages (Llama 4 Scout via Cloudflare, Groq optional), with a daily page budget and a per-document cap; resources over budget wait in the queue; workflow passes the OCR settings; `PARSER_VERSION` `rag-2` | Branch `feature/phase3-ocr` (`services/rag/app/ocr.py`, `pipeline.py`, `db.py`, `config.py`) | Tested locally (45 Python tests, local end-to-end run on a handwritten assignment); not merged, production not re-indexed |
+| 2026-10-18 | Phase 3: OCR for text-less PDF pages and picture slides in decks (decks rendered with LibreOffice; Llama 4 Scout via Cloudflare, Groq optional), with a daily page budget and a per-document cap; resources over budget wait in the queue; workflow passes the OCR settings; `PARSER_VERSION` `rag-2` | Branch `feature/phase3-ocr` (`services/rag/app/ocr.py`, `pipeline.py`, `db.py`, `config.py`) | Tested locally (45 Python tests, local end-to-end run on a handwritten assignment); not merged, production not re-indexed |
 | 2026-10-17 | Phase 1 merged into `main` (fast-forward to `2347507`), pushed, and deployed on Vercel with `RAG_INDEX_GITHUB_TOKEN`/`RAG_INDEX_GITHUB_REPO`. First manual workflow run and first real upload both indexed successfully (timings in Speed and cost). Workflow moved to `actions/checkout@v5` and `astral-sh/setup-uv@v7` (Node 24; the first run warned that Node 20 is deprecated) | `main`, `.github/workflows/rag-index.yml` | Done; the chat answering from the new upload is checked by hand |
 | 2026-10-17 | Indexing runs on GitHub Actions: `rag-index.yml` (per-upload `workflow_dispatch` + daily PENDING retry), Next.js `queueIndexing()` picks the HTTP service or the workflow, chat copy says "within a few minutes"; service refuses API calls while its secret is unset, CLI exits 1 on failures | `.github/workflows/rag-index.yml`, `src/lib/rag-service.ts`, `services/rag/app/{main,config,cli}.py` | Merged and live (see the row above) |
 | 2026-10-17 | Phase 1 retrieval measured on production (read-only): recall@5 97.1%, MRR 0.880, slide decks 100%, identical to the local run | `eval/results/2026-10-17T12-25-36Z-phase1-prod.json` | Done |
@@ -249,6 +249,17 @@ What this shows:
 - **Failures:** a page whose OCR call fails is skipped, so it can't fail the document.
 - **Tests:** 11 new (provider requests and errors, cleanup, rendering, page skipping, OCR chunks saved, budget counting, deferral, and no re-claim within a run); 45 Python tests pass.
 - **End to end, local database, real Cloudflare calls:** the 13-page handwritten assignment 1 went from no text to READY. OCR read all 13 pages into 13 chunks, using 1,072 neurons in 189 s (about 14.5 s a page, one page at a time). Two questions whose answers are on known pages retrieved the right page first.
+
+**Decks too (same branch).** python-pptx reads slide text but can't draw a slide, so slides that need OCR are rendered by converting the deck to PDF with LibreOffice (already in the image and the workflow, for legacy `.ppt`):
+- **Which slides:** fewer than 20 letters of text and at least one picture. The old rule was fewer than 3 letters, which missed title-plus-picture slides. Short text-only slides like "Thank you" never use the budget.
+- **Conversion:** only decks that have such slides are converted. Hidden slides are exported too, so PDF page N is slide N; if the page count still doesn't match, OCR is skipped for that deck.
+- **Result:** the OCR text replaces the slide's parsed title, which becomes the section, and speaker notes stay. OCR'd slides are never merged with neighbouring slides, so the budget counts each one.
+
+Dry run on the 4 production decks (no database writes; real LibreOffice and Cloudflare calls):
+- **Slides found:** 11 picture slides, against 4 under the old rule: RBAC 5, Gradient Descent 3, DAC/MAC/RBAC 1, Kerberos 1.
+- **Content recovered:** the bank role hierarchy, the RBAC role trees, the six-step Kerberos ticket flow, the MAC clearance levels and the contour-plot axes, all previously invisible to search.
+- **Cost:** 575 neurons. One slide returned PowerPoint's empty-placeholder prompt ("Click to add Title"), which the cleanup now strips.
+- **Tests:** 8 new (slide selection, title replacement with notes kept, no merging, slide labels, the page-count guard, conversion failure, a DB end-to-end deck, and real LibreOffice rendering of a deck with a hidden slide). That makes 54 Python tests: 52 run anywhere, and the 2 LibreOffice tests run in the Docker image.
 
 Next: the owner checks the handwriting references; test Llama 4 Scout on Groq; then re-index production. Its 107 text-less pages need about 9,000 neurons, so the budget guard spreads them over about two days.
 

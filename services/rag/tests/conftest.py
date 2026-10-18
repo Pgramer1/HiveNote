@@ -55,6 +55,33 @@ def lecture_pdf() -> bytes:
 
 
 @pytest.fixture(scope="session")
+def picture_pptx() -> bytes:
+    """4 slides: text; title + picture; short text only (hidden); picture only, with speaker notes."""
+    png = pymupdf.Pixmap(pymupdf.csRGB, pymupdf.IRect(0, 0, 40, 30), 0).tobytes("png")
+    prs = Presentation()
+
+    s1 = prs.slides.add_slide(prs.slide_layouts[1])
+    s1.shapes.title.text = "Kerberos"
+    s1.placeholders[1].text_frame.text = "Network authentication protocol developed at MIT"
+
+    s2 = prs.slides.add_slide(prs.slide_layouts[5])  # Title Only
+    s2.shapes.title.text = "Waiting"
+    s2.shapes.add_picture(io.BytesIO(png), Inches(1), Inches(2), Inches(4), Inches(3))
+
+    s3 = prs.slides.add_slide(prs.slide_layouts[5])
+    s3.shapes.title.text = "Thank you"
+    s3._element.set("show", "0")  # hidden: LibreOffice must still export it, or slide numbers shift
+
+    s4 = prs.slides.add_slide(prs.slide_layouts[6])  # Blank
+    s4.shapes.add_picture(io.BytesIO(png), Inches(1), Inches(1), Inches(6), Inches(4))
+    s4.notes_slide.notes_text_frame.text = "Walk through the LSTM gates on this diagram."
+
+    buf = io.BytesIO()
+    prs.save(buf)
+    return buf.getvalue()
+
+
+@pytest.fixture(scope="session")
 def lecture_pptx() -> bytes:
     """Slides: two short slides sharing a title, a table slide, and a slide with notes."""
     prs = Presentation()
