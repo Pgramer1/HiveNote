@@ -55,17 +55,19 @@ def claim_resource(conn: psycopg.Connection, resource_id: str, force: bool = Fal
     return row
 
 
-def claim_next_pending(conn: psycopg.Connection) -> ResourceRow | None:
-    """Claims the oldest PENDING resource; SKIP LOCKED lets several workers run safely."""
+def claim_next_pending(conn: psycopg.Connection, exclude: list[str] | None = None) -> ResourceRow | None:
+    """Claims the oldest PENDING resource not in `exclude` (resources deferred earlier in this run);
+    SKIP LOCKED lets several workers run safely."""
     with conn.cursor() as cur:
         cur.execute(
             f'''UPDATE "Resource" SET "indexStatus" = 'PROCESSING', "indexError" = NULL
                 WHERE id = (
                   SELECT id FROM "Resource"
-                  WHERE type IN ('PDF', 'PPT') AND "indexStatus" = 'PENDING'
+                  WHERE type IN ('PDF', 'PPT') AND "indexStatus" = 'PENDING' AND NOT (id = ANY(%s))
                   ORDER BY "createdAt" FOR UPDATE SKIP LOCKED LIMIT 1
                 )
-                {_RETURNING}'''
+                {_RETURNING}''',
+            (exclude or [],),
         )
         row = _row(cur)
     conn.commit()
@@ -105,6 +107,32 @@ def save_index(
                WHERE id = %s''',
             (extracted_text, PARSER_VERSION, resource_id),
         )
+
+
+def ocr_pages_used_today(conn: psycopg.Connection) -> int:
+    """Pages whose OCR text was saved since midnight (database time; UTC on Neon), counted once per
+    resource and page. Approximate: pages that failed or were later replaced by a re-index don't count."""
+    with conn.cursor() as cur:
+        cur.execute(
+            '''SELECT count(*) FROM (
+                 SELECT DISTINCT "resourceId", "pageNumber" FROM "ResourceChunk"
+                 WHERE "chunkType" = 'ocr' AND "createdAt" >= date_trunc('day', localtimestamp)
+               ) pages'''
+        )
+        count = cur.fetchone()[0]
+    conn.commit()
+    return count
+
+
+def mark_deferred(conn: psycopg.Connection, resource_id: str, message: str) -> None:
+    """Puts a resource back in the queue (PENDING) with the reason; a later run retries it."""
+    conn.rollback()
+    with conn.cursor() as cur:
+        cur.execute(
+            '''UPDATE "Resource" SET "indexStatus" = 'PENDING', "indexError" = %s WHERE id = %s''',
+            (message[:1000], resource_id),
+        )
+    conn.commit()
 
 
 def mark_failed(conn: psycopg.Connection, resource_id: str, message: str) -> None:

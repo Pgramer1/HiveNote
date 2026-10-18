@@ -11,6 +11,8 @@ os.environ.setdefault("DATABASE_URL", os.environ.get("TEST_DATABASE_URL", "postg
 os.environ.setdefault("CLOUDFLARE_ACCOUNT_ID", "test-account")
 os.environ.setdefault("CLOUDFLARE_API_TOKEN", "test-token")
 os.environ.setdefault("RAG_SERVICE_SECRET", "test-secret")
+# OCR calls a paid/quota'd vision API; tests that need it stub the provider and switch it on themselves.
+os.environ.setdefault("OCR_PROVIDER", "off")
 
 LEFT = (
     "LEFT COLUMN: searching a B-tree costs O(log n) disk reads because each node "

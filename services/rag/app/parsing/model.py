@@ -8,14 +8,14 @@ class Block:
     text: str
     page: int  # 1-based page or slide number
     section: str | None = None  # nearest heading, or the slide title
-    kind: str = "text"  # text | slide | notes | table
+    kind: str = "text"  # text | slide | notes | table | ocr (read from the page image by app/ocr.py)
 
 
 @dataclass
 class ParsedDocument:
     blocks: list[Block]
     page_count: int
-    # Pages with (almost) no extractable text: scanned or handwritten, needs OCR (Phase 3).
+    # Pages with (almost) no extractable text: scans, handwriting or picture-only slides, read by OCR.
     empty_pages: list[int] = field(default_factory=list)
 
     @property

@@ -3,7 +3,7 @@ from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Bump when parsing or chunking changes in a way that should trigger a re-index.
-PARSER_VERSION = "rag-1"
+PARSER_VERSION = "rag-2"  # rag-2: OCR for text-less PDF pages (D-023)
 
 
 class Settings(BaseSettings):
@@ -31,6 +31,20 @@ class Settings(BaseSettings):
     context_header: bool = True
     # Cap on Resource.extractedText, matching the old TypeScript pipeline.
     max_extracted_chars: int = 100_000
+
+    # OCR for PDF pages without a text layer (scans, handwriting, picture-only slides): off | cloudflare | groq.
+    ocr_provider: str = "cloudflare"
+    # Empty: the provider's Llama 4 Scout (app/ocr.py DEFAULT_MODELS), the best model in D-023.
+    ocr_model: str = ""
+    groq_api_key: str = ""
+    # Cloudflare's free plan gives 10,000 neurons a day, shared with embeddings; an OCR page costs ~55-105.
+    # 60 pages (~5,000 neurons) leaves the other half for embeddings. Over budget, a resource waits a day.
+    ocr_daily_page_budget: int = 60
+    # Pages after this many in one document are left unread (clamped to the daily budget).
+    ocr_max_pages_per_document: int = 40
+    ocr_max_image_side: int = 1600
+    ocr_max_tokens: int = 2000
+    ocr_timeout_seconds: float = 120
 
 
 @lru_cache

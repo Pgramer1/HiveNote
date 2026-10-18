@@ -79,6 +79,7 @@ Newest first.
 
 | Date | Change | Where | Status |
 | --- | --- | --- | --- |
+| 2026-10-18 | Phase 3: OCR for text-less PDF pages (Llama 4 Scout via Cloudflare, Groq optional), with a daily page budget and a per-document cap; resources over budget wait in the queue; workflow passes the OCR settings; `PARSER_VERSION` `rag-2` | Branch `feature/phase3-ocr` (`services/rag/app/ocr.py`, `pipeline.py`, `db.py`, `config.py`) | Tested locally (45 Python tests, local end-to-end run on a handwritten assignment); not merged, production not re-indexed |
 | 2026-10-17 | Phase 1 merged into `main` (fast-forward to `2347507`), pushed, and deployed on Vercel with `RAG_INDEX_GITHUB_TOKEN`/`RAG_INDEX_GITHUB_REPO`. First manual workflow run and first real upload both indexed successfully (timings in Speed and cost). Workflow moved to `actions/checkout@v5` and `astral-sh/setup-uv@v7` (Node 24; the first run warned that Node 20 is deprecated) | `main`, `.github/workflows/rag-index.yml` | Done; the chat answering from the new upload is checked by hand |
 | 2026-10-17 | Indexing runs on GitHub Actions: `rag-index.yml` (per-upload `workflow_dispatch` + daily PENDING retry), Next.js `queueIndexing()` picks the HTTP service or the workflow, chat copy says "within a few minutes"; service refuses API calls while its secret is unset, CLI exits 1 on failures | `.github/workflows/rag-index.yml`, `src/lib/rag-service.ts`, `services/rag/app/{main,config,cli}.py` | Merged and live (see the row above) |
 | 2026-10-17 | Phase 1 retrieval measured on production (read-only): recall@5 97.1%, MRR 0.880, slide decks 100%, identical to the local run | `eval/results/2026-10-17T12-25-36Z-phase1-prod.json` | Done |
@@ -143,6 +144,16 @@ Avoids a vector-column migration and a re-embed caused only by a model change. E
 **2026-10-17 · Planned**
 Tesseract is poor at handwriting. Routing only text-less pages keeps cost down. Accuracy has to be measured on 10–20 real pages before the feature is promised.
 
+Findings, 2026-10-18 (no code changed):
+- **What production's text-less pages are.** The indexer counts a page as empty when its text layer has fewer than 20 letters. 59 of the 107 were inspected: all of Lean Dev (30), Process models (15), Module-2 (6), Module-3 (4) and RNN (4). **None is handwritten.** They are lecture slides whose only text is a short title, with the content as a picture:
+  - diagrams with labels (process-model flows, the RUP iteration chart, feed-forward vs recurrent networks, an LSTM cell with its equations as images);
+  - screenshots of code (Matplotlib examples);
+  - decorative photos, illustrations and logos.
+
+  Not inspected: `cmm53pse9` (21 empty pages; not in the local copy), two apparent duplicates of Process models and Module-3 (19 pages), and a few single pages elsewhere.
+- **Handwritten samples.** The repo owner supplied 3 of their own assignments: 37 pages, phone photos of notebook pages with formulas, tables and binary strings. Every page is an image with no text layer, so today's indexer would mark all three files FAILED. These samples stay outside the repo.
+- **What this means for Phase 3.** The job is wider than handwriting: describing diagrams and reading code screenshots in lecture slides, plus reading whole scanned or photographed documents. A vision model can do all of these. Tesseract can read clean code screenshots, but it can't describe diagrams and is weak on handwriting.
+
 ### D-012 · Prisma stays the only owner of the database schema
 **2026-10-17 · Planned**
 Python reads and writes the tables but never migrates them. LangGraph checkpoint tables, if used, live in a separate `langgraph` Postgres schema so Prisma never tries to drop them.
@@ -203,7 +214,45 @@ Related changes:
 **2026-10-17 · Done**
 Neon connection strings now carry `sslmode=verify-full`. In the service image libpq then looks for `~/.postgresql/root.crt` and refuses to connect. `sslrootcert=system` also failed ("certificate verify failed"), because the `psycopg[binary]` wheel bundles its own OpenSSL, which doesn't know where Debian keeps its CA certificates. `db.connection_params` now sets `sslrootcert` to certifi's bundle whenever the URL asks for verification and names no root certificate. This works on any host, Windows included. Rejected: downgrading to `sslmode=require` (it drops server verification) and setting `SSL_CERT_FILE` in the Dockerfile (it fixes only the image).
 
+### D-023 · Reading text-less pages: Llama 4 Scout vision, compared on 22 real pages
+**2026-10-18 · Built on `feature/phase3-ocr` (Cloudflare by default); Groq not tested yet**
+A comparison on 22 pages: 10 handwritten pages from the repo owner's three assignments (phone photos with formulas, tables and binary strings), 6 production slide diagrams, 2 code screenshots, and 4 decorative slides (a photo, an illustration, a logo, a QR code). The reference transcriptions were drafted by reading each page and still need the owner's check, so treat the handwriting numbers as provisional. The test pages, references and outputs stay outside the repo; the harness is `ocr_compare.py` in the session scratchpad.
+
+Metrics:
+- **CER:** edit distance divided by reference length, on letters and digits only, so layout and punctuation choices don't count. It is capped at 1 per page.
+- **Recall:** share of the reference's words found anywhere in the output. Diagrams have no single reading order, so CER overstates their errors.
+- **Words:** mean words emitted per page. On decorative slides, lower is better.
+
+| Engine | Handwriting CER | Handwriting recall | Diagram recall | Code CER / recall | Decorative words | Time per page | Neurons per page |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Tesseract 5.3 (default layout) | 0.910 | 4.5% | 21.6% | 0.302 / 91.5% | 3 | 0.8 s | 0 (local) |
+| Tesseract 5.3 (`--psm 11`, sparse text) | 0.775 | 8.6% | 36.2% | 0.370 / 79.4% | 3 | 0.9 s | 0 |
+| **Llama 4 Scout 17B (Cloudflare)** | **0.079** | **90.8%** | **82.2%** | 0.050 / 97.1% | 6 | 20 s (handwriting), 6 s (slides) | 88 (handwriting), 55–72 (slides) |
+| Mistral Small 3.1 24B (Cloudflare) | 0.081 | 89.9% | 72.0% | 0.049 / 100% | 5 | 14 s, 5 s | 92, 69–73 |
+
+Not usable:
+- **Gemma 4 26B:** spent its whole 2,000-token budget on hidden reasoning and returned no text.
+- **GLM-5.3 Flash:** HTTP 403, not available on the Workers Free plan.
+
+What this shows:
+- **Tesseract can't do this job.** It is free and fast, but reads almost none of the handwriting and misses most diagram labels. Its default layout mode skips text on coloured backgrounds entirely.
+- **Both vision models read the handwriting well**, with about 8% character errors overall: 1.5–7.6% on 8 of the 10 pages, and 18–21% on the two hardest. Both struggle most on the same page, a binary-string table whose 1s look like Z (Llama 0.215, Mistral 0.185).
+- **Llama 4 Scout is clearly better on diagrams** (82% vs 72% word recall), ties on handwriting and code, and is a little cheaper.
+- **Decorative slides produce no junk.** Both models output only the visible words (5–6 per page), so these pages won't pollute the index.
+
+**The Cloudflare account is on the Workers Free plan** (confirmed by the GLM refusal): 10,000 neurons a day, shared with production's embeddings. At about 70–90 neurons per page, OCR is roughly 110–140 pages a day if nothing else ran. The comparison itself used 3,451 neurons (plus 78 for a first probe). Production indexing therefore needs a daily OCR budget, or a provider with its own quota. Groq hosts the same Llama 4 Scout model with separate per-model limits; it has not been tested yet (deferred so it doesn't compete with the Phase 2 eval run).
+
+**Built into the indexer** (`services/rag/app/ocr.py`, `PARSER_VERSION` `rag-2`):
+- **What gets read:** PDF pages with fewer than 20 letters are rendered to a JPEG (longer side at most 1,600 px), transcribed with the prompt used in the comparison, and saved as `chunkType = 'ocr'` chunks in page order.
+- **Provider:** set by `OCR_PROVIDER`: `cloudflare` (default), `groq` (same model, needs `GROQ_API_KEY`) or `off`.
+- **Budget guard:** `OCR_DAILY_PAGE_BUDGET` (default 60 pages, about 5,000 neurons, half the free allowance) is counted from today's `ocr` chunks, so it needs no new table or migration. A document that doesn't fit today's budget goes back to PENDING with the reason in `indexError` and keeps its previous chunks. The same run doesn't claim it again; the daily `--pending` run retries it. `OCR_MAX_PAGES_PER_DOCUMENT` (default 40, clamped to the budget) stops one file from taking the whole day.
+- **Failures:** a page whose OCR call fails is skipped, so it can't fail the document.
+- **Tests:** 11 new (provider requests and errors, cleanup, rendering, page skipping, OCR chunks saved, budget counting, deferral, and no re-claim within a run); 45 Python tests pass.
+- **End to end, local database, real Cloudflare calls:** the 13-page handwritten assignment 1 went from no text to READY. OCR read all 13 pages into 13 chunks, using 1,072 neurons in 189 s (about 14.5 s a page, one page at a time). Two questions whose answers are on known pages retrieved the right page first.
+
+Next: the owner checks the handwriting references; test Llama 4 Scout on Groq; then re-index production. Its 107 text-less pages need about 9,000 neurons, so the budget guard spreads them over about two days.
+
 ### Open decisions
 
 - [x] Indexing without a host (D-018): GitHub Actions. Hosting for Phase 2 chat is still open
-- [ ] Which vision model or OCR provider for handwriting, and what per-page budget?
+- [ ] Which vision model or OCR provider for handwriting, and what per-page budget? Measured (D-023): Llama 4 Scout; host (Cloudflare vs Groq) and daily budget still open
