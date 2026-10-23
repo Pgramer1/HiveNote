@@ -7,6 +7,10 @@ from app.cleaning import normalize_whitespace, remove_repeated_edges
 from app.parsing.model import Block, ParsedDocument, UnsupportedDocument
 
 _HEADING = re.compile(r"^(#{1,6})\s+(.+)$")
+# pymupdf4llm marks any line in a large font as a heading, bullet lists included. A line starting
+# with a bullet glyph (including Symbol/Wingdings bullets in the private use area) or a list
+# marker is body text, never a section title.
+_BULLET = re.compile(r"^(?:[•◦▪▫●○■□‣⁃∙·➢➤►▶✓✔❖◆◇★-]|[-*+–—]\s)")
 _PICTURE_NOTE = re.compile(r"==>\s*picture .*?<==", re.IGNORECASE)
 _EMPHASIS = re.compile(r"(\*\*|__)(.+?)\1")
 # A page needs at least this many letters/digits to count as having text.
@@ -46,6 +50,7 @@ def parse_pdf(data: bytes) -> ParsedDocument:
             continue
 
         lines: list[str] = []
+        has_body = False  # lines holds more than headings
 
         def flush() -> None:
             body = "\n".join(lines).strip()
@@ -55,12 +60,18 @@ def parse_pdf(data: bytes) -> ParsedDocument:
 
         for line in text.splitlines():
             heading = _HEADING.match(line)
-            if heading:
-                flush()
+            if heading and not _BULLET.match(heading.group(2)):
+                # A heading with nothing under it yet stays with the next heading's text, so a
+                # title is never stored on its own while its page has more to say.
+                if has_body:
+                    flush()
+                    has_body = False
                 section = heading.group(2).strip()
                 lines.append(section)  # keep the heading text searchable
             else:
+                line = heading.group(2) if heading else line
                 lines.append(line)
+                has_body = has_body or bool(line.strip())
         flush()
 
     return ParsedDocument(blocks=blocks, page_count=page_count, empty_pages=empty_pages)

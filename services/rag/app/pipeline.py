@@ -96,7 +96,7 @@ def index_resource(conn: psycopg.Connection, row: db.ResourceRow) -> IngestResul
             raise UnsupportedDocument(f"No extractable text on any of {doc.page_count} pages; {reason}")
         chunks = build_chunks(
             doc, row.title, settings.chunk_size, settings.chunk_overlap, settings.min_slide_chars,
-            settings.pdf_pack_pages, settings.context_header,
+            settings.pdf_pack_pages, settings.context_header, settings.min_chunk_chars,
         )
         vectors = embed_texts([c.embed_text for c in chunks])
         db.save_index(conn, row.id, chunks, vectors, doc.full_text[: settings.max_extracted_chars])

@@ -79,6 +79,7 @@ Newest first.
 
 | Date | Change | Where | Status |
 | --- | --- | --- | --- |
+| 2026-10-23 | PDF chunking fix found by the `kanban-principles` eval question: a bullet line that pymupdf4llm marks as a heading stays body text, a heading with nothing under it joins the next text on its page, and PDF chunks under 30 characters merge with a neighbour on the same page (`MIN_CHUNK_CHARS`); `PARSER_VERSION` `rag-3` (D-026) | `services/rag/app/parsing/pdf.py`, `chunking.py`, `config.py`, `pipeline.py` | Tested (13 new test cases; 56 Python tests pass, 11 skipped here); on the 11 test-copy resources that parse here, heading-only chunks 44 → 7 and chunks under 30 characters 38 → 16; not committed, nothing re-indexed |
 | 2026-10-18 | Phase 3: OCR for text-less PDF pages and picture slides in decks (decks rendered with LibreOffice; Llama 4 Scout via Cloudflare, Groq optional), with a daily page budget and a per-document cap; resources over budget wait in the queue; workflow passes the OCR settings; `PARSER_VERSION` `rag-2` | Branch `feature/phase3-ocr` (`services/rag/app/ocr.py`, `pipeline.py`, `db.py`, `config.py`) | Tested locally (45 Python tests, local end-to-end run on a handwritten assignment); not merged, production not re-indexed |
 | 2026-10-17 | Phase 1 merged into `main` (fast-forward to `2347507`), pushed, and deployed on Vercel with `RAG_INDEX_GITHUB_TOKEN`/`RAG_INDEX_GITHUB_REPO`. First manual workflow run and first real upload both indexed successfully (timings in Speed and cost). Workflow moved to `actions/checkout@v5` and `astral-sh/setup-uv@v7` (Node 24; the first run warned that Node 20 is deprecated) | `main`, `.github/workflows/rag-index.yml` | Done; the chat answering from the new upload is checked by hand |
 | 2026-10-17 | Indexing runs on GitHub Actions: `rag-index.yml` (per-upload `workflow_dispatch` + daily PENDING retry), Next.js `queueIndexing()` picks the HTTP service or the workflow, chat copy says "within a few minutes"; service refuses API calls while its secret is unset, CLI exits 1 on failures | `.github/workflows/rag-index.yml`, `src/lib/rag-service.ts`, `services/rag/app/{main,config,cli}.py` | Merged and live (see the row above) |
@@ -262,6 +263,33 @@ Dry run on the 4 production decks (no database writes; real LibreOffice and Clou
 - **Tests:** 8 new (slide selection, title replacement with notes kept, no merging, slide labels, the page-count guard, conversion failure, a DB end-to-end deck, and real LibreOffice rendering of a deck with a hidden slide). That makes 54 Python tests: 52 run anywhere, and the 2 LibreOffice tests run in the Docker image.
 
 Next: the owner checks the handwriting references; test Llama 4 Scout on Groq; then re-index production. Its 107 text-less pages need about 9,000 neurons, so the budget guard spreads them over about two days.
+
+### D-026 · A PDF heading stays in one chunk with the text under it
+**2026-10-23 · Built on top of `feature/phase3-ocr`; nothing re-indexed**
+Found by the Phase 2 faithfulness eval (`kanban-principles`, D-022). Page 43 of "Lean Dev" was stored as 2 chunks: the bare heading "Kanban Principles" (17 characters) and the bullets, whose own line had become their section title. Retrieval returned only the heading chunk, which holds no answer.
+
+**Cause.** pymupdf4llm marks every line set in a font larger than the document's most common size as a heading. This PDF is a slide deck exported to PDF, and its bullets (32 pt) are larger than its body text, so page 43 came out as `# Kanban Principles` followed by `## • Visualize … • Limit … • Enhance flow`. The parser started a new block at every heading, so the title was stored alone and the bullet line became a section.
+
+**Fix** (`PARSER_VERSION` `rag-3`):
+- **Bullets are never headings.** A heading line that starts with a bullet glyph (•, ▪, ●, Symbol/Wingdings bullets in the private use area, and similar) or a list marker (`- `, `* `, `– `) stays body text under the current section.
+- **A heading with nothing under it waits for its text.** It is kept with the next text on the page instead of being stored as its own block. When a second heading follows directly ("Unit 5: Scrum", then "Roles"), both stay in one block and the nearer heading becomes the section.
+- **Tiny PDF chunks are merged** (`MIN_CHUNK_CHARS`, default 30). A chunk shorter than 30 characters joins the next chunk on its page, or else the previous one. It stays alone only when its page has no other text, and never merges across pages. Slides keep their own rule (`MIN_SLIDE_CHARS`).
+
+**Measured** by parsing and chunking the 13 resources of the local test copy with the `rag-2` and `rag-3` code (no embeddings, no database writes, OCR off). 11 parse here: 9 PDFs and 2 `.pptx`. The 2 legacy `.ppt` files need LibreOffice, which this machine lacks.
+
+| 11 resources | `rag-2` | `rag-3` |
+| --- | --- | --- |
+| Chunks | 483 | 446 |
+| Chunks that are only their section title | 44 | 7 |
+| Chunks under 30 characters | 38 | 16 |
+| Section titles starting with a bullet | 5 | 0 |
+
+- **"Lean Dev" page 43:** 2 chunks (17 and 100 characters) became 1 chunk of 119 characters with the section "Kanban Principles".
+- **Decks:** unchanged (39 chunks; 3 under 30 characters, all in one deck), since this changes only the PDF path.
+- **What remains in the PDFs:** 16 chunks are still under 30 characters or only a heading. 15 are the only text on their page: section-divider slides such as "Sparse Autoencoder (SAE)", and one 158-character exercise question. The last is a heading at the bottom of a page whose text starts on the next page ("Task 2: Drawing shapes …", 45 characters). It stays alone because chunks never cross pages; joining it to the next page is a possible follow-up.
+- **Tests:** 13 new test cases. The parser tests replay pymupdf4llm's real output for pages 42–43 (a synthetic PDF did not reproduce the heading reliably, because font fallback changes the bullet glyph). They also cover 6 bullet styles, a heading followed directly by a sub-heading, and headings that do have body text. The chunker tests cover page 43 as `rag-2` stored it, a tiny fragment at the end of a page, no merging across pages, and several tiny fragments on one page. 56 Python tests pass; 11 are skipped here (9 database tests without `TEST_DATABASE_URL`, 2 that need LibreOffice).
+
+**Not measured yet:** retrieval and faithfulness. Both need the test copy re-indexed with `rag-3`, which waits until the Phase 2 batch 3 comparison is done and the owner approves it.
 
 ### Open decisions
 

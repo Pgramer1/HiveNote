@@ -3,7 +3,7 @@ from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Bump when parsing or chunking changes in a way that should trigger a re-index.
-PARSER_VERSION = "rag-2"  # rag-2: OCR for text-less PDF pages (D-023)
+PARSER_VERSION = "rag-3"  # rag-2: OCR for text-less PDF pages (D-023); rag-3: headings kept with their body (D-026)
 
 
 class Settings(BaseSettings):
@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     # Pack consecutive pages under one heading into one chunk. Off: on the evaluation set,
     # page-level chunks ranked the right page first more often (docs/DECISIONS.md, D-016).
     pdf_pack_pages: bool = False
+    # PDF chunks shorter than this (a bare heading, a stray label) are merged with the next chunk on
+    # their page, or the previous one; they stay alone only on a page with no other text (D-026).
+    min_chunk_chars: int = 30
     # Prefix each embedded chunk with "title › section › page" (recall@5 97.1% with, 91.2% without).
     context_header: bool = True
     # Cap on Resource.extractedText, matching the old TypeScript pipeline.

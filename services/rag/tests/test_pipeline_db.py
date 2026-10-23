@@ -12,6 +12,7 @@ import pymupdf
 import pytest
 
 from app import pipeline
+from app.config import PARSER_VERSION
 
 TEST_DB = os.environ.get("TEST_DATABASE_URL")
 pytestmark = pytest.mark.skipif(not TEST_DB, reason="TEST_DATABASE_URL not set")
@@ -59,7 +60,7 @@ def test_indexes_a_pdf_and_marks_it_ready(resource, lecture_pdf, monkeypatch):
 
     assert result.status == "READY" and result.chunks == 2 and result.empty_pages == 1
     (status, error, version, text), chunks = state()
-    assert (status, error, version) == ("READY", None, "rag-2")
+    assert (status, error, version) == ("READY", None, PARSER_VERSION)
     assert "Unit 4: Hashing" in text
     assert [c[:4] for c in chunks] == [(0, 1, "Unit 3: B-Trees", "text"), (1, 2, "Unit 4: Hashing", "text")]
     assert all(c[4] and c[5] for c in chunks)  # full-text column generated, embedding stored
