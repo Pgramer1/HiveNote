@@ -8,6 +8,7 @@ import pytest
 from app import pipeline
 from app.chunking import build_chunks
 from app.config import Settings
+from app.ocr import OcrPages
 from app.parsing import Block, ParsedDocument, convert_deck_to_pdf, parse_document
 
 
@@ -36,12 +37,15 @@ def test_only_picture_slides_with_little_text_go_to_ocr(picture_pptx):
 def test_ocr_text_replaces_the_slide_title_and_keeps_notes(picture_pptx, monkeypatch):
     doc = parse_document(picture_pptx, "PPT")
     monkeypatch.setattr(pipeline.db, "ocr_pages_used_today", lambda conn: 0)
-    monkeypatch.setattr(pipeline, "ocr_pages", lambda pdf, pages, s: ({2: "Waiting\nEAST ON TIME", 4: "LSTM CELL forget gate"}, 120.0))
+    monkeypatch.setattr(
+        pipeline, "ocr_pages", lambda pdf, pages, s: OcrPages({2: "Waiting\nEAST ON TIME", 4: "LSTM CELL forget gate"}, 120.0, [])
+    )
     settings = Settings(database_url="x", cloudflare_account_id="a", cloudflare_api_token="t")
 
-    new, count, neurons = pipeline.apply_ocr(None, b"%PDF", doc, settings)
+    outcome = pipeline.apply_ocr(None, b"%PDF", doc, settings)
+    new = outcome.doc
 
-    assert (count, neurons, new.empty_pages, new.slides) == (2, 120.0, [], True)
+    assert (outcome.pages_read, outcome.neurons, outcome.failed, new.empty_pages, new.slides) == (2, 120.0, 0, [], True)
     assert [(b.page, b.kind, b.section) for b in new.blocks] == [
         (1, "slide", "Kerberos"),
         (2, "ocr", "Waiting"),  # the parsed title became the section

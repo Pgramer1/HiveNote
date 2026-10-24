@@ -48,6 +48,10 @@ class Settings(BaseSettings):
     ocr_max_image_side: int = 1600
     ocr_max_tokens: int = 2000
     ocr_timeout_seconds: float = 120
+    # After this many failed pages in a row, stop calling the provider for the rest of the document (D-029).
+    ocr_max_consecutive_failures: int = 3
+    # Runs that try a document's failed OCR pages before giving up on them; the daily --pending run retries (D-029).
+    ocr_max_attempts: int = 3
 
 
 @lru_cache

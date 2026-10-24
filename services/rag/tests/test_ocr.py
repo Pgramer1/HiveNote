@@ -91,6 +91,34 @@ def test_ocr_pages_skips_failed_and_empty_pages(lecture_pdf, monkeypatch):
         return reply
 
     monkeypatch.setattr(ocr, "transcribe", fake_transcribe)
-    texts, neurons = ocr.ocr_pages(lecture_pdf, [1, 2, 3], settings())
-    assert texts == {1: "page one text"}
-    assert neurons == 115.0  # a page with no text still cost neurons
+    result = ocr.ocr_pages(lecture_pdf, [1, 2, 3], settings())
+    assert result.texts == {1: "page one text"}
+    assert result.neurons == 115.0  # a page with no text still cost neurons
+    assert result.failed == [2]  # the empty page 3 isn't a failure: retrying it would read nothing again
+
+
+def test_ocr_pages_stops_calling_a_provider_that_keeps_failing(lecture_pdf, monkeypatch):
+    calls = []
+
+    def failing(image, s, c):
+        calls.append(1)
+        raise RuntimeError("499 Client Closed Request")
+
+    monkeypatch.setattr(ocr, "transcribe", failing)
+    result = ocr.ocr_pages(lecture_pdf, [1, 2, 3, 1, 2], settings(ocr_max_consecutive_failures=2))
+    assert len(calls) == 2  # stopped after 2 failures in a row
+    assert result.failed == [1, 2, 3, 1, 2] and result.texts == {}
+
+
+def test_a_success_resets_the_failure_count(lecture_pdf, monkeypatch):
+    replies = iter([RuntimeError("x"), ocr.OcrResult("ok", 1.0), RuntimeError("x"), RuntimeError("x"), ocr.OcrResult("ok", 1.0)])
+
+    def flaky(image, s, c):
+        reply = next(replies)
+        if isinstance(reply, Exception):
+            raise reply
+        return reply
+
+    monkeypatch.setattr(ocr, "transcribe", flaky)
+    result = ocr.ocr_pages(lecture_pdf, [1, 2, 3, 1, 2], settings(ocr_max_consecutive_failures=3))
+    assert result.failed == [1, 3, 1] and sorted(result.texts) == [2]

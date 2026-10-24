@@ -97,19 +97,36 @@ def transcribe(image: bytes, settings: Settings, client: httpx.Client) -> OcrRes
     raise OcrError(f"Unknown OCR_PROVIDER {provider!r} (expected off, cloudflare or groq)")
 
 
-def ocr_pages(pdf: bytes, pages: list[int], settings: Settings) -> tuple[dict[int, str], float]:
-    """Transcribes the given 1-based pages. Returns {page: text} for pages that produced text, and the
-    neurons used. A page that fails is logged and skipped, so one bad page never fails the document."""
-    texts: dict[int, str] = {}
-    neurons = 0.0
+@dataclass
+class OcrPages:
+    texts: dict[int, str]  # pages that produced text
+    neurons: float
+    # Pages whose call failed, plus those never tried once the provider kept failing. A page the model
+    # read as empty is not here: retrying it would only read nothing again.
+    failed: list[int]
+
+
+def ocr_pages(pdf: bytes, pages: list[int], settings: Settings) -> OcrPages:
+    """Transcribes the given 1-based pages. A page that fails is logged and skipped, so one bad page never
+    fails the document; after `ocr_max_consecutive_failures` failures in a row the provider is assumed
+    down and the remaining pages are left for a retry instead of being sent one by one."""
+    result = OcrPages({}, 0.0, [])
+    in_a_row = 0
     with pymupdf.open(stream=pdf, filetype="pdf") as doc, httpx.Client(timeout=settings.ocr_timeout_seconds) as client:
-        for number in pages:
+        for i, number in enumerate(pages):
+            if in_a_row >= settings.ocr_max_consecutive_failures:
+                result.failed += pages[i:]
+                log.warning("OCR failed %s times in a row; leaving %s pages for a retry", in_a_row, len(pages) - i)
+                break
             try:
-                result = transcribe(render_page(doc, number, settings.ocr_max_image_side), settings, client)
+                page = transcribe(render_page(doc, number, settings.ocr_max_image_side), settings, client)
             except Exception as exc:  # network, provider or render error: skip the page
                 log.warning("OCR failed for page %s: %s", number, exc)
+                result.failed.append(number)
+                in_a_row += 1
                 continue
-            neurons += result.neurons or 0.0
-            if any(ch.isalnum() for ch in result.text):
-                texts[number] = result.text
-    return texts, neurons
+            in_a_row = 0
+            result.neurons += page.neurons or 0.0
+            if any(ch.isalnum() for ch in page.text):
+                result.texts[number] = page.text
+    return result

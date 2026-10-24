@@ -13,6 +13,7 @@ import pytest
 
 from app import pipeline
 from app.config import PARSER_VERSION
+from app.ocr import OcrPages
 
 TEST_DB = os.environ.get("TEST_DATABASE_URL")
 pytestmark = pytest.mark.skipif(not TEST_DB, reason="TEST_DATABASE_URL not set")
@@ -96,7 +97,7 @@ def ocr_on(monkeypatch, lecture_pdf):
 
     def fake_ocr_pages(pdf, pages, settings):
         calls.append(pages)
-        return {3: OCR_TEXT}, 80.0
+        return OcrPages({3: OCR_TEXT}, 80.0, [])
 
     settings = pipeline.get_settings().model_copy(update={"ocr_provider": "cloudflare", "ocr_daily_page_budget": 60})
     monkeypatch.setattr(pipeline, "get_settings", lambda: settings)
@@ -127,7 +128,7 @@ def test_a_connection_dropped_during_ocr_is_reopened(resource, ocr_on, monkeypat
                 '''SELECT pg_terminate_backend(pid) FROM pg_stat_activity
                    WHERE datname = current_database() AND pid <> pg_backend_pid() AND backend_type = 'client backend' '''
             )
-        return {3: OCR_TEXT}, 80.0
+        return OcrPages({3: OCR_TEXT}, 80.0, [])
 
     monkeypatch.setattr(pipeline, "ocr_pages", ocr_then_drop_connections)
 
@@ -184,7 +185,9 @@ def test_picture_slides_in_a_deck_are_read_by_ocr(resource, ocr_on, picture_pptx
         rendered.new_page()
     monkeypatch.setattr(pipeline, "download", lambda url, max_bytes: picture_pptx)
     monkeypatch.setattr(pipeline, "convert_deck_to_pdf", lambda data: rendered.tobytes())
-    monkeypatch.setattr(pipeline, "ocr_pages", lambda pdf, pages, s: ({p: f"{OCR_TEXT} (slide {p})" for p in pages}, 150.0))
+    monkeypatch.setattr(
+        pipeline, "ocr_pages", lambda pdf, pages, s: OcrPages({p: f"{OCR_TEXT} (slide {p})" for p in pages}, 150.0, [])
+    )
 
     result = pipeline.ingest(resource_id)
 
@@ -201,3 +204,96 @@ def test_an_already_processing_resource_is_skipped(resource):
     with psycopg.connect(TEST_DB) as conn:
         conn.execute('UPDATE "Resource" SET "indexStatus" = \'PROCESSING\' WHERE id = %s', (resource_id,))
     assert pipeline.ingest(resource_id).status == "SKIPPED"
+
+
+def ocr_failing(monkeypatch):
+    """The provider fails every page, as Cloudflare did on 2026-10-24 (D-028)."""
+    monkeypatch.setattr(pipeline, "ocr_pages", lambda pdf, pages, s: OcrPages({}, 0.0, list(pages)))
+
+
+def ocr_working(monkeypatch):
+    monkeypatch.setattr(pipeline, "ocr_pages", lambda pdf, pages, s: OcrPages({p: OCR_TEXT for p in pages}, 80.0, []))
+
+
+def only_resource_in_queue(resource_id: str) -> None:
+    with psycopg.connect(TEST_DB) as conn:
+        others = conn.execute(
+            '''SELECT count(*) FROM "Resource" WHERE id <> %s
+               AND ("indexStatus" = 'PENDING' OR ("indexStatus" = 'READY' AND "indexError" LIKE 'OCR incomplete:%%'))''',
+            (resource_id,),
+        ).fetchone()[0]
+    if others:
+        pytest.skip("other queued resources in the test database would be indexed too")
+
+
+def test_failed_ocr_pages_keep_the_text_and_queue_a_retry(resource, ocr_on, monkeypatch):
+    resource_id, state = resource
+    ocr_failing(monkeypatch)
+
+    result = pipeline.ingest(resource_id)
+
+    assert (result.status, result.chunks, result.ocr_failed, result.ocr_retry) == ("READY", 2, 1, True)
+    (status, error, _, _), chunks = state()
+    assert status == "READY"  # chat uses the parsed text meanwhile, and the page shows no "reading" banner
+    assert error == "OCR incomplete: 1 of 1 text-less pages failed (attempt 1 of 3); the daily run retries them"
+    assert [c[3] for c in chunks] == ["text", "text"]
+
+
+def test_the_pending_run_retries_failed_ocr_and_clears_the_note(resource, ocr_on, monkeypatch):
+    resource_id, state = resource
+    only_resource_in_queue(resource_id)
+    ocr_failing(monkeypatch)
+    pipeline.ingest(resource_id)
+    ocr_working(monkeypatch)
+
+    results = pipeline.ingest_pending(5)
+
+    assert [(r.resource_id, r.status, r.ocr_pages, r.ocr_retry) for r in results] == [(resource_id, "READY", 1, False)]
+    (status, error, _, text), chunks = state()
+    assert (status, error) == ("READY", None) and OCR_TEXT in text
+    assert [c[3] for c in chunks] == ["text", "text", "ocr"]
+
+
+def test_a_retry_that_fails_again_is_not_claimed_twice_in_one_run(resource, ocr_on, monkeypatch):
+    resource_id, state = resource
+    only_resource_in_queue(resource_id)
+    ocr_failing(monkeypatch)
+    pipeline.ingest(resource_id)
+
+    results = pipeline.ingest_pending(5)
+
+    assert [(r.resource_id, r.ocr_retry) for r in results] == [(resource_id, True)]
+    assert "(attempt 2 of 3)" in state()[0][1]
+
+
+def test_ocr_gives_up_after_the_last_attempt(resource, ocr_on, monkeypatch):
+    resource_id, state = resource
+    only_resource_in_queue(resource_id)
+    settings = pipeline.get_settings().model_copy(update={"ocr_max_attempts": 2})
+    monkeypatch.setattr(pipeline, "get_settings", lambda: settings)
+    ocr_failing(monkeypatch)
+    pipeline.ingest(resource_id)  # attempt 1
+
+    first = pipeline.ingest_pending(5)  # attempt 2, the last
+    second = pipeline.ingest_pending(5)
+
+    assert [(r.status, r.ocr_retry) for r in first] == [("READY", False)] and second == []
+    (status, error, _, _), _ = state()
+    assert (status, error) == ("READY", "OCR gave up on 1 of 1 text-less pages after 2 attempts")
+
+
+def test_a_scanned_document_waits_in_the_queue_while_ocr_fails(resource, ocr_on, monkeypatch):
+    """With no text layer at all there is nothing to save yet; it used to be marked FAILED, never retried."""
+    resource_id, state = resource
+    scanned = pymupdf.open()
+    for _ in range(2):
+        scanned.new_page()
+    monkeypatch.setattr(pipeline, "download", lambda url, max_bytes: scanned.tobytes())
+    ocr_failing(monkeypatch)
+
+    result = pipeline.ingest(resource_id)
+
+    assert (result.status, result.ocr_retry) == ("DEFERRED", True)
+    (status, error, _, _), chunks = state()
+    assert status == "PENDING" and error.startswith("OCR incomplete: 2 of 2 text-less pages failed (attempt 1 of 3)")
+    assert chunks == []

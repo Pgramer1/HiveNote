@@ -79,6 +79,7 @@ Newest first.
 
 | Date | Change | Where | Status |
 | --- | --- | --- | --- |
+| 2026-10-25 | Failed OCR pages no longer leave a resource READY for good: after 3 failures in a row the provider isn't called for the rest of the document, the parsed text is saved with an `OCR incomplete` note, and the daily `--pending` run retries it up to 3 attempts; scanned documents wait as PENDING instead of FAILED (D-029) | `services/rag/app/ocr.py`, `pipeline.py`, `db.py`, `config.py`, `cli.py` | Tested (80 Python tests incl. database); pushed to `main` |
 | 2026-10-24 | Phase 3 merged into `main` (`c3d3947`) and pushed; production re-indexed with `rag-3` after fixing dropped Neon connections during OCR (`db.Session`): 21 of 21 READY, 940 → 872 chunks. Cloudflare's Llama 4 Scout failed on 123 of 134 text-less pages (HTTP 499, timeouts), so only 11 pages got OCR text (D-028) | `main`, Neon, `services/rag/app/db.py`, `pipeline.py` | Done except OCR of the remaining text-less pages, which waits for Cloudflare |
 | 2026-10-23 | PDF chunking fix found by the `kanban-principles` eval question: a bullet line that pymupdf4llm marks as a heading stays body text, a heading with nothing under it joins the next text on its page, and PDF chunks under 30 characters merge with a neighbour on the same page (`MIN_CHUNK_CHARS`); `PARSER_VERSION` `rag-3` (D-026) | `services/rag/app/parsing/pdf.py`, `chunking.py`, `config.py`, `pipeline.py` | Tested (13 new test cases; 56 Python tests pass, 11 skipped here); on the 11 test-copy resources that parse here, heading-only chunks 44 → 7 and chunks under 30 characters 38 → 16; committed `6560df4` on `feature/phase3-ocr`; test copy re-indexed 2026-10-24 (OCR off): recall@1 82.4% → 83.8%, MRR 0.880 → 0.887, recall@5 97.1% → 95.6% (one borderline hit lost), `kanban-principles` faithfulness 0.00 → 1.00; production not re-indexed |
 | 2026-10-18 | Page-aware chat on `main`: questions naming pages or slides fetch those pages, whole-document questions get passages spread across it, and the prompt says the assistant can read the document (D-025) | `src/lib/page-refs.ts`, `page-retrieval.ts`, `chat-system-prompt.ts`, `src/app/api/chat/route.ts`, `scripts/eval-retrieval.ts` | Tested (105 JS tests incl. pgvector, tsc, build; live replay of 4 questions) |
@@ -377,6 +378,24 @@ Two gaps this exposed:
 - **A resource whose OCR pages all failed is READY,** so neither the daily `--pending` run nor a deferral retries it; it needs a manual re-index once the provider works.
 
 Next: when a probe call succeeds, re-index the resources that still have text-less pages (`reindex --all` again; the budget guard spreads them over days), and make failed OCR pages leave the resource queued for a retry.
+
+### D-029 · Failed OCR pages are retried by the daily run; a failing provider stops being called
+**2026-10-25 · Done on `main`; production resources from D-028 still to re-index**
+The 2026-10-24 re-index (D-028) showed two gaps: a failing provider was called for every text-less page, because failed calls don't count against the page budget, and a resource whose OCR failed was READY, so nothing retried it.
+
+Changes (`services/rag/app/ocr.py`, `pipeline.py`, `db.py`, `config.py`, `cli.py`):
+- **Stop early.** `ocr_pages` stops calling the provider after `OCR_MAX_CONSECUTIVE_FAILURES` (default 3) failed pages in a row; the pages it didn't try count as failed. A success resets the count. It now reports failed pages separately from pages the model read as empty, which are not retried (they would only read nothing again).
+- **Keep the text, queue a retry.** With failed pages, the resource is still saved as READY with its parsed text and the OCR text that worked, so chat uses it and the page shows no "Reading this file" banner. `indexError` holds `OCR incomplete: N of M text-less pages failed (attempt k of 3); the daily run retries them`, written in the same transaction.
+- **The daily run retries it.** `claim_next_pending` also claims READY resources whose `indexError` starts with `OCR incomplete:`, and returns the cleared note so the attempt count carries over. No schema change: the count lives in the note. A retried resource isn't claimed again in the same run. A successful retry clears the note.
+- **Bounded.** After `OCR_MAX_ATTEMPTS` (default 3) the note becomes `OCR gave up on N of M text-less pages after k attempts`, which the claim ignores. A provider that stays down costs at most 3 calls per resource per day, for 3 days.
+- **Scanned documents wait instead of failing.** A document with no text layer at all has nothing to save while OCR fails; it used to become FAILED, which `--pending` never retries. It now goes back to PENDING with the same note, and becomes FAILED only after the last attempt.
+- **CLI:** READY lines add "OCR failed on N pages, retry queued" or "gave up".
+
+Known limits: a retry re-reads all of the document's text-less pages, including the ones that worked, and they count against that day's budget again. A deferral for budget replaces the note, so the attempt count starts over (deferrals happen only while there is more OCR to do than budget).
+
+**Tests:** 11 new: the provider cut-off, the failure count resetting, failed vs empty pages, 4 for the note and attempt count, and 5 database tests (failed pages stay READY with a queued retry; the pending run retries and clears the note; a retry that fails again isn't claimed twice in one run; giving up after the last attempt; a scanned document waiting as PENDING). 80 Python tests pass on a throwaway database; the 2 LibreOffice tests run only in the image.
+
+Next: re-index the production resources that still have text-less pages once a Cloudflare probe call succeeds (D-028). After that, the daily run handles further failures by itself.
 
 ### Open decisions
 

@@ -18,9 +18,14 @@ class ResourceRow:
     type: str
     title: str
     file_url: str
+    # indexError before the claim cleared it; carries the OCR attempt count of a READY resource being retried.
+    previous_error: str | None = None
 
 
 _RETURNING = 'RETURNING id, type::text, title, "fileUrl"'
+
+# indexError of a READY resource whose OCR pages failed and will be retried by the --pending run (D-029).
+OCR_INCOMPLETE = "OCR incomplete:"
 
 
 def connection_params(url: str) -> dict[str, str]:
@@ -91,18 +96,21 @@ def claim_resource(conn: psycopg.Connection, resource_id: str, force: bool = Fal
 
 
 def claim_next_pending(conn: psycopg.Connection, exclude: list[str] | None = None) -> ResourceRow | None:
-    """Claims the oldest PENDING resource not in `exclude` (resources deferred earlier in this run);
-    SKIP LOCKED lets several workers run safely."""
+    """Claims the oldest PENDING resource, or READY resource with OCR pages to retry, not in `exclude`
+    (resources deferred or retried earlier in this run); SKIP LOCKED lets several workers run safely.
+    Returns the indexError the claim cleared, which holds the OCR attempt count."""
     with conn.cursor() as cur:
         cur.execute(
-            f'''UPDATE "Resource" SET "indexStatus" = 'PROCESSING', "indexError" = NULL
-                WHERE id = (
-                  SELECT id FROM "Resource"
-                  WHERE type IN ('PDF', 'PPT') AND "indexStatus" = 'PENDING' AND NOT (id = ANY(%s))
-                  ORDER BY "createdAt" FOR UPDATE SKIP LOCKED LIMIT 1
-                )
-                {_RETURNING}''',
-            (exclude or [],),
+            '''WITH next AS (
+                 SELECT id, "indexError" FROM "Resource"
+                 WHERE type IN ('PDF', 'PPT') AND NOT (id = ANY(%s))
+                   AND ("indexStatus" = 'PENDING' OR ("indexStatus" = 'READY' AND "indexError" LIKE %s))
+                 ORDER BY "createdAt" FOR UPDATE SKIP LOCKED LIMIT 1
+               )
+               UPDATE "Resource" r SET "indexStatus" = 'PROCESSING', "indexError" = NULL
+               FROM next WHERE r.id = next.id
+               RETURNING r.id, r.type::text, r.title, r."fileUrl", next."indexError"''',
+            (exclude or [], OCR_INCOMPLETE + "%"),
         )
         row = _row(cur)
     conn.commit()
@@ -120,9 +128,15 @@ def mark_pending(conn: psycopg.Connection, only_failed: bool = False) -> int:
 
 
 def save_index(
-    conn: psycopg.Connection, resource_id: str, chunks: list[Chunk], vectors: list[list[float]], extracted_text: str
+    conn: psycopg.Connection,
+    resource_id: str,
+    chunks: list[Chunk],
+    vectors: list[list[float]],
+    extracted_text: str,
+    index_error: str | None = None,
 ) -> None:
-    """Replaces the resource's chunks and marks it READY, in one transaction."""
+    """Replaces the resource's chunks and marks it READY, in one transaction. `index_error` keeps a note
+    on a READY resource, such as OCR pages left to retry."""
     rows = [
         (resource_id, c.content, "[" + ",".join(f"{x:.7g}" for x in v) + "]", c.index, c.page, c.section, c.kind)
         for c, v in zip(chunks, vectors, strict=True)
@@ -137,10 +151,10 @@ def save_index(
         )
         cur.execute(
             '''UPDATE "Resource"
-               SET "extractedText" = %s, "indexStatus" = 'READY', "indexError" = NULL,
+               SET "extractedText" = %s, "indexStatus" = 'READY', "indexError" = %s,
                    "indexedAt" = now(), "parserVersion" = %s
                WHERE id = %s''',
-            (extracted_text, PARSER_VERSION, resource_id),
+            (extracted_text, index_error, PARSER_VERSION, resource_id),
         )
 
 

@@ -38,6 +38,8 @@ def main() -> None:
         detail = r.error or f"{r.chunks} chunks, {r.pages} pages ({r.empty_pages} without text)"
         if r.ocr_pages:
             detail += f"; OCR read {r.ocr_pages} pages ({r.ocr_neurons:.0f} neurons)"
+        if r.ocr_failed and r.status == "READY":
+            detail += f"; OCR failed on {r.ocr_failed} pages" + (", retry queued" if r.ocr_retry else ", gave up")
         print(f"{r.status:8} {r.resource_id}  {r.seconds:6.1f}s  {detail}")
     ok = sum(r.status == "READY" for r in results)
     deferred = sum(r.status == "DEFERRED" for r in results)
