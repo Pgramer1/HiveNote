@@ -1,5 +1,6 @@
 """Reads and writes the tables the Next.js app owns. Prisma owns the schema: never run DDL here."""
 
+import logging
 from dataclasses import dataclass
 
 import certifi
@@ -9,6 +10,7 @@ from psycopg.conninfo import conninfo_to_dict
 from app.chunking import Chunk
 from app.config import PARSER_VERSION, get_settings
 
+log = logging.getLogger("rag.db")
 
 @dataclass
 class ResourceRow:
@@ -33,6 +35,39 @@ def connection_params(url: str) -> dict[str, str]:
 
 def connect() -> psycopg.Connection:
     return psycopg.connect(**connection_params(get_settings().database_url))
+
+
+class Session:
+    """Hands out a live connection, re-opening it when the server has dropped it. Neon terminates a
+    connection left idle while a document is OCR'd for minutes ("terminating connection due to
+    administrator command"), so the pipeline asks for the connection again at every database step."""
+
+    def __init__(self) -> None:
+        self._conn: psycopg.Connection | None = None
+
+    def conn(self) -> psycopg.Connection:
+        if self._conn is not None and not self._conn.closed:
+            try:
+                self._conn.rollback()  # never ping inside a caller's half-finished transaction
+                self._conn.execute("SELECT 1")
+                self._conn.commit()
+                return self._conn
+            except psycopg.OperationalError:
+                log.warning("Database connection was dropped; reconnecting")
+                self._conn.close()
+        self._conn = connect()
+        return self._conn
+
+    def close(self) -> None:
+        if self._conn is not None:
+            self._conn.close()
+            self._conn = None
+
+    def __enter__(self) -> "Session":
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        self.close()
 
 
 def _row(cur: psycopg.Cursor) -> ResourceRow | None:

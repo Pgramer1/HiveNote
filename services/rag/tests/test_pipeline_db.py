@@ -117,6 +117,27 @@ def test_text_less_pages_are_read_by_ocr(resource, ocr_on):
     assert chunks[2][:4] == (2, 3, None, "ocr")
 
 
+def test_a_connection_dropped_during_ocr_is_reopened(resource, ocr_on, monkeypatch):
+    """Neon terminates a connection left idle through minutes of OCR; the save must still land."""
+    resource_id, state = resource
+
+    def ocr_then_drop_connections(pdf, pages, settings):
+        with psycopg.connect(TEST_DB, autocommit=True) as admin:
+            admin.execute(
+                '''SELECT pg_terminate_backend(pid) FROM pg_stat_activity
+                   WHERE datname = current_database() AND pid <> pg_backend_pid() AND backend_type = 'client backend' '''
+            )
+        return {3: OCR_TEXT}, 80.0
+
+    monkeypatch.setattr(pipeline, "ocr_pages", ocr_then_drop_connections)
+
+    result = pipeline.ingest(resource_id)
+
+    assert (result.status, result.ocr_pages) == ("READY", 1)
+    (status, error, _, text), _ = state()
+    assert (status, error) == ("READY", None) and OCR_TEXT in text
+
+
 def test_ocr_pages_count_against_the_daily_budget(resource, ocr_on):
     resource_id, _ = resource
     with psycopg.connect(TEST_DB) as conn:

@@ -78,9 +78,10 @@ def ocr_source(data: bytes, doc: ParsedDocument, resource_type: str) -> bytes | 
     return pdf
 
 
-def index_resource(conn: psycopg.Connection, row: db.ResourceRow) -> IngestResult:
+def index_resource(session: db.Session, row: db.ResourceRow) -> IngestResult:
     """Download → parse → OCR text-less pages and picture slides → chunk → embed → save, for a resource
-    already claimed as PROCESSING."""
+    already claimed as PROCESSING. Each database step asks the session for the connection, because
+    OCR and embedding can leave it idle long enough for the server to drop it."""
     settings = get_settings()
     started = time.monotonic()
     ocr_count, neurons = 0, 0.0
@@ -90,7 +91,7 @@ def index_resource(conn: psycopg.Connection, row: db.ResourceRow) -> IngestResul
         if doc.empty_pages and settings.ocr_provider != "off":
             pdf = ocr_source(data, doc, row.type)
             if pdf is not None:
-                doc, ocr_count, neurons = apply_ocr(conn, pdf, doc, settings)
+                doc, ocr_count, neurons = apply_ocr(session.conn(), pdf, doc, settings)
         if not doc.blocks:
             reason = "OCR is turned off" if settings.ocr_provider == "off" else "OCR found no text either"
             raise UnsupportedDocument(f"No extractable text on any of {doc.page_count} pages; {reason}")
@@ -99,14 +100,14 @@ def index_resource(conn: psycopg.Connection, row: db.ResourceRow) -> IngestResul
             settings.pdf_pack_pages, settings.context_header, settings.min_chunk_chars,
         )
         vectors = embed_texts([c.embed_text for c in chunks])
-        db.save_index(conn, row.id, chunks, vectors, doc.full_text[: settings.max_extracted_chars])
+        db.save_index(session.conn(), row.id, chunks, vectors, doc.full_text[: settings.max_extracted_chars])
         result = IngestResult(row.id, "READY", len(chunks), doc.page_count, len(doc.empty_pages))
     except OcrDeferred as exc:
-        db.mark_deferred(conn, row.id, str(exc))
+        db.mark_deferred(session.conn(), row.id, str(exc))
         result = IngestResult(row.id, "DEFERRED", error=str(exc))
     except Exception as exc:  # any failure is recorded on the resource, never raised to callers
         log.exception("Indexing failed for %s", row.id)
-        db.mark_failed(conn, row.id, f"{type(exc).__name__}: {exc}")
+        db.mark_failed(session.conn(), row.id, f"{type(exc).__name__}: {exc}")
         result = IngestResult(row.id, "FAILED", error=str(exc)[:500])
     result.ocr_pages, result.ocr_neurons = ocr_count, round(neurons, 1)
     result.seconds = round(time.monotonic() - started, 2)
@@ -115,22 +116,22 @@ def index_resource(conn: psycopg.Connection, row: db.ResourceRow) -> IngestResul
 
 
 def ingest(resource_id: str, force: bool = False) -> IngestResult:
-    with db.connect() as conn:
-        row = db.claim_resource(conn, resource_id, force=force)
+    with db.Session() as session:
+        row = db.claim_resource(session.conn(), resource_id, force=force)
         if row is None:
             return IngestResult(resource_id, "SKIPPED", error="Not a PDF/PPT resource, or already being indexed")
-        return index_resource(conn, row)
+        return index_resource(session, row)
 
 
 def ingest_pending(limit: int) -> list[IngestResult]:
     results = []
     deferred: list[str] = []  # put back in the queue this run; don't claim them again
-    with db.connect() as conn:
+    with db.Session() as session:
         for _ in range(limit):
-            row = db.claim_next_pending(conn, exclude=deferred)
+            row = db.claim_next_pending(session.conn(), exclude=deferred)
             if row is None:
                 break
-            result = index_resource(conn, row)
+            result = index_resource(session, row)
             if result.status == "DEFERRED":
                 deferred.append(row.id)
             results.append(result)
