@@ -370,6 +370,8 @@ So the fix gains one question at rank 1 and loses a borderline rank-5 hit, with 
 
 **But Cloudflare's Llama 4 Scout was failing:** of 134 text-less pages, 11 were read (624 neurons) and 123 failed, 76 with HTTP 499 "Client Closed Request" (code 6001) and 47 with our 120 s read timeout. A single probe call afterwards with a 300 s client timeout also got a 499 after 69 s, so the failure is on Cloudflare's side; the same model read 22 test pages and the 13-page assignment without errors on 2026-10-18. Failed pages are skipped by design, so these resources are READY with their parsed text, as on `rag-1`, but without the OCR text.
 
+**Production retrieval afterwards** (read-only, 68 questions, run `2026-10-24T16-22-18Z-phase3-rag3-prod.json`): recall@1 83.8%, recall@3 92.6%, recall@5 95.6%, MRR 0.887, identical to the `rag-3` test copy with OCR off (D-026); against Phase 1 on production, recall@1 82.4% → 83.8% and MRR 0.880 → 0.887, recall@5 97.1% → 95.6% (`ae-denoising-loss`, the borderline hit D-026 describes). The one-chunk-per-page retrieval that recovers it (97.1%, D-027) is on `feature/phase2-chat` and arrives with the Phase 2 merge.
+
 Two gaps this exposed:
 - **Failed OCR calls don't count against the daily page budget** (it counts saved OCR chunks), so a failing provider is called for every text-less page, up to the 40-page per-document cap. Whether Cloudflare bills failed calls is unknown.
 - **A resource whose OCR pages all failed is READY,** so neither the daily `--pending` run nor a deferral retries it; it needs a manual re-index once the provider works.
