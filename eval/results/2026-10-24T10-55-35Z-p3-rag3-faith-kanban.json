@@ -1,0 +1,118 @@
+{
+  "label": "p3-rag3-faith-kanban",
+  "runAt": "2026-10-24T10:55:35.981Z",
+  "gitCommit": "e81bb2b-dirty",
+  "database": "localhost/hivenote",
+  "questionsFile": "../HiveNote-work/faith-batches/rag3-kanban.jsonl",
+  "retrieval": {
+    "function": "src/lib/rag.ts getRelevantChunks",
+    "topK": 5,
+    "mode": "vector",
+    "rerank": "off",
+    "candidates": 20,
+    "embeddingModel": "@cf/baai/bge-m3"
+  },
+  "summary": {
+    "questions": 1,
+    "recall": {
+      "@1": 1,
+      "@3": 1,
+      "@5": 1
+    },
+    "mrr": 1,
+    "byResourceType": {
+      "PDF": {
+        "questions": 1,
+        "recall": {
+          "@1": 1,
+          "@3": 1,
+          "@5": 1
+        },
+        "mrr": 1
+      }
+    },
+    "errors": 0
+  },
+  "faithfulness": {
+    "pipeline": "graph",
+    "answerModel": "openai/gpt-oss-120b",
+    "helperModel": "openai/gpt-oss-20b",
+    "citedAnswers": 1,
+    "generalAnswers": 0,
+    "retried": 0,
+    "meanFaithfulnessCited": 1,
+    "judgeModel": "openai/gpt-oss-20b",
+    "judged": 1,
+    "failed": 0,
+    "meanFaithfulness": 1,
+    "withReferenceAnswer": 1,
+    "correctRate": 1
+  },
+  "questions": [
+    {
+      "id": "kanban-principles",
+      "resourceId": "cmm96bom7000104l2sgg953c5",
+      "resourceType": "PDF",
+      "question": "What are the three Kanban principles?",
+      "expectedPages": [
+        43
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 43,
+          "match": "page",
+          "preview": "Kanban Principles\n\n• Visualize what you do today (workflow) • Limit the amount of work in progress (WIP) • Enhance flow"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 47,
+          "match": null,
+          "preview": "Kanban\n\n- At its most basic, kanban is a system that uses visual cues to move and produce materials so that inventory is maintained at optimal levels\n\n- • In ma"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 42,
+          "match": null,
+          "preview": "Kanban – Lean Methodology\n\nKanban is a method for managing the creation of products with an emphasis on continual delivery while not overburdening the developme"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 59,
+          "match": null,
+          "preview": "Kanban Benefits\n\n- Shorter cycle times can deliver features faster\n\n- • Responsiveness to Change • When priorities change very frequently, Kanban is ideal\n\n- Ba"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 60,
+          "match": null,
+          "preview": "Kanban Benefits\n\n- Requires fewer organization / room set-up changes to get started\n\n- • Reducing waste and removing activities that don’t add value to the team"
+        }
+      ],
+      "faithfulness": {
+        "answer": "The three Kanban principles are:\n\n- **Visualize** the current workflow  \n- **Limit** the amount of work‑in‑progress (WIP)  \n- **Enhance** the flow of work  \n\nThese are taken directly from your notes [p. 43].",
+        "graph": {
+          "route": "cited",
+          "attempts": 1,
+          "query": "What are the three Kanban principles?",
+          "sourcePages": [
+            43,
+            47,
+            42,
+            59,
+            60
+          ]
+        },
+        "verdict": {
+          "supported": 3,
+          "total": 3,
+          "faithfulness": 1,
+          "correct": true,
+          "unsupportedClaims": []
+        }
+      }
+    }
+  ]
+}

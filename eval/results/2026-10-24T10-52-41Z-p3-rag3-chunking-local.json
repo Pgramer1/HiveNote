@@ -1,0 +1,2988 @@
+{
+  "label": "p3-rag3-chunking-local",
+  "runAt": "2026-10-24T10:52:41.768Z",
+  "gitCommit": "e81bb2b-dirty",
+  "database": "localhost/hivenote",
+  "questionsFile": "eval/questions.jsonl",
+  "retrieval": {
+    "function": "src/lib/rag.ts getRelevantChunks",
+    "topK": 5,
+    "mode": "vector",
+    "rerank": "off",
+    "candidates": 20,
+    "embeddingModel": "@cf/baai/bge-m3"
+  },
+  "summary": {
+    "questions": 68,
+    "recall": {
+      "@1": 0.8382352941176471,
+      "@3": 0.9264705882352942,
+      "@5": 0.9558823529411765
+    },
+    "mrr": 0.8872549019607843,
+    "byResourceType": {
+      "PDF": {
+        "questions": 52,
+        "recall": {
+          "@1": 0.8076923076923077,
+          "@3": 0.9038461538461539,
+          "@5": 0.9423076923076923
+        },
+        "mrr": 0.8621794871794871
+      },
+      "PPT": {
+        "questions": 16,
+        "recall": {
+          "@1": 0.9375,
+          "@3": 1,
+          "@5": 1
+        },
+        "mrr": 0.96875
+      }
+    },
+    "errors": 0
+  },
+  "questions": [
+    {
+      "id": "ae-architecture",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "What are the three components of an autoencoder's basic architecture?",
+      "expectedPages": [
+        3
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 3,
+          "match": "page",
+          "preview": "Basic Architecture\n\nThree components:\n\n• Encoder : x→z\n\n• Latent Space : compressed representation\n\n- Decoder : z→x\n\n•Symmetric or asymmetric architectures poss"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "What is an Autoencoder? Autoencoders are unsupervised neural networks Learn to: •Compress data •Reconstruct original input Used for: •Feature learning •Dimensio"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 25,
+          "match": null,
+          "preview": "Architecture\n\nEncoder:\n\nConvolution + Activation + Pooling Extracts feature maps\n\nLatent Space:\n\nCompressed feature representation\n\nDecoder:\n\nUpsampling / Trans"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 40,
+          "match": null,
+          "preview": "Autoencoder approach\n\n- Learns data-driven compression .\n\n-\n\n- How it works\n\n- Encoder converts data into latent vector Example: Original image = 10,000 numbers"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 13,
+          "match": null,
+          "preview": "Vanilla Autoencoder\n\n- Basic encoder-decoder architecture\n\nKey characteristics:\n\n- Learns identity mapping\n\n- No regularization\n\n- Works well for simple dataset"
+        }
+      ]
+    },
+    {
+      "id": "ae-loss",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "Which loss functions are commonly used to train an autoencoder, and for what kind of data?",
+      "expectedPages": [
+        8
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "What is an Autoencoder? Autoencoders are unsupervised neural networks Learn to: •Compress data •Reconstruct original input Used for: •Feature learning •Dimensio"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 43,
+          "match": null,
+          "preview": "Summary\n\n• Autoencoder learns compressed representation of data. • That representation enables:\n\nCapability Compression Representation learning Reconstruction e"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 31,
+          "match": null,
+          "preview": "Variational Autoencoder (VAE)\n\nLoss Function (High-level)\n\n- Reconstruction Loss → ∣∣𝑥−ො𝑥∣∣<sup>2</sup>\n\n- KL Divergence → ensures latent space follows normal"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 38,
+          "match": null,
+          "preview": "Anomaly Detection\n\n- This is one of the most important real-world uses.\n\n- • Autoencoder learns to reconstruct normal data only. So it becomes bad at reconstruc"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 40,
+          "match": null,
+          "preview": "Autoencoder approach\n\n- Learns data-driven compression .\n\n-\n\n- How it works\n\n- Encoder converts data into latent vector Example: Original image = 10,000 numbers"
+        }
+      ]
+    },
+    {
+      "id": "ae-bottleneck",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "why cant an autoencoder just copy its input straight to the output",
+      "expectedPages": [
+        9
+      ],
+      "firstRelevantRank": 4,
+      "reciprocalRank": 0.25,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 40,
+          "match": null,
+          "preview": "Autoencoder approach\n\n- Learns data-driven compression .\n\n-\n\n- How it works\n\n- Encoder converts data into latent vector Example: Original image = 10,000 numbers"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 21,
+          "match": null,
+          "preview": "- A type of autoencoder trained to reconstruct clean input from noisy data\n\n- Learns robust and noise-invariant representations\n\n- Improves generalization by pr"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "What is an Autoencoder? Autoencoders are unsupervised neural networks Learn to: •Compress data •Reconstruct original input Used for: •Feature learning •Dimensio"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 9,
+          "match": "page",
+          "preview": "Working of Autoencoder\n\n• Pipeline:\n\n- Input → Encoder → Latent → Decoder → Output\n\n- • Learns compressed representation\n\n• Reconstruction forces feature learni"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 43,
+          "match": null,
+          "preview": "Summary\n\n• Autoencoder learns compressed representation of data. • That representation enables:\n\nCapability Compression Representation learning Reconstruction e"
+        }
+      ]
+    },
+    {
+      "id": "ae-sparse-rho",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "In a sparse autoencoder, what does rho represent and what is a typical value?",
+      "expectedPages": [
+        18
+      ],
+      "firstRelevantRank": 3,
+      "reciprocalRank": 0.3333333333333333,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 17,
+          "match": null,
+          "preview": "Sparse Autoencoder\n\n- A regularized autoencoder that enforces sparsity constraint\n\n- • Only a small number of neurons are active at a time\n\n- • Encourages learn"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 19,
+          "match": null,
+          "preview": "Limitations\n\nSparse Autoencoder\n\n- Additional hyperparameters ( 𝜆, 𝜌 )\n\n- Slightly more complex training\n\n- Sensitive to parameter tuning"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 18,
+          "match": "page",
+          "preview": "Mathematical Formulation\n\nEquations\n\n𝑧 𝑧= 𝑓 𝑥, ො𝑥= 𝑔 𝜌∣∣ො𝜌 𝐿=∣∣𝑥−ො𝑥∣∣<sup>2</sup> +𝜆෍𝐾𝐿\n\n- 𝑥 : input data\n\n- ො𝑥 :reconstructed output\n\n- 𝑧 : la"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 15,
+          "match": null,
+          "preview": "Sparse Autoencoder (SAE)"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 39,
+          "match": null,
+          "preview": "Image Denoising\n\n- Images often contain noise:\n\n- Low light\n\n- Sensor noise\n\n- Transmission errors\n\n• Training Trick\n\n- Instead of normal training:\n\n- Input = N"
+        }
+      ]
+    },
+    {
+      "id": "ae-denoising-loss",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "When training a denoising autoencoder, is the loss computed against the noisy input or the clean input?",
+      "expectedPages": [
+        22,
+        23
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 39,
+          "match": null,
+          "preview": "Image Denoising\n\n- Images often contain noise:\n\n- Low light\n\n- Sensor noise\n\n- Transmission errors\n\n• Training Trick\n\n- Instead of normal training:\n\n- Input = N"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 21,
+          "match": null,
+          "preview": "Denoising Autoencoder (DAE)\n\n- ෤𝑥= 𝑥+ _noise_\n\n- Train model to recover original 𝑥\n\n- “Learn to remove noise and recover true signal”"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 21,
+          "match": null,
+          "preview": "- A type of autoencoder trained to reconstruct clean input from noisy data\n\n- Learns robust and noise-invariant representations\n\n- Improves generalization by pr"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 21,
+          "match": null,
+          "preview": "Latent Space:\n\n- Captures robust features unaffected by noise\n\n- Decoder:\n\n- Reconstructs clean output ො𝑥≈𝑥\n\nPipeline:\n\nNoisy Input → Encoder → Latent → Decod"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 46,
+          "match": null,
+          "preview": "Methodology – Autoencoder Approach\n\nCore Idea\n\n- Train model using:\n\n- Noisy input ෤𝑥\n\n- Clean target 𝑥\n\nLearn mapping: Noisy → Clean"
+        }
+      ]
+    },
+    {
+      "id": "ae-vae-reparam",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "What is the reparameterization trick in a variational autoencoder?",
+      "expectedPages": [
+        32
+      ],
+      "firstRelevantRank": 2,
+      "reciprocalRank": 0.5,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 31,
+          "match": null,
+          "preview": "Variational Autoencoder (VAE)\n\nLoss Function (High-level)\n\n- Reconstruction Loss → ∣∣𝑥−ො𝑥∣∣<sup>2</sup>\n\n- KL Divergence → ensures latent space follows normal"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 32,
+          "match": "page",
+          "preview": "Architecture\n\nEncoder:\n\nInput → Neural Network → outputs:\n\nMean ( 𝜇 ) Variance ( 𝜎 )\n\nVariational Autoencoder (VAE)\n\nLatent Space:\n\nSample:\n\n𝑧= 𝜇+ 𝜎⋅𝜖\n\n(R"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 29,
+          "match": null,
+          "preview": "Variational Autoencoder (VAE)\n\n- A type of autoencoder that learns a probabilistic latent representation\n\n- • Instead of fixed encoding, it learns a distributio"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 34,
+          "match": null,
+          "preview": "Summary\n\n|Type|Key Idea|Main<br>Modification|Advantage|Limitation|Typical Use|\n|---|---|---|---|---|---|\n|Vanilla AE|Basic<br>reconstruction|No constraint|Simpl"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 40,
+          "match": null,
+          "preview": "Autoencoder approach\n\n- Learns data-driven compression .\n\n-\n\n- How it works\n\n- Encoder converts data into latent vector Example: Original image = 10,000 numbers"
+        }
+      ]
+    },
+    {
+      "id": "ae-vs-pca",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "Why are autoencoders better than PCA for dimensionality reduction?",
+      "expectedPages": [
+        36,
+        35
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 36,
+          "match": "page",
+          "preview": "Dimensionality reduction\n\n- Problem\n\n- Real datasets have hundreds or thousands of features → slow training, overfitting, hard visualization.\n\n- How Autoencoder"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 35,
+          "match": "page",
+          "preview": "Key Applications\n\n•Compress high-dimensional data into lower dimensions Dimensionality Reduction •Alternative to PCA with nonlinear capability •Learns meaningfu"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 27,
+          "match": null,
+          "preview": "Advantages\n\n- Preserves spatial structure\n\n- Fewer parameters than dense AE\n\n- Better image reconstruction"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "What is an Autoencoder? Autoencoders are unsupervised neural networks Learn to: •Compress data •Reconstruct original input Used for: •Feature learning •Dimensio"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 19,
+          "match": null,
+          "preview": "Advantages\n\n- Prevents trivial identity mapping\n\n- • Learns better feature representations\n\n- Improves generalization"
+        }
+      ]
+    },
+    {
+      "id": "ae-anomaly",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "how can autoencoders catch fraud or weird network traffic",
+      "expectedPages": [
+        38,
+        35
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 38,
+          "match": "page",
+          "preview": "Anomaly Detection\n\n- This is one of the most important real-world uses.\n\n- • Autoencoder learns to reconstruct normal data only. So it becomes bad at reconstruc"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "What is an Autoencoder? Autoencoders are unsupervised neural networks Learn to: •Compress data •Reconstruct original input Used for: •Feature learning •Dimensio"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 40,
+          "match": null,
+          "preview": "Autoencoder approach\n\n- Learns data-driven compression .\n\n-\n\n- How it works\n\n- Encoder converts data into latent vector Example: Original image = 10,000 numbers"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 21,
+          "match": null,
+          "preview": "- A type of autoencoder trained to reconstruct clean input from noisy data\n\n- Learns robust and noise-invariant representations\n\n- Improves generalization by pr"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 25,
+          "match": null,
+          "preview": "Convolutional Autoencoder\n\n- A type of autoencoder that uses Convolutional Neural Networks (CNNs)\n\n- Designed specifically for image and spatial data\n\n- Preserv"
+        }
+      ]
+    },
+    {
+      "id": "ae-784-bottleneck",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "In the dimensionality reduction example, how many neurons does the bottleneck have for a 784-pixel image?",
+      "expectedPages": [
+        36,
+        5
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 36,
+          "match": "page",
+          "preview": "Dimensionality reduction\n\n- Problem\n\n- Real datasets have hundreds or thousands of features → slow training, overfitting, hard visualization.\n\n- How Autoencoder"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 9,
+          "match": null,
+          "preview": "Working of Autoencoder\n\n• Pipeline:\n\n- Input → Encoder → Latent → Decoder → Output\n\n- • Learns compressed representation\n\n• Reconstruction forces feature learni"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 5,
+          "match": "page",
+          "preview": "Encoder\n\n• Function: compress input into latent vector\n\n• Learns mapping: 𝑧= 𝑓 𝑥= 𝜎 𝑊𝑥+ 𝑏\n\n• Reduces dimensionality\n\n- Extracts meaningful features\n\n- Ex"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 17,
+          "match": null,
+          "preview": "Key Idea\n\n- Instead of using all neurons:\n\n- Force most activations → close to 0\n\n- • Promotes efficient representation\n\n- “Few neurons fire → better feature ex"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 44,
+          "match": null,
+          "preview": "Case Study: Image Denoising"
+        }
+      ]
+    },
+    {
+      "id": "rnn-why",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "Why do we need recurrent neural networks instead of a normal feed-forward network?",
+      "expectedPages": [
+        3
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 3,
+          "match": "page",
+          "preview": "Why RNN?\n\n•Traditional NN: assumes independent data •Many problems are sequential:\n\n•Need memory of past\n\n- Traditional neural network limitation: no memory.\n\n-"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 56,
+          "match": null,
+          "preview": "Graph Recurrent Neural Network\n\n- Works on graph structured data\n\n- Nodes update using:\n\n- Neighbor nodes\n\n- Previous state\n\n- Applications:\n\n- Traffic predicti"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 12,
+          "match": null,
+          "preview": "(Vanilla) Recurrent Neural Network The state consists of a single _“hidden”_ vector h :\n\n<!-- Start of picture text -->\ny<br><!-- End of picture text -->\n\n<!-- "
+        },
+        {
+          "rank": 4,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "Idea Behind RNN\n\n- RNN introduces memory\n\n- Output depends on:\n\n- Current input\n\n- Previous hidden state\n\n- The hidden state acts as the memory of the network, "
+        },
+        {
+          "rank": 5,
+          "pageNumber": 41,
+          "match": null,
+          "preview": "Introduction to LSTM (Long Short Term Memory)\n\n- Why LSTM?\n\n- Traditional RNN fails\n\n- for long sequences\n\n- LSTM selectively remembers and forgets\n\n- What is L"
+        }
+      ]
+    },
+    {
+      "id": "rnn-elman",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "What is a vanilla RNN also called, and who is it named after?",
+      "expectedPages": [
+        12
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 12,
+          "match": "page",
+          "preview": "(Vanilla) Recurrent Neural Network The state consists of a single _“hidden”_ vector h :\n\n<!-- Start of picture text -->\ny<br><!-- End of picture text -->\n\n<!-- "
+        },
+        {
+          "rank": 2,
+          "pageNumber": 39,
+          "match": null,
+          "preview": "Major Problems of Vanilla RNN\n\n- Vanishing Gradient\n\n- Gradients become very small\n\n- Model forgets early inputs\n\n- Exploding Gradient\n\n- Gradients become huge\n"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 3,
+          "match": null,
+          "preview": "Why RNN?\n\n•Traditional NN: assumes independent data •Many problems are sequential:\n\n•Need memory of past\n\n- Traditional neural network limitation: no memory.\n\n-"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 58,
+          "match": null,
+          "preview": "Why Attention is Powerful\n\n- RNN bottleneck:\n\nAll info → single vector\n\n- Attention: Dynamic weighted focus\n\n- Allows model to:\n\n- Align input & output\n\n- Handl"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 13,
+          "match": null,
+          "preview": "Types of RNN structures\n\n- RNNs can handle different input–output sequence lengths\n\n- Not all problems are:\n\n- One input → One output (ANN)\n\n- Real-world tasks "
+        }
+      ]
+    },
+    {
+      "id": "rnn-many-to-one",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "Give examples of tasks that use a many-to-one RNN.",
+      "expectedPages": [
+        25,
+        22
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 22,
+          "match": "page",
+          "preview": "Type 3: Many-to-One RNN\n\n- Sequence input → Single output\n\n- Architecture:\n\n- x₁ → x₂ → x₃ → … → Output\n\n- Uses entire sequence to make decision."
+        },
+        {
+          "rank": 2,
+          "pageNumber": 33,
+          "match": null,
+          "preview": "<!-- Start of picture text -->\nL<br>RNN: Computational Graph: Many to Many<br>y2 L2 y3 L3 yT LT<br>y1 L1<br>h0 h1 h2 hT<br>fW fW fW h3 …<br>x1 x2 x3<br>W<br><!-"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 15,
+          "match": null,
+          "preview": "One-to-Many RNN\n\n- Single input → Sequence output\n\n- Model generates a sequence from one input.\n\n- Architecture:\n\nInput → RNN → y₁, y₂, y₃…"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 23,
+          "match": null,
+          "preview": "RNN: Computational Graph: Many to One\n\ny\n\n<!-- Start of picture text -->\nh0 h1 h2 h3 hT<br>f W f W f W …<br>x1 x2 x3<br>W<br><!-- End of picture text -->"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 24,
+          "match": null,
+          "preview": "RNN: Computational Graph: Many to One\n\ny\n\n<!-- Start of picture text -->\nh0 h1 h2 h3 hT<br>f W f W f W …<br>x1 x2 x3<br>W<br><!-- End of picture text -->"
+        }
+      ]
+    },
+    {
+      "id": "rnn-bptt",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "How is an RNN trained?",
+      "expectedPages": [
+        36,
+        37
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 36,
+          "match": "page",
+          "preview": "Training RNN: Backpropagation Through Time (BPTT)\n\n- RNN training involves learning optimal weight parameters by minimizing a loss function across a sequence of"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "Objectives\n\n- Why RNN?\n\n- What is RNN?\n\n- Types of RNN\n\n- Training in RNN\n\n- LSTM\n\n- GRU\n\n- Advance concepts in RNN"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 12,
+          "match": null,
+          "preview": "(Vanilla) Recurrent Neural Network The state consists of a single _“hidden”_ vector h :\n\n<!-- Start of picture text -->\ny<br><!-- End of picture text -->\n\n<!-- "
+        },
+        {
+          "rank": 4,
+          "pageNumber": 3,
+          "match": null,
+          "preview": "Why RNN?\n\n•Traditional NN: assumes independent data •Many problems are sequential:\n\n•Need memory of past\n\n- Traditional neural network limitation: no memory.\n\n-"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "Idea Behind RNN\n\n- RNN introduces memory\n\n- Output depends on:\n\n- Current input\n\n- Previous hidden state\n\n- The hidden state acts as the memory of the network, "
+        }
+      ]
+    },
+    {
+      "id": "rnn-long-term",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "Why can't a vanilla RNN learn long-term dependencies?",
+      "expectedPages": [
+        39,
+        40
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 39,
+          "match": "page",
+          "preview": "Major Problems of Vanilla RNN\n\n- Vanishing Gradient\n\n- Gradients become very small\n\n- Model forgets early inputs\n\n- Exploding Gradient\n\n- Gradients become huge\n"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 40,
+          "match": "page",
+          "preview": "Long-Term Dependency Problem\n\n- Example:\n\n- “I grew up in France… I speak fluent ___”\n\n- RNN fails to connect France → French\n\n- Need long-term memory mechanism"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 3,
+          "match": null,
+          "preview": "Why RNN?\n\n•Traditional NN: assumes independent data •Many problems are sequential:\n\n•Need memory of past\n\n- Traditional neural network limitation: no memory.\n\n-"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 12,
+          "match": null,
+          "preview": "(Vanilla) Recurrent Neural Network The state consists of a single _“hidden”_ vector h :\n\n<!-- Start of picture text -->\ny<br><!-- End of picture text -->\n\n<!-- "
+        },
+        {
+          "rank": 5,
+          "pageNumber": 41,
+          "match": null,
+          "preview": "Introduction to LSTM (Long Short Term Memory)\n\n- Why LSTM?\n\n- Traditional RNN fails\n\n- for long sequences\n\n- LSTM selectively remembers and forgets\n\n- What is L"
+        }
+      ]
+    },
+    {
+      "id": "rnn-lstm-gates",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "What are the three gates in an LSTM?",
+      "expectedPages": [
+        42
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 42,
+          "match": "page",
+          "preview": "LSTM Architecture\n\n- Components:\n\n- Cell state (Cₜ) → long-term memory highway\n\n- • Hidden state (hₜ)\n\n- 3 Gates:\n\n- Forget gate\n\n- Input gate\n\n- Output gate"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 41,
+          "match": null,
+          "preview": "Introduction to LSTM (Long Short Term Memory)\n\n- Why LSTM?\n\n- Traditional RNN fails\n\n- for long sequences\n\n- LSTM selectively remembers and forgets\n\n- What is L"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 52,
+          "match": null,
+          "preview": "LSTM vs GRU\n\n|Feature|LSTM|GRU|\n|---|---|---|\n|Gates|3|2|\n|Parameters|More|Fewer|\n|Training speed|Slower|Faster|\n|Performance|Slightly better|Comparable|"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 47,
+          "match": null,
+          "preview": "Advantages of LSTM\n\n- Learns long sequences\n\n- Solves vanishing gradient\n\n- Applications:\n\n- Language Modeling\n\n- Speech Recognition\n\n- Time Series Forecasting\n"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 49,
+          "match": null,
+          "preview": "Gated Recurrent Unit (GRU)\n\n- Gated Recurrent Unit (GRU) is a variant of RNN designed to solve the vanishing gradient problem\n\n- It is simpler than LSTM with a "
+        }
+      ]
+    },
+    {
+      "id": "rnn-gru-vs-lstm",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "How many gates does a GRU have compared to an LSTM, and which one trains faster?",
+      "expectedPages": [
+        52
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 52,
+          "match": "page",
+          "preview": "LSTM vs GRU\n\n|Feature|LSTM|GRU|\n|---|---|---|\n|Gates|3|2|\n|Parameters|More|Fewer|\n|Training speed|Slower|Faster|\n|Performance|Slightly better|Comparable|"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 49,
+          "match": null,
+          "preview": "Gated Recurrent Unit (GRU)\n\n- Gated Recurrent Unit (GRU) is a variant of RNN designed to solve the vanishing gradient problem\n\n- It is simpler than LSTM with a "
+        },
+        {
+          "rank": 3,
+          "pageNumber": 42,
+          "match": null,
+          "preview": "LSTM Architecture\n\n- Components:\n\n- Cell state (Cₜ) → long-term memory highway\n\n- • Hidden state (hₜ)\n\n- 3 Gates:\n\n- Forget gate\n\n- Input gate\n\n- Output gate"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 48,
+          "match": null,
+          "preview": "Limitations of LSTM\n\n- LSTM is computationally expensive\n\n- Slower in training than RNN"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 41,
+          "match": null,
+          "preview": "Introduction to LSTM (Long Short Term Memory)\n\n- Why LSTM?\n\n- Traditional RNN fails\n\n- for long sequences\n\n- LSTM selectively remembers and forgets\n\n- What is L"
+        }
+      ]
+    },
+    {
+      "id": "rnn-bidirectional",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "how can a model use words that come later in a sentence to understand an earlier word",
+      "expectedPages": [
+        53
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 25,
+          "match": null,
+          "preview": "Application\n\n- Sentiment analysis\n\n- Spam detection\n\n- Emotion detection\n\n- Model reads whole sentence before prediction."
+        },
+        {
+          "rank": 2,
+          "pageNumber": 55,
+          "match": null,
+          "preview": "Hierarchical RNN\n\n- Multi-level sequence modeling.\n\n- Example NLP: Characters → Words → Sentences → Documents\n\n- Applications:\n\n- Document classification\n\n- Spe"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 34,
+          "match": null,
+          "preview": "Applications:\n\n- Part-of-speech tagging\n\n- Input sentence: “I love AI”\n\n- Output: I → Pronoun love → Verb AI → Noun\n\n- Model predicts label for each word\n\n- Nam"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 11,
+          "match": null,
+          "preview": "xₜ → input at time step t hₜ → hidden state (memory)\n\nyₜ → output\n\nTerms to remember\n\nfW→ neural network with weights\n\nWxh → input to hidden\n\nWhh → hidden to hi"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 5,
+          "match": null,
+          "preview": "What is Sequential Data?\n\n- Data where order matters\n\n- Examples:\n\n- Natural language → “I love AI” vs “AI love I”\n\n- Time-series → weather, stock, ECG\n\n- Video"
+        }
+      ]
+    },
+    {
+      "id": "rnn-attention",
+      "resourceId": "cmowk10lt000104l4w1bhynef",
+      "resourceType": "PDF",
+      "question": "What problem of RNNs does the attention mechanism solve?",
+      "expectedPages": [
+        58,
+        57
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 58,
+          "match": "page",
+          "preview": "Why Attention is Powerful\n\n- RNN bottleneck:\n\nAll info → single vector\n\n- Attention: Dynamic weighted focus\n\n- Allows model to:\n\n- Align input & output\n\n- Handl"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 57,
+          "match": "page",
+          "preview": "Attention Mechanism\n\n• Key idea:\n\n“Focus on important inputs”\n\n- Instead of compressing entire sequence → choose relevant parts.\n\n- Improves:\n\n- Translation\n\n- "
+        },
+        {
+          "rank": 3,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "Idea Behind RNN\n\n- RNN introduces memory\n\n- Output depends on:\n\n- Current input\n\n- Previous hidden state\n\n- The hidden state acts as the memory of the network, "
+        },
+        {
+          "rank": 4,
+          "pageNumber": 49,
+          "match": null,
+          "preview": "Gated Recurrent Unit (GRU)\n\n- Gated Recurrent Unit (GRU) is a variant of RNN designed to solve the vanishing gradient problem\n\n- It is simpler than LSTM with a "
+        },
+        {
+          "rank": 5,
+          "pageNumber": 41,
+          "match": null,
+          "preview": "Introduction to LSTM (Long Short Term Memory)\n\n- Why LSTM?\n\n- Traditional RNN fails\n\n- for long sequences\n\n- LSTM selectively remembers and forgets\n\n- What is L"
+        }
+      ]
+    },
+    {
+      "id": "sns-what",
+      "resourceId": "cmn6w1zo10000iosops0uee7l",
+      "resourceType": "PDF",
+      "question": "What is Seaborn and what library is it built on?",
+      "expectedPages": [
+        4
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 4,
+          "match": "page",
+          "preview": "<mark>Seaborn</mark>\n\n- A powerful Python library for data visualization built on top of Matplotlib.\n\n- A high-level interface for creating attractive and infor"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "<mark>Matplotlib vs. Seaborn</mark>\n\nFeature Matplotlib Seaborn Ease of Use Requires manual styling Provides built-in themes and color palettes Statistical Supp"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 3,
+          "match": null,
+          "preview": "<mark>Topics covered:</mark>\n\n<u>Seaborn</u>\n\n1. Introduction to Seaborn: Installing and Set Up\n\n2. Loading and Exploring Datasets\n\n3. Creating Plots: Scatter P"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 5,
+          "match": null,
+          "preview": "<mark>Loading and Exploring Datasets with Seaborn</mark>\n\n|Sl.No|Function|Syntax Example|Description|\n|---|---|---|---|\n|1|List available datasets|sns.get_datas"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 8,
+          "match": null,
+          "preview": "<mark>Seaborn: Multiple Subplots: Solution</mark>"
+        }
+      ]
+    },
+    {
+      "id": "sns-relplot-pairplot",
+      "resourceId": "cmn6w1zo10000iosops0uee7l",
+      "resourceType": "PDF",
+      "question": "What is the difference between relplot and pairplot?",
+      "expectedPages": [
+        13,
+        12
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 13,
+          "match": "page",
+          "preview": "<mark>relplot vs. pairplot</mark>\n\nrelplot → same relationship repeated across categories (year vs. passengers for each month)\n\npairplot → compares different va"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 12,
+          "match": "page",
+          "preview": "What is relplot?\n\n<u>relplot</u> visualizes how relation between variables changes across different groups.\n\n<!-- Start of picture text -->\nAutomatically create"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 28,
+          "match": null,
+          "preview": "1. Visualize the relationship between the total bill amount and tip amount. Differentiate smokers and non-smokers and represent gender. scatterplot total bill a"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "<mark>Matplotlib vs. Seaborn</mark>\n\nFeature Matplotlib Seaborn Ease of Use Requires manual styling Provides built-in themes and color palettes Statistical Supp"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 26,
+          "match": null,
+          "preview": "|Plot Type|Purpose|Statistical Params|Semantic Params|Aesthetic Params|\n|---|---|---|---|---|\n|scatterplot|relationship (raw data)|—|hue, style, size|palette, a"
+        }
+      ]
+    },
+    {
+      "id": "sns-ffill",
+      "resourceId": "cmn6w1zo10000iosops0uee7l",
+      "resourceType": "PDF",
+      "question": "How do you fill missing values with the previous row's value?",
+      "expectedPages": [
+        14
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 14,
+          "match": "page",
+          "preview": "Handling <mark>Missing Data</mark> in Seaborn\n\n- Identifies missing values using Pandas functions.\n\n- Allows data cleaning with dropna() and fillna() .\n\n- Suppo"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 15,
+          "match": null,
+          "preview": "<mark>Checking for missing values</mark>\n\n<mark>Dropping Missing Values</mark>\n\nRemoves rows that contain missing values (NaN)"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 16,
+          "match": null,
+          "preview": "<mark>Drop missing values</mark>\n\nRemove every row where deck OR fare is missing"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 22,
+          "match": null,
+          "preview": "<mark>Task 3: Exploring the planets Dataset</mark>\n\n1\n\nWhich column has the highest number of missing values?\n\n> 2 Which two columns have strongest missing-valu"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 16,
+          "match": null,
+          "preview": "<mark>Fill missing values</mark>\n\nData Imputation\n\nInstead of removing missing data, missing values can be replaced with meaningful estimates.\n\nReplaces missing"
+        }
+      ]
+    },
+    {
+      "id": "sns-missingno-minus1",
+      "resourceId": "cmn6w1zo10000iosops0uee7l",
+      "resourceType": "PDF",
+      "question": "In a missingno correlation heatmap, what does a value of -1 mean?",
+      "expectedPages": [
+        20
+      ],
+      "firstRelevantRank": 4,
+      "reciprocalRank": 0.25,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 17,
+          "match": null,
+          "preview": "<mark>Visualizing Missing Data</mark>\n\nA missing data heatmap helps identify patterns of missingness across features.\n\nLimitation\n\nSeaborn only shows location o"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 14,
+          "match": null,
+          "preview": "Handling <mark>Missing Data</mark> in Seaborn\n\n- Identifies missing values using Pandas functions.\n\n- Allows data cleaning with dropna() and fillna() .\n\n- Suppo"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 18,
+          "match": null,
+          "preview": "<mark>missingno</mark> <mark>Library (to visualize missing data)</mark>\n\nThe sparkline represents row-wise data completeness. Variation in bar length indicates "
+        },
+        {
+          "rank": 4,
+          "pageNumber": 20,
+          "match": "page",
+          "preview": "If one column is missing, is another column also missing?\n\n<!-- Start of picture text -->\nValue Meaning<br>+1 (dark blue) Always missing together<br>0 (white) I"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 21,
+          "match": null,
+          "preview": "<mark>Task 3: Exploring the planets Dataset</mark>\n\n1\n\nWhich column has the highest number of missing values?\n\n> 2 Which two columns have strongest missing-valu"
+        }
+      ]
+    },
+    {
+      "id": "sns-hue-palette",
+      "resourceId": "cmn6w1zo10000iosops0uee7l",
+      "resourceType": "PDF",
+      "question": "What is the difference between hue and palette in seaborn?",
+      "expectedPages": [
+        30
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 30,
+          "match": "page",
+          "preview": "<mark>Hue vs. Palette</mark>\n\nColor Hue Palette cmap\n\nParameter Type Purpose color Aesthetic Single color hue Semantic Maps variable to color <u>palette</u> Aes"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "<mark>Matplotlib vs. Seaborn</mark>\n\nFeature Matplotlib Seaborn Ease of Use Requires manual styling Provides built-in themes and color palettes Statistical Supp"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 3,
+          "match": null,
+          "preview": "<mark>Topics covered:</mark>\n\n<u>Seaborn</u>\n\n1. Introduction to Seaborn: Installing and Set Up\n\n2. Loading and Exploring Datasets\n\n3. Creating Plots: Scatter P"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 4,
+          "match": null,
+          "preview": "<mark>Seaborn</mark>\n\n- A powerful Python library for data visualization built on top of Matplotlib.\n\n- A high-level interface for creating attractive and infor"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 17,
+          "match": null,
+          "preview": "<mark>Visualizing Missing Data</mark>\n\nA missing data heatmap helps identify patterns of missingness across features.\n\nLimitation\n\nSeaborn only shows location o"
+        }
+      ]
+    },
+    {
+      "id": "sns-whiskers",
+      "resourceId": "cmn6w1zo10000iosops0uee7l",
+      "resourceType": "PDF",
+      "question": "how far do the whiskers go in a box plot",
+      "expectedPages": [
+        44
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 44,
+          "match": "page",
+          "preview": "Whiskers extend to Q1− 1.5 × IQR and Q3 + 1.5 × IQR ecdfplot\n\nboxplot violinplot histplot\n\nbarplot <mark>countplot</mark>\n\nregplot\n\nheatmap"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 45,
+          "match": null,
+          "preview": "12. Is the relationship between total bill and tip linear, and how are the two variables distributed (individually + together)?\n\nRelationship + distribution (in"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 28,
+          "match": null,
+          "preview": "1. Visualize the relationship between the total bill amount and tip amount. Differentiate smokers and non-smokers and represent gender. scatterplot total bill a"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 18,
+          "match": null,
+          "preview": "<mark>missingno</mark> <mark>Library (to visualize missing data)</mark>\n\nThe sparkline represents row-wise data completeness. Variation in bar length indicates "
+        },
+        {
+          "rank": 5,
+          "pageNumber": 60,
+          "match": null,
+          "preview": "<u>Modify it to achieve the following:</u>\n\n1. Display Individual Data Points (Show all individual country data points along with the box plot). 2. Display the "
+        }
+      ]
+    },
+    {
+      "id": "plotly-express-vs-go",
+      "resourceId": "cmn6w1zo10000iosops0uee7l",
+      "resourceType": "PDF",
+      "question": "How does Plotly Express relate to Plotly Graph Objects?",
+      "expectedPages": [
+        50
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 50,
+          "match": "page",
+          "preview": "Plotly Express ( plotly.express , usually imported as px )\n\n- An accessible, high-level interface for creating data visualizations\n\n- Create figures in just one"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 49,
+          "match": null,
+          "preview": "Why Plotly?\n\nplotly is an interactive, open-source, and browser-based graphing library for Python.\n\nPlotly’s Python Graphing Library\n\nPlotly Express Vs.\n\nPlotly"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 51,
+          "match": null,
+          "preview": "- P <mark>lot</mark> ly Dash module (imported as dash )\n\n- Plotly Dash is a Python framework for building web-based data visualization applications.\n\n- It is bu"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 24,
+          "match": null,
+          "preview": "<mark>Categorical Plots</mark>\n\n<mark>Matrix & Heatmap Plots</mark> (Correlation / 2D patterns)\n\n(Comparison across groups)"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 54,
+          "match": null,
+          "preview": "Plotly Documentation: <u>https://plotly.com/python/</u>"
+        }
+      ]
+    },
+    {
+      "id": "mpl-creator",
+      "resourceId": "cmm856krb00009ksodqisfo3l",
+      "resourceType": "PDF",
+      "question": "Who created Matplotlib and in which year?",
+      "expectedPages": [
+        4
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 4,
+          "match": "page",
+          "preview": "- is a popular 2D plotting library in Python.\n\n- It was created by John D. Hunter in 2003 with the specific purpose of generating publication-quality plots in P"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 9,
+          "match": null,
+          "preview": "What are the sub-libraries in Matplotlib?\n\n1. matplotlib.pyplot\n\n- Most commonly used state-based interface.\n\n- Functions like `plot()` , `scatter()` , `imshow("
+        },
+        {
+          "rank": 3,
+          "pageNumber": 5,
+          "match": null,
+          "preview": "What are the key features of Matplotlib?\n\n<!-- Start of picture text -->\n01<br>Plotting possibilities<br>02<br>Customization Options<br>03<br>Publication-Qualit"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 8,
+          "match": null,
+          "preview": "# Plot the data\n\nFor plotting, use the available plot functions in Matplotlib to create the desired plot.\n\nFor example:\n\n- To create a line plot , use the <mark"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 7,
+          "match": null,
+          "preview": "How to use matplotlib?\n\n#Install the library using pip\n\nC:\\Users\\admin > pip install matplotlib"
+        }
+      ]
+    },
+    {
+      "id": "mpl-savefig-order",
+      "resourceId": "cmm856krb00009ksodqisfo3l",
+      "resourceType": "PDF",
+      "question": "Should plt.savefig() be called before or after plt.show()?",
+      "expectedPages": [
+        7
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 7,
+          "match": "page",
+          "preview": "#Import the necessary libraries\n\n- The pyplot module serves as a collection of functions that offer a user-friendly interface for creating and customizing diffe"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 8,
+          "match": null,
+          "preview": "# Plot the data\n\nFor plotting, use the available plot functions in Matplotlib to create the desired plot.\n\nFor example:\n\n- To create a line plot , use the <mark"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 16,
+          "match": null,
+          "preview": "# Figure/Axes Utilities\n\nax.clear() ax.get_position() ax.sharex() ax.sharey() ax.axhline() ax.axvline() ax.add_line() ax.add_patch() ax.add_artist()\n\nNote: ax c"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 41,
+          "match": null,
+          "preview": "<mark>Assignments</mark>\n\n- Task 1 : DataFrame (CSV file)\n\n- Task 2 : Drawing shapes (shapes + axes + grid)\n\n- • Task 3 : Shapes using patches (ticks and tick l"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 11,
+          "match": null,
+          "preview": "State-based (Pyplot) interface\n\n<!-- Start of picture text -->\n(Internal)<br>(Optional)<br><!-- End of picture text -->\n\n“Plot this on this axis which is curren"
+        }
+      ]
+    },
+    {
+      "id": "mpl-patches",
+      "resourceId": "cmm856krb00009ksodqisfo3l",
+      "resourceType": "PDF",
+      "question": "Which matplotlib sub-library gives you shapes like rectangles, circles and polygons?",
+      "expectedPages": [
+        9
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 9,
+          "match": "page",
+          "preview": "What are the sub-libraries in Matplotlib?\n\n1. matplotlib.pyplot\n\n- Most commonly used state-based interface.\n\n- Functions like `plot()` , `scatter()` , `imshow("
+        },
+        {
+          "rank": 2,
+          "pageNumber": 9,
+          "match": "page",
+          "preview": "4. matplotlib.artist\n\nBase class for everything you see on a plot\n\n5. matplotlib.lines\n\nLine2D objects (plots, markers)\n\n6. matplotlib.patches Shapes like recta"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 9,
+          "match": "page",
+          "preview": "2. matplotlib.figure\n\nContains `Figure` class (entire drawing area)\n\n3. matplotlib.axes\n\nContains `Axes` class (actual plot area inside a figure)"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 4,
+          "match": null,
+          "preview": "- is a popular 2D plotting library in Python.\n\n- It was created by John D. Hunter in 2003 with the specific purpose of generating publication-quality plots in P"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 7,
+          "match": null,
+          "preview": "#Import the necessary libraries\n\n- The pyplot module serves as a collection of functions that offer a user-friendly interface for creating and customizing diffe"
+        }
+      ]
+    },
+    {
+      "id": "mpl-sharex-twinx",
+      "resourceId": "cmm856krb00009ksodqisfo3l",
+      "resourceType": "PDF",
+      "question": "What is the difference between sharex and twinx?",
+      "expectedPages": [
+        23
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 23,
+          "match": "page",
+          "preview": "Multiple axes\n\nax.sharex() x-axis is shared with another axes. (Zooming one affects the other) ax.sharey() y-axis is shared with another axes.\n\n<!-- Start of pi"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 16,
+          "match": null,
+          "preview": "# Figure/Axes Utilities\n\nax.clear() ax.get_position() ax.sharex() ax.sharey() ax.axhline() ax.axvline() ax.add_line() ax.add_patch() ax.add_artist()\n\nNote: ax c"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 19,
+          "match": null,
+          "preview": "<mark>Ticks/ Scale</mark>\n\nAutomatically enables minor ticks between major ticks. ax.set_xticks ([0, 2, 4, 6, 8]) Manually sets the positions of major ticks on "
+        },
+        {
+          "rank": 4,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "Anatomy of a Figure\n\n<!-- Start of picture text -->\no Figure<br>o Axes<br>o Spines<br>o Grid<br>o Ticks<br><!-- End of picture text -->\n\n<!-- Start of picture t"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 16,
+          "match": null,
+          "preview": "# Styling & Appearance\n\nax.set_facecolor() ax.tick_params() ax.spines[...] ax.set_aspect()"
+        }
+      ]
+    },
+    {
+      "id": "mpl-fancybox",
+      "resourceId": "cmm856krb00009ksodqisfo3l",
+      "resourceType": "PDF",
+      "question": "What does the fancybox option do in ax.legend()?",
+      "expectedPages": [
+        28
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 28,
+          "match": "page",
+          "preview": "ax.legend (\n\n<mark># Customizing Legend</mark>\n\nloc='best', # location: 'upper right', 'lower left', 'best', etc. bbox_to_anchor =None, # (x, y) coordinates for"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 16,
+          "match": null,
+          "preview": "# Labeling\n\nax.set_xticks() ax.set_title() ax.set_yticks() ax.set_xlabel() ax.set_xticklabels() ax.set_ylabel() ax.set_yticklabels()\n\n#Legends & Annotations\n\nax"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 21,
+          "match": null,
+          "preview": "# Figure/Axes Utilities\n\nax.get_position()\n\nAxes\n\n<!-- Start of picture text -->\nFigure<br><!-- End of picture text -->\n\nPosition: Bbox(x0=0.125, y0=0.109999999"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 16,
+          "match": null,
+          "preview": "# Figure/Axes Utilities\n\nax.clear() ax.get_position() ax.sharex() ax.sharey() ax.axhline() ax.axvline() ax.add_line() ax.add_patch() ax.add_artist()\n\nNote: ax c"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 19,
+          "match": null,
+          "preview": "<mark>Ticks/ Scale</mark>\n\nAutomatically enables minor ticks between major ticks. ax.set_xticks ([0, 2, 4, 6, 8]) Manually sets the positions of major ticks on "
+        }
+      ]
+    },
+    {
+      "id": "dva-shape",
+      "resourceId": "cmm9a3b3j000004jpdu6unxng",
+      "resourceType": "PDF",
+      "question": "How many rows and columns does the supermarket sales dataset have?",
+      "expectedPages": [
+        1
+      ],
+      "firstRelevantRank": 2,
+      "reciprocalRank": 0.5,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "```\n==================================================\n```\n\n|`Data`<br>`<cla`<br>|`set Info:`<br>`ss 'pandas.core.frame.DataFrame'>`<br>|\n|---|---|\n|`Rang`|`eIn"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 1,
+          "match": "page",
+          "preview": "Read the CSV file\ndf = pd.read_csv('supermarket_sales.csv')\nprint(\"Data loaded successfully!\")\nprint(f\"Shape: {df.shape}\")\n```\n\n```\nData loaded successfully!\nSh"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 4,
+          "match": null,
+          "preview": "print(f\"Updated shape: {df.shape}\")\nprint(\"\\nDataframe with new columns:\")\nprint(df.head())\n```\n\n```\nNew columns added!\nUpdated shape: (1000, 19)\n```\n\n```\nDataf"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 3,
+          "match": null,
+          "preview": "Assuming common supermarket columns exist, adjust based on actual CSV\nSelect first column as example\nfirst_col = df.iloc[:,0]\nprint(f\"First column ({df.columns["
+        },
+        {
+          "rank": 5,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "Columns before deletion: 20\nColumn names: ['Invoice ID', 'Branch', 'City', 'Customer type', 'Gender', 'Product line',\n'Unit price', 'Quantity', 'Tax 5%', 'Total"
+        }
+      ]
+    },
+    {
+      "id": "dva-twinx",
+      "resourceId": "cmm9a3b3j000004jpdu6unxng",
+      "resourceType": "PDF",
+      "question": "In the assignment, how was a second y-axis added that shares the same x-axis?",
+      "expectedPages": [
+        14,
+        13
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 14,
+          "match": "page",
+          "preview": "Create second y-axis sharing the same x-axis\nax2 = ax1.twinx()\nax2.plot(x, y2, color='red', linewidth=2, label='exp(x/3)')\nax2.set_ylabel('exp(x/3)', fontsize=1"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 14,
+          "match": "page",
+          "preview": "ax1.set_xlabel('X-axis', fontsize=12)\nax1.set_ylabel('sin(x)', fontsize=12, color='blue')\nax1.tick_params(axis='y', labelcolor='blue')\nax1.grid(True, alpha=0.3)"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 14,
+          "match": "page",
+          "preview": "Add title and legends\nax1.set_title('Graph with Two Y-Axes using twinx()', fontsize=14)\nax1.legend(loc='upper left')\nax2.legend(loc='upper right')\nplt.tight_lay"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 12,
+          "match": null,
+          "preview": "Add grid and legend\nax.grid(True, alpha=0.3)\nax.legend()\nplt.tight_layout()\nplt.show()\n```\n\n```\nIn [37]:# Create a sin curve and a cos curve which share x axis\n"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 12,
+          "match": null,
+          "preview": "Set axis limits and labels\nax.set_xlim(0,10)\nax.set_ylim(0,6)\nax.set_xlabel('X-axis', fontsize=12)\nax.set_ylabel('Y-axis', fontsize=12)\nax.set_title('Graph with"
+        }
+      ]
+    },
+    {
+      "id": "dva-donut",
+      "resourceId": "cmm9a3b3j000004jpdu6unxng",
+      "resourceType": "PDF",
+      "question": "How do you turn a pie chart into a donut chart?",
+      "expectedPages": [
+        19
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 19,
+          "match": "page",
+          "preview": "In [3]:# donut chart\nimport matplotlib.pyplot as plt\nvalues =[10,20,20,25,25]\nlabels =['M1','M2','M3','M4','M5']\nplt.figure()\nplt.pie(values, labels=labels, aut"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 17,
+          "match": null,
+          "preview": "Task-6: Pie and Donut\n\nIn [ ]:# Pie chart\nimport matplotlib.pyplot as plt\nvalues =[10,20,20,25,25]\nlabels =['M1','M2','M3','M4','M5']\nplt.figure()\nplt.pie(value"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 18,
+          "match": null,
+          "preview": "In [ ]:# Bar chart\nimport numpy as np\nimport matplotlib.pyplot as plt\nx =[1,2,3,4,5]\ny =[2,3,5,7,11]\n```\n\n```\nfig,ax = plt.subplots()\nax.bar(x,y)\nplt.show()"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 9,
+          "match": null,
+          "preview": "Task-3: Shapes using patches(ticks and tick labels(minor and major))\n\nIn [15]:# Simple graph with minor ticks using object-oriented approach\nimport matplotlib.p"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 12,
+          "match": null,
+          "preview": "Add grid and legend\nax.grid(True, alpha=0.3)\nax.legend()\nplt.tight_layout()\nplt.show()\n```\n\n```\nIn [37]:# Create a sin curve and a cos curve which share x axis\n"
+        }
+      ]
+    },
+    {
+      "id": "dva-tick-formatters",
+      "resourceId": "cmm9a3b3j000004jpdu6unxng",
+      "resourceType": "PDF",
+      "question": "Which ticker classes were used to place minor ticks automatically and format tick labels?",
+      "expectedPages": [
+        10,
+        11
+      ],
+      "firstRelevantRank": 2,
+      "reciprocalRank": 0.5,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 9,
+          "match": null,
+          "preview": "Enable minor ticks\nax.minorticks_on()\nax.set_xticks([1,3,5,7,9],minor=True)\nax.set_xticklabels(['A','B','C','D','E'],minor=True)"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 10,
+          "match": "page",
+          "preview": "Use AutoMinorLocator for automatic minor ticks\nax.xaxis.set_minor_locator(AutoMinorLocator(5))# 5 minor ticks between major ticks\nax.yaxis.set_minor_locator(Aut"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 9,
+          "match": null,
+          "preview": "Task-3: Shapes using patches(ticks and tick labels(minor and major))\n\nIn [15]:# Simple graph with minor ticks using object-oriented approach\nimport matplotlib.p"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 11,
+          "match": "page",
+          "preview": "Use FormatStrFormatter for tick label formatting\nax.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))# One decimal place\nax.yaxis.set_major_formatter(Format"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 10,
+          "match": "page",
+          "preview": "ax.grid(True, which='minor', linestyle=':', linewidth=0.5, alpha=0.5)\nax.legend()"
+        }
+      ]
+    },
+    {
+      "id": "cc-early-models",
+      "resourceId": "cmm95p73o000004jsotifc8j8",
+      "resourceType": "PDF",
+      "question": "What were the two early models of cloud computing?",
+      "expectedPages": [
+        5
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 5,
+          "match": "page",
+          "preview": "<mark>Early Models of Cloud Computing</mark>\n\n▪ Basic reasoning: information and data processing can be done more efficiently on large farms of computing and st"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "<mark>Lecture Contents</mark>\n\n- What is Cloud Computing?\n\n- Early models of Cloud Computing.\n\n- Delivery models and services.\n\n- Ethical issues in Cloud Comput"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 3,
+          "match": null,
+          "preview": "<mark>What is Cloud Computing?</mark>\n\n▪ What do you think?\n\n▪ “Cloud computing is an _<u>information technology</u>_ is an information technology (IT) paradigm"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 14,
+          "match": null,
+          "preview": "<mark>Cloud Delivery Models</mark>\n\n1. Software as a Service (SaaS) (high level)\n\n2. Platform as a Service (PaaS)\n\n3. Infrastructure as a Service (IaaS) (low le"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 10,
+          "match": null,
+          "preview": "<mark>Types of clouds</mark>\n\n1. Public Cloud - the infrastructure is made available to the general public or a large industry group and is owned by the organiz"
+        }
+      ]
+    },
+    {
+      "id": "cc-elastic",
+      "resourceId": "cmm95p73o000004jsotifc8j8",
+      "resourceType": "PDF",
+      "question": "What does elastic computing mean?",
+      "expectedPages": [
+        6
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 6,
+          "match": "page",
+          "preview": "<mark>Cloud computing - Characteristics</mark>\n\n“Cloud Computing offers on-demand, scalable and elastic computing (and storage services). The resources used for"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 3,
+          "match": null,
+          "preview": "<mark>What is Cloud Computing?</mark>\n\n▪ What do you think?\n\n▪ “Cloud computing is an _<u>information technology</u>_ is an information technology (IT) paradigm"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 8,
+          "match": null,
+          "preview": "<mark>Cloud Computing Advantages</mark>\n\n1. Resources, such as CPU cycles, storage, network bandwidth, are shared.\n\n2. When multiple applications share a system"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 16,
+          "match": null,
+          "preview": "<mark>Platform-as-a-Service (PaaS)</mark>\n\n▪ Allows a cloud user to deploy consumer-created or acquired applications using programming languages and tools suppo"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 15,
+          "match": null,
+          "preview": "<mark>Infrastructure-as-a-Service (IaaS)</mark>\n\n- Infrastructure is compute resources, CPU, VMs, storage, etc\n\n- The user is able to deploy and run arbitrary s"
+        }
+      ]
+    },
+    {
+      "id": "cc-hybrid",
+      "resourceId": "cmm95p73o000004jsotifc8j8",
+      "resourceType": "PDF",
+      "question": "What is a hybrid cloud?",
+      "expectedPages": [
+        10
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 10,
+          "match": "page",
+          "preview": "<mark>Types of clouds</mark>\n\n1. Public Cloud - the infrastructure is made available to the general public or a large industry group and is owned by the organiz"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 3,
+          "match": null,
+          "preview": "<mark>What is Cloud Computing?</mark>\n\n▪ What do you think?\n\n▪ “Cloud computing is an _<u>information technology</u>_ is an information technology (IT) paradigm"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 5,
+          "match": null,
+          "preview": "<mark>Early Models of Cloud Computing</mark>\n\n▪ Basic reasoning: information and data processing can be done more efficiently on large farms of computing and st"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "<mark>Lecture Contents</mark>\n\n- What is Cloud Computing?\n\n- Early models of Cloud Computing.\n\n- Delivery models and services.\n\n- Ethical issues in Cloud Comput"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 11,
+          "match": null,
+          "preview": "Why cloud computing is (could) be successful when other paradigms have failed?\n\n▪ It is in a better position to exploit recent advances in software, networking,"
+        }
+      ]
+    },
+    {
+      "id": "cc-iaas-control",
+      "resourceId": "cmm95p73o000004jsotifc8j8",
+      "resourceType": "PDF",
+      "question": "In IaaS, what does the user control and what don't they control?",
+      "expectedPages": [
+        15
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 15,
+          "match": "page",
+          "preview": "<mark>Infrastructure-as-a-Service (IaaS)</mark>\n\n- Infrastructure is compute resources, CPU, VMs, storage, etc\n\n- The user is able to deploy and run arbitrary s"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 16,
+          "match": null,
+          "preview": "<mark>Platform-as-a-Service (PaaS)</mark>\n\n▪ Allows a cloud user to deploy consumer-created or acquired applications using programming languages and tools suppo"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 17,
+          "match": null,
+          "preview": "<mark>Software-as-a-Service (SaaS)</mark>\n\n- Applications are supplied by the service provider.\n\n- The user does not manage or control the underlying Cloud infr"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 14,
+          "match": null,
+          "preview": "<mark>Cloud Delivery Models</mark>\n\n1. Software as a Service (SaaS) (high level)\n\n2. Platform as a Service (PaaS)\n\n3. Infrastructure as a Service (IaaS) (low le"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "<mark>Cloud computing - Characteristics</mark>\n\n“Cloud Computing offers on-demand, scalable and elastic computing (and storage services). The resources used for"
+        }
+      ]
+    },
+    {
+      "id": "cc-lock-in",
+      "resourceId": "cmm95p73o000004jsotifc8j8",
+      "resourceType": "PDF",
+      "question": "why is it hard to switch from one cloud provider to another",
+      "expectedPages": [
+        12
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 12,
+          "match": "page",
+          "preview": "<mark>Challenges for cloud computing</mark>\n\n1. Availability of service: what happens when the service provider cannot deliver?\n\n2. Data confidentiality and aud"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 23,
+          "match": null,
+          "preview": "<mark>De-perimeterisation</mark>\n\n▪ Systems can span the boundaries of multiple organisations and cross the security borders.\n\n- The complex structure of Cloud "
+        },
+        {
+          "rank": 3,
+          "pageNumber": 11,
+          "match": null,
+          "preview": "Why cloud computing is (could) be successful when other paradigms have failed?\n\n▪ It is in a better position to exploit recent advances in software, networking,"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 13,
+          "match": null,
+          "preview": "<mark>More challenges</mark>\n\n5. Performance unpredictability, one of the consequences of resource sharing.\n\n- How to use resource virtualization and performanc"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 25,
+          "match": null,
+          "preview": "<mark>Cloud Vulnerabilities</mark>\n\n- Clouds are affected by malicious attacks and failures of the infrastructure, e.g., power failures.\n\n- Such events can affe"
+        }
+      ]
+    },
+    {
+      "id": "cc-2012-outage",
+      "resourceId": "cmm95p73o000004jsotifc8j8",
+      "resourceType": "PDF",
+      "question": "What caused the 2012 outage at Amazon mentioned under cloud vulnerabilities?",
+      "expectedPages": [
+        25
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 25,
+          "match": "page",
+          "preview": "<mark>Cloud Vulnerabilities</mark>\n\n- Clouds are affected by malicious attacks and failures of the infrastructure, e.g., power failures.\n\n- Such events can affe"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 12,
+          "match": null,
+          "preview": "<mark>Challenges for cloud computing</mark>\n\n1. Availability of service: what happens when the service provider cannot deliver?\n\n2. Data confidentiality and aud"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 11,
+          "match": null,
+          "preview": "Why cloud computing is (could) be successful when other paradigms have failed?\n\n▪ It is in a better position to exploit recent advances in software, networking,"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 13,
+          "match": null,
+          "preview": "<mark>More challenges</mark>\n\n5. Performance unpredictability, one of the consequences of resource sharing.\n\n- How to use resource virtualization and performanc"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 23,
+          "match": null,
+          "preview": "<mark>De-perimeterisation</mark>\n\n▪ Systems can span the boundaries of multiple organisations and cross the security borders.\n\n- The complex structure of Cloud "
+        }
+      ]
+    },
+    {
+      "id": "lean-principle",
+      "resourceId": "cmm96bom7000104l2sgg953c5",
+      "resourceType": "PDF",
+      "question": "What is the fundamental principle of Lean software development?",
+      "expectedPages": [
+        18
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 18,
+          "match": "page",
+          "preview": "• Lean Software Development is an Agile practice that is based on the principles of Lean Manufacturing • The fundamental Lean principle is Eliminate Waste"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 34,
+          "match": null,
+          "preview": "Lean Thinking\n\n1. When a team has a Lean mindset, they try to find all waste and work hard to eliminate it from the project, often by removing anything that dis"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 37,
+          "match": null,
+          "preview": "Lean Thinking\n\n5. This principle is about helping every team member to have access to all of the information they need about the goals of the project and their "
+        },
+        {
+          "rank": 4,
+          "pageNumber": 42,
+          "match": null,
+          "preview": "Kanban – Lean Methodology\n\nKanban is a method for managing the creation of products with an emphasis on continual delivery while not overburdening the developme"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 38,
+          "match": null,
+          "preview": "Lean Thinking\n\n6. Users best understand the purpose of the software that the team builds and can evaluate the quality of the work when the team builds software "
+        }
+      ]
+    },
+    {
+      "id": "lean-extra-features",
+      "resourceId": "cmm96bom7000104l2sgg953c5",
+      "resourceType": "PDF",
+      "question": "Why is adding extra features just in case they are needed considered waste?",
+      "expectedPages": [
+        24
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 24,
+          "match": "page",
+          "preview": "Extra Features ?\n\n• Developers sometimes like to add extra features to a system just in case they are needed\n\n– This seems harmless, but this is serious waste –"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 23,
+          "match": null,
+          "preview": "Eliminate Extra Processes\n\n- Paperwork consumes resources, slows down response time, hides quality problems, gets lost, becomes degraded and obsolete\n\n- • A goo"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 20,
+          "match": null,
+          "preview": "Applying Lean in Agile\n\n• Seeing Waste\n\n– Good examples of waste are parts of the software process that are not analysis and coding - do they really add value t"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 32,
+          "match": null,
+          "preview": "Defect Detection and Management\n\n- A critical defect detected in minutes is not a big waste\n\n- • A minor defect not discovered for weeks is a much bigger waste\n"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 26,
+          "match": null,
+          "preview": "Delays keep the customer from seeing value as soon as possible\n\n• Delays in starting a project\n\n• Delays in staffing • Delays due to excessive documentation\n\nre"
+        }
+      ]
+    },
+    {
+      "id": "lean-defect-waste",
+      "resourceId": "cmm96bom7000104l2sgg953c5",
+      "resourceType": "PDF",
+      "question": "What determines how much waste a defect causes?",
+      "expectedPages": [
+        30
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 30,
+          "match": "page",
+          "preview": "Defects\n\nThe amount of waste caused by a defect is determined by its impact and the amount of time it goes undetected"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 32,
+          "match": null,
+          "preview": "Defect Detection and Management\n\n- A critical defect detected in minutes is not a big waste\n\n- • A minor defect not discovered for weeks is a much bigger waste\n"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 19,
+          "match": null,
+          "preview": "Waste is anything that does not produce value for the customer"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 20,
+          "match": null,
+          "preview": "Applying Lean in Agile\n\n• Seeing Waste\n\n– Good examples of waste are parts of the software process that are not analysis and coding - do they really add value t"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 34,
+          "match": null,
+          "preview": "Lean Thinking\n\n1. When a team has a Lean mindset, they try to find all waste and work hard to eliminate it from the project, often by removing anything that dis"
+        }
+      ]
+    },
+    {
+      "id": "kanban-principles",
+      "resourceId": "cmm96bom7000104l2sgg953c5",
+      "resourceType": "PDF",
+      "question": "What are the three Kanban principles?",
+      "expectedPages": [
+        43
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 43,
+          "match": "page",
+          "preview": "Kanban Principles\n\n• Visualize what you do today (workflow) • Limit the amount of work in progress (WIP) • Enhance flow"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 47,
+          "match": null,
+          "preview": "Kanban\n\n- At its most basic, kanban is a system that uses visual cues to move and produce materials so that inventory is maintained at optimal levels\n\n- • In ma"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 42,
+          "match": null,
+          "preview": "Kanban – Lean Methodology\n\nKanban is a method for managing the creation of products with an emphasis on continual delivery while not overburdening the developme"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 59,
+          "match": null,
+          "preview": "Kanban Benefits\n\n- Shorter cycle times can deliver features faster\n\n- • Responsiveness to Change • When priorities change very frequently, Kanban is ideal\n\n- Ba"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 60,
+          "match": null,
+          "preview": "Kanban Benefits\n\n- Requires fewer organization / room set-up changes to get started\n\n- • Reducing waste and removing activities that don’t add value to the team"
+        }
+      ]
+    },
+    {
+      "id": "kanban-wip-limit",
+      "resourceId": "cmm96bom7000104l2sgg953c5",
+      "resourceType": "PDF",
+      "question": "what is a WIP limit on a kanban board",
+      "expectedPages": [
+        54
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 54,
+          "match": "page",
+          "preview": "Work In Progress (WIP) Limits\n\n- WIP limits are the maximum number of cards that can be in one column at any given time. A column with a WIP limit of three cann"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 43,
+          "match": null,
+          "preview": "Kanban Principles\n\n• Visualize what you do today (workflow) • Limit the amount of work in progress (WIP) • Enhance flow"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 49,
+          "match": null,
+          "preview": "Kanban Boards\n\n• Kanban is a popular framework used to implement Agile and DevOps software development.\n\n- It requires real-time communication of capacity and f"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 47,
+          "match": null,
+          "preview": "Kanban\n\n- At its most basic, kanban is a system that uses visual cues to move and produce materials so that inventory is maintained at optimal levels\n\n- • In ma"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 45,
+          "match": null,
+          "preview": "Visualizing Workflows\n\n- Teams use a Kanban board (often a whiteboard, corkboard, or electronic board) that displays _kanbans_ (indications of where in the proc"
+        }
+      ]
+    },
+    {
+      "id": "kanban-vs-scrum",
+      "resourceId": "cmm96bom7000104l2sgg953c5",
+      "resourceType": "PDF",
+      "question": "How does Kanban differ from Scrum in terms of roles and changes?",
+      "expectedPages": [
+        64
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 64,
+          "match": "page",
+          "preview": "Differences\n\n<mark>Kanban</mark> No prescribed roles\n\n<mark>Scrum</mark> Predefined roles of Scrum master, Product owner and team member\n\nContinuous deliver Tim"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 62,
+          "match": null,
+          "preview": "Kanban and Scrum\n\n• Both focus on releasing software early and often\n\n• Both require highly-collaborative and self-managed teams"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 65,
+          "match": null,
+          "preview": "<mark>Kanban Scrum</mark> More appropriate in More appropriate in operational environments situations where work can with a high degree of be prioritized in bat"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 48,
+          "match": null,
+          "preview": "Kanban\n\n• Kanban is often called “demand scheduling” or a “pull system” because rather than using traditional methods of production based on demand forecasting "
+        },
+        {
+          "rank": 5,
+          "pageNumber": 42,
+          "match": null,
+          "preview": "Kanban – Lean Methodology\n\nKanban is a method for managing the creation of products with an emphasis on continual delivery while not overburdening the developme"
+        }
+      ]
+    },
+    {
+      "id": "pm-waterfall-when",
+      "resourceId": "cmm96ccpr000204l2b45olifx",
+      "resourceType": "PDF",
+      "question": "When is the waterfall model a good choice?",
+      "expectedPages": [
+        5
+      ],
+      "firstRelevantRank": 2,
+      "reciprocalRank": 0.5,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 4,
+          "match": null,
+          "preview": "Waterfall Model\n\n• Cascading processes, Plan driven model\n\nSystem’s services, constraints and goals established Allocate requirements to hardware/software Desig"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 5,
+          "match": "page",
+          "preview": "Software Process Models: ..Waterfall\n\nAdvantages: – Organized approach, provides robust separation of phases\n\n– Reflects common engineering practice Disadvantag"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 18,
+          "match": null,
+          "preview": "Model Selection\n\n|Factors|Waterfall|V-Shaped|Evolutionary<br>Prototyping|Spiral|Iterative and<br>Incremental|Agile<br>Methodologies|\n|---|---|---|---|---|---|--"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 19,
+          "match": null,
+          "preview": "Model Selection\n\n|Factors|Waterfall|V-Shaped|Evolutionary<br>Prototyping|Spiral|Iterative and<br>Incremental|Agile<br>Methodolog<br>ies|\n|---|---|---|---|---|--"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "Software Process Models: ..Evolutionary Development\n\n6"
+        }
+      ]
+    },
+    {
+      "id": "pm-cbse-disadvantages",
+      "resourceId": "cmm96ccpr000204l2b45olifx",
+      "resourceType": "PDF",
+      "question": "What are the disadvantages of component-based software engineering?",
+      "expectedPages": [
+        11
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 11,
+          "match": "page",
+          "preview": "Software Process Models: …Component-based Software Engineering Disadvantages:\n\n- Compromises in requirements are needed\n\n– Less control over the system’s evolut"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 10,
+          "match": null,
+          "preview": "Software Process Models: ..Component-based Software Engineering\n\nAdvantages:\n\n- Reduces considerably the software to be developed “in-house”\n\n- Allows faster de"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 14,
+          "match": null,
+          "preview": "Software Process Models: ...Incremental\n\nDisadvantages:\n\n– Increments need be relatively small\n\n– Mapping requirements to increments may not be easy\n\n– Common s"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 5,
+          "match": null,
+          "preview": "Software Process Models: ..Waterfall\n\nAdvantages: – Organized approach, provides robust separation of phases\n\n– Reflects common engineering practice Disadvantag"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 8,
+          "match": null,
+          "preview": "Software Process Models: …Evolutionary Development\n\nDisadvantages [cont’d]:\n\n- Special tools and techniques may be necessary\n\n- The client may have the impressi"
+        }
+      ]
+    },
+    {
+      "id": "pm-guideline-g5",
+      "resourceId": "cmm96ccpr000204l2b45olifx",
+      "resourceType": "PDF",
+      "question": "What does process modeling guideline G5 say about activity labels?",
+      "expectedPages": [
+        22
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 22,
+          "match": "page",
+          "preview": "Process Modeling Guidelines\n\nG5: Use verb-object activity labels\n\n_like “Inform complainant”, as significantly less ambiguous and more useful than action-noun l"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 21,
+          "match": null,
+          "preview": "Process Modeling Guidelines\n\nG3: Use one start and one end event\n\n_Most work-flow engines require a single start and end node . Moreover, models satisfying this"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 20,
+          "match": null,
+          "preview": "Process Modeling Guidelines\n\nG1: Use as few elements in the model as possible _The size of the model has undesirable effects on understand ability and likelihoo"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 4,
+          "match": null,
+          "preview": "Waterfall Model\n\n• Cascading processes, Plan driven model\n\nSystem’s services, constraints and goals established Allocate requirements to hardware/software Desig"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 5,
+          "match": null,
+          "preview": "Software Process Models: ..Waterfall\n\nAdvantages: – Organized approach, provides robust separation of phases\n\n– Reflects common engineering practice Disadvantag"
+        }
+      ]
+    },
+    {
+      "id": "pm-decompose-50",
+      "resourceId": "cmm96ccpr000204l2b45olifx",
+      "resourceType": "PDF",
+      "question": "At what size should a process model be decomposed into smaller models?",
+      "expectedPages": [
+        22
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 22,
+          "match": "page",
+          "preview": "Process Modeling Guidelines\n\nG5: Use verb-object activity labels\n\n_like “Inform complainant”, as significantly less ambiguous and more useful than action-noun l"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 20,
+          "match": null,
+          "preview": "Process Modeling Guidelines\n\nG1: Use as few elements in the model as possible _The size of the model has undesirable effects on understand ability and likelihoo"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 14,
+          "match": null,
+          "preview": "Software Process Models: ...Incremental\n\nDisadvantages:\n\n– Increments need be relatively small\n\n– Mapping requirements to increments may not be easy\n\n– Common s"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 21,
+          "match": null,
+          "preview": "Process Modeling Guidelines\n\nG3: Use one start and one end event\n\n_Most work-flow engines require a single start and end node . Moreover, models satisfying this"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 13,
+          "match": null,
+          "preview": "Software Process Models: ..Incremental\n\nAdvantages:\n\n- Provides better support for process iteration\n\n- – Reduces rework in the software construction process – "
+        }
+      ]
+    },
+    {
+      "id": "proc-erp-increments",
+      "resourceId": "cmm96avtg000004l2qis5fgq9",
+      "resourceType": "PDF",
+      "question": "In the University ERP example, which module was added in the second increment?",
+      "expectedPages": [
+        9
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 9,
+          "match": "page",
+          "preview": "Increments\n\nUniversity ERP System\n\n|Increment|Module Added|\n|---|---|\n|1|Student registration|\n|2|Attendance module|\n|3|Examination module|\n|4|Fees & finance|\n|"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 15,
+          "match": null,
+          "preview": "Spiral Model is a Meta Model"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 8,
+          "match": null,
+          "preview": "Iterations\n\nOnline Examination System\n\n|Iteration|What is built|\n|---|---|\n|Iteration 1|Student login + basic exam screen|\n|Iteration 2|Add timer,auto-submit|\n|"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 19,
+          "match": null,
+          "preview": "Formal System Development"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 16,
+          "match": null,
+          "preview": "Quadrant 1\n\n• Objectives: Functionality, Performance, Hardware Software Interfaces, Critical Success Factors, etc. • Alternatives: Build, Reuse, Sub-Contract, e"
+        }
+      ]
+    },
+    {
+      "id": "proc-rup-practices",
+      "resourceId": "cmm96avtg000004l2qis5fgq9",
+      "resourceType": "PDF",
+      "question": "What does the Rational Unified Process describe?",
+      "expectedPages": [
+        25
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 25,
+          "match": "page",
+          "preview": "Rational Unified Process Delivers Best Practices\n\nRational Unified Process describes how to effectively implement the six best practices for software developmen"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 26,
+          "match": null,
+          "preview": "Representing Architecture: The 4+1 View Model"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 21,
+          "match": null,
+          "preview": "What Is the UML?\n\n• The Unified Modeling Language (UML) is a language for\n\n• Specifying\n\n• Visualizing\n\n• Constructing\n\n• Documenting\n\nthe artifacts of a softwa"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 22,
+          "match": null,
+          "preview": "The UML Provides Standardized Diagrams"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 23,
+          "match": null,
+          "preview": "What Is a Process?\n\nA process defines Who is doing What , When and How to reach a certain goal. In software engineering the goal is to build a software product "
+        }
+      ]
+    },
+    {
+      "id": "rbac-principles",
+      "resourceId": "cmm9fg553000004l103ekmd80",
+      "resourceType": "PPT",
+      "question": "Which three security principles does RBAC support?",
+      "expectedPages": [
+        8
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 8,
+          "match": "page",
+          "preview": "Role-Based Access Control\nRBAC supports three well-known security principles:\nLeast Privilege\nSeparation of duties\nData Abstraction\nLeast Privilege is supported"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 4,
+          "match": null,
+          "preview": "Role-Based Access Control\n\nRole-Based Access Control\nRBAC is an access control mechanism which:\nDescribes complex access control policies.\nReduces errors in adm"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 12,
+          "match": null,
+          "preview": "Role-Based Access Control\nRBAC is a rich and open-ended technology, which ranges from very simple at one extreme to fairly complex and sophisticated at the othe"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 51,
+          "match": null,
+          "preview": "Constrained RBAC\nIt adds separation of duty relations to the RBAC model.\nAs a security principle, SOD has long been recognized for its wide application in busin"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "Role-Based Access Control\nAccess Control policy is embodied in various components of RBAC such as\nRole-Permission relationships\nUser-Role relationships\nRole-Rol"
+        }
+      ]
+    },
+    {
+      "id": "rbac-nist-components",
+      "resourceId": "cmm9fg553000004l103ekmd80",
+      "resourceType": "PPT",
+      "question": "What are the four components of the NIST RBAC standard?",
+      "expectedPages": [
+        15,
+        13
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 15,
+          "match": "page",
+          "preview": "RBAC Reference Model\nThe NIST RBAC model is defined in terms of four model components .\nCore RBAC\nHierarchical RBAC\nStatic Separation of Duty Relations\nDynamic "
+        },
+        {
+          "rank": 2,
+          "pageNumber": 13,
+          "match": "page",
+          "preview": "RBAC Standard\nTwo Main Parts\n-- RBAC Reference Models\n-- Requirement Specification\nFour Components\n-- Core RBAC\n-- Hierarchical RBAC\n--- Limited Hierarchies\n---"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 12,
+          "match": null,
+          "preview": "Role-Based Access Control\nRBAC is a rich and open-ended technology, which ranges from very simple at one extreme to fairly complex and sophisticated at the othe"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 14,
+          "match": null,
+          "preview": "RBAC Reference Model\nThe standard begins with an RBAC Reference Model defining a collection of model components.\nIt defines a set of basic RBAC elements (i.e. u"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 8,
+          "match": null,
+          "preview": "Role-Based Access Control\nRBAC supports three well-known security principles:\nLeast Privilege\nSeparation of duties\nData Abstraction\nLeast Privilege is supported"
+        }
+      ]
+    },
+    {
+      "id": "rbac-limited-hierarchy",
+      "resourceId": "cmm9fg553000004l103ekmd80",
+      "resourceType": "PPT",
+      "question": "What restriction does a limited role hierarchy impose?",
+      "expectedPages": [
+        48,
+        40
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 48,
+          "match": "page",
+          "preview": "Limited Role Hierarchies\nRoles in a limited role hierarchy are restricted to a single immediate descendant. Although limited role hierarchies do not support mul"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 40,
+          "match": "page",
+          "preview": "Hierarchal RBAC\nRole hierarchies define an inheritance relation among roles. Inheritance has been described in terms of permissions that is r1 “inherits” role r"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 49,
+          "match": null,
+          "preview": "LIMITED RH\nRestriction on the immediate descendants of the general role hierarchy\nRole2\nRole2 inherits from Role1\nRole3\nRole3 does not inherit from\nRole1 or Rol"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 35,
+          "match": null,
+          "preview": "Hierarchical RBAC\nIt adds requirements for supporting role hierarchies. A hierarchy is mathematically a partial order defining a seniority relation between role"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 50,
+          "match": null,
+          "preview": "Limited Role Hierarchies\nNotice that Frank has two roles: Billing and Cashier\nThis requires the union of two distinct roles and prevents Frank from being a node"
+        }
+      ]
+    },
+    {
+      "id": "rbac-ssd-vs-dsd",
+      "resourceId": "cmm9fg553000004l103ekmd80",
+      "resourceType": "PPT",
+      "question": "how is dynamic separation of duty different from static separation of duty",
+      "expectedPages": [
+        55,
+        69
+      ],
+      "firstRelevantRank": 2,
+      "reciprocalRank": 0.5,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 52,
+          "match": null,
+          "preview": "Static Separation of Duty Relations\nSeparation of duty relations are used to enforce conflict of interest policies. Conflict of interest in a role-based system "
+        },
+        {
+          "rank": 2,
+          "pageNumber": 55,
+          "match": "page",
+          "preview": "Dynamic Separation of Duty Relations\nDynamic separation of duty (DSD) relations, like SSD relations, limit the permissions that are available to a user. However"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 54,
+          "match": null,
+          "preview": "Static Separation of Duty Relations\nStatic Separation of Duty. SSD relations place constraints on the assignments of users to roles. Membership in one role may "
+        },
+        {
+          "rank": 4,
+          "pageNumber": 56,
+          "match": null,
+          "preview": "Dynamic Separation of Duty Relations\nRole Hierarchy\nUser Assignment\nPermission\nAssignment\nOPERA\nTIONS\nOBJECTS\nROLES\nUSERS\nprivileges\nsession_roles\nuser_sessions"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 79,
+          "match": null,
+          "preview": "Static Separation of Duty Relations\nStatic Separation of Duty.\nStatic Separation of Duty in the Presence of a Hierarchy."
+        }
+      ]
+    },
+    {
+      "id": "rbac-checkaccess",
+      "resourceId": "cmm9fg553000004l103ekmd80",
+      "resourceType": "PPT",
+      "question": "What does the CheckAccess function do in Core RBAC?",
+      "expectedPages": [
+        61
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 61,
+          "match": "page",
+          "preview": "Functional Specification of Core RBAC\nSupporting System Functions\nSupporting system functions are required for session management and in making access control d"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "Introduction\nAccess Control is a means by which the ability is explicitly enabled or restricted in some way (usually through physical and system-based controls)"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 16,
+          "match": null,
+          "preview": "Core RBAC\nIt embodies the essential aspects of RBAC.\nThe basic concept of RBAC is that users are assigned to roles, and users acquire permissions by being membe"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "Role-Based Access Control\nAccess Control policy is embodied in various components of RBAC such as\nRole-Permission relationships\nUser-Role relationships\nRole-Rol"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 4,
+          "match": null,
+          "preview": "Role-Based Access Control\n\nRole-Based Access Control\nRBAC is an access control mechanism which:\nDescribes complex access control policies.\nReduces errors in adm"
+        }
+      ]
+    },
+    {
+      "id": "ac-dac-acl",
+      "resourceId": "cmm9fh0ae000004jmaf32mwmw",
+      "resourceType": "PPT",
+      "question": "How is discretionary access control usually implemented?",
+      "expectedPages": [
+        5
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 5,
+          "match": "page",
+          "preview": "1-Discretionary Access Control (DAC)\nDAC is an identity-based and owner-centric model. Access decisions are made based on the user's identity and the rules asso"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 4,
+          "match": null,
+          "preview": "ACCESS CONTROL : PURPOSE AND SCOPE\nAccess control restricts user actions on resources through policies. Threats to confidentiality, integrity, and availability "
+        },
+        {
+          "rank": 3,
+          "pageNumber": 3,
+          "match": null,
+          "preview": "Access Control Models (DAC,MAC,RBAC,ABAC)\nThe four widely adopted models:\nDiscretionary access control (DAC),\nmandatory access control (MAC),\nrole-based access "
+        },
+        {
+          "rank": 4,
+          "pageNumber": 9,
+          "match": null,
+          "preview": "2- Mandatory Access Control (MAC)\nIt is a security model that enforces a strict set of rules to determine who has access to certain resources. MAC is the most r"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "Access Control (AC) is the process by which a system grants or denies permissions to users based on an established security policy. It is the direct implementat"
+        }
+      ]
+    },
+    {
+      "id": "ac-blp",
+      "resourceId": "cmm9fh0ae000004jmaf32mwmw",
+      "resourceType": "PPT",
+      "question": "What does no read up, no write down mean in the Bell-LaPadula model?",
+      "expectedPages": [
+        13
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 13,
+          "match": "page",
+          "preview": "A- The Bell-LaPadula model ( enforce Confidentiality): This model follows the “no read up, no write down” principle.\nNo Read Up: A user with a lower clearance c"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 10,
+          "match": null,
+          "preview": "Example: In the U.S. Department of Defense, a file marked “Secret” can be read by someone with “Secret” or “Top Secret” clearance, but not by someone with only "
+        },
+        {
+          "rank": 3,
+          "pageNumber": 17,
+          "match": null,
+          "preview": "Group work\nBrain Storm Time\nIn a military system, security labels would include a hierarchical clearance level and a \"compartment\" for the specific project or s"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 19,
+          "match": null,
+          "preview": "3- Role-Based Access Control (RBAC)\nRBAC is the predominant access control model used in large enterprises, especially for databases and applications. Role-Base"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 25,
+          "match": null,
+          "preview": "Attribute-Based Access Control (ABAC)\nABAC is the most flexible and fine-grained modern access control model. It defines permissions based on dynamic attributes"
+        }
+      ]
+    },
+    {
+      "id": "ac-biba",
+      "resourceId": "cmm9fh0ae000004jmaf32mwmw",
+      "resourceType": "PPT",
+      "question": "which access control model protects data integrity instead of confidentiality",
+      "expectedPages": [
+        13,
+        10
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 13,
+          "match": "page",
+          "preview": "A- The Bell-LaPadula model ( enforce Confidentiality): This model follows the “no read up, no write down” principle.\nNo Read Up: A user with a lower clearance c"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 3,
+          "match": null,
+          "preview": "Access Control Models (DAC,MAC,RBAC,ABAC)\nThe four widely adopted models:\nDiscretionary access control (DAC),\nmandatory access control (MAC),\nrole-based access "
+        },
+        {
+          "rank": 3,
+          "pageNumber": 10,
+          "match": "page",
+          "preview": "Example: In the U.S. Department of Defense, a file marked “Secret” can be read by someone with “Secret” or “Top Secret” clearance, but not by someone with only "
+        },
+        {
+          "rank": 4,
+          "pageNumber": 4,
+          "match": null,
+          "preview": "ACCESS CONTROL : PURPOSE AND SCOPE\nAccess control restricts user actions on resources through policies. Threats to confidentiality, integrity, and availability "
+        },
+        {
+          "rank": 5,
+          "pageNumber": 19,
+          "match": null,
+          "preview": "3- Role-Based Access Control (RBAC)\nRBAC is the predominant access control model used in large enterprises, especially for databases and applications. Role-Base"
+        }
+      ]
+    },
+    {
+      "id": "ac-abac-attributes",
+      "resourceId": "cmm9fh0ae000004jmaf32mwmw",
+      "resourceType": "PPT",
+      "question": "What kinds of attributes does ABAC evaluate when making a decision?",
+      "expectedPages": [
+        25
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 25,
+          "match": "page",
+          "preview": "Attribute-Based Access Control (ABAC)\nABAC is the most flexible and fine-grained modern access control model. It defines permissions based on dynamic attributes"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 26,
+          "match": null,
+          "preview": "Mechanism: Policy Evaluation\nABAC uses a policy evaluation engine that takes all relevant attributes as input and returns a decision (Permit or Deny). This prov"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 3,
+          "match": null,
+          "preview": "Access Control Models (DAC,MAC,RBAC,ABAC)\nThe four widely adopted models:\nDiscretionary access control (DAC),\nmandatory access control (MAC),\nrole-based access "
+        },
+        {
+          "rank": 4,
+          "pageNumber": 24,
+          "match": null,
+          "preview": "Attribute Access control\nMore flexible determine attributes combine object– attribute\nIt use if then else format\nWill denied because the\nCondition is not applie"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 4,
+          "match": null,
+          "preview": "ACCESS CONTROL : PURPOSE AND SCOPE\nAccess control restricts user actions on resources through policies. Threats to confidentiality, integrity, and availability "
+        }
+      ]
+    },
+    {
+      "id": "ac-dac-trojan",
+      "resourceId": "cmm9fh0ae000004jmaf32mwmw",
+      "resourceType": "PPT",
+      "question": "Why is DAC vulnerable to the Trojan horse problem?",
+      "expectedPages": [
+        8
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 8,
+          "match": "page",
+          "preview": "Feature | Description\nPros | Highly flexible, easy to implement in simple file systems\nCons | Low security, high complexity in large systems, and vulnerable to "
+        },
+        {
+          "rank": 2,
+          "pageNumber": 15,
+          "match": null,
+          "preview": "MAC also limits the power of administrators by enforcing centrally defined policies, though external applications may still introduce risks by generating or alt"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 5,
+          "match": null,
+          "preview": "1-Discretionary Access Control (DAC)\nDAC is an identity-based and owner-centric model. Access decisions are made based on the user's identity and the rules asso"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 4,
+          "match": null,
+          "preview": "ACCESS CONTROL : PURPOSE AND SCOPE\nAccess control restricts user actions on resources through policies. Threats to confidentiality, integrity, and availability "
+        },
+        {
+          "rank": 5,
+          "pageNumber": 7,
+          "match": null,
+          "preview": "Admin ( or Owners) of data decide who has access. It used in organizations where a high-level security system is not needed ( such as Small businesses , in Busi"
+        }
+      ]
+    },
+    {
+      "id": "krb-origin",
+      "resourceId": "cmm9fiza8000104jm8ka6q7k7",
+      "resourceType": "PPT",
+      "question": "Who developed Kerberos and when?",
+      "expectedPages": [
+        1
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 1,
+          "match": "page",
+          "preview": "What is Kerberos?\nNetwork authentication protocol\nDeveloped at MIT in the mid 1980s\nAvailable as open source or in supported commercial software"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "Kerberos Function?"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 15,
+          "match": null,
+          "preview": "Questions?"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 4,
+          "match": null,
+          "preview": "Firewall vs. Kerberos?\nFirewalls make a risky assumption: that attackers are coming from the outside. In reality, attacks frequently come from within.\nKerberos "
+        },
+        {
+          "rank": 5,
+          "pageNumber": 12,
+          "match": null,
+          "preview": "Weaknesses and Solutions\nIf TGT stolen, can be used to access network services. | Only a problem until ticket expires in a few hours.\nSubject to dictionary atta"
+        }
+      ]
+    },
+    {
+      "id": "krb-weak-link",
+      "resourceId": "cmm9fiza8000104jm8ka6q7k7",
+      "resourceType": "PPT",
+      "question": "What does Kerberos assume is the weak link in network security, unlike firewalls?",
+      "expectedPages": [
+        4
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 4,
+          "match": "page",
+          "preview": "Firewall vs. Kerberos?\nFirewalls make a risky assumption: that attackers are coming from the outside. In reality, attacks frequently come from within.\nKerberos "
+        },
+        {
+          "rank": 2,
+          "pageNumber": 12,
+          "match": null,
+          "preview": "Weaknesses and Solutions\nIf TGT stolen, can be used to access network services. | Only a problem until ticket expires in a few hours.\nSubject to dictionary atta"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 3,
+          "match": null,
+          "preview": "Why Kerberos?\nSending usernames and passwords in the clear jeopardizes the security of the network.\nEach time a password is sent in the clear, there is a chance"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 1,
+          "match": null,
+          "preview": "What is Kerberos?\nNetwork authentication protocol\nDeveloped at MIT in the mid 1980s\nAvailable as open source or in supported commercial software"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 14,
+          "match": null,
+          "preview": "Limitation: Scalability\nRecent modifications attempt to address this problem\nPublic key cryptography for Client Authentication and cross realm authentication\nIs"
+        }
+      ]
+    },
+    {
+      "id": "krb-stolen-tgt",
+      "resourceId": "cmm9fiza8000104jm8ka6q7k7",
+      "resourceType": "PPT",
+      "question": "what happens if someone steals a ticket granting ticket",
+      "expectedPages": [
+        12
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 12,
+          "match": "page",
+          "preview": "Weaknesses and Solutions\nIf TGT stolen, can be used to access network services. | Only a problem until ticket expires in a few hours.\nSubject to dictionary atta"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 7,
+          "match": null,
+          "preview": "How does Kerberos work?\nInstead of client sending password to application server:\nRequest Ticket from authentication server\nTicket and encrypted request sent to"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 8,
+          "match": null,
+          "preview": "How does Kerberos work?: Ticket Granting Tickets"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 9,
+          "match": null,
+          "preview": "How does Kerberos Work?: The Ticket Granting Service"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 3,
+          "match": null,
+          "preview": "Why Kerberos?\nSending usernames and passwords in the clear jeopardizes the security of the network.\nEach time a password is sent in the clear, there is a chance"
+        }
+      ]
+    },
+    {
+      "id": "gd-negative-gradient",
+      "resourceId": "cmm9foh4j000004l12gkhil1r",
+      "resourceType": "PPT",
+      "question": "Why does gradient descent step in the direction of the negative gradient?",
+      "expectedPages": [
+        5,
+        8
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 4,
+          "match": "evidence",
+          "preview": "Source Link: Gradient Descent |\nGradient Descent intuition.\n4\n\nDefinition: Gradient Descent\nGradient Descent is an iterative method that aims to find the minimu"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "Gradient Descent\nThis procedure can be formulated as:\n6\n\nGradient Descent\nIntroduction\nGradient Descent is a mathematical optimization technique, which is used "
+        },
+        {
+          "rank": 3,
+          "pageNumber": 1,
+          "match": null,
+          "preview": "GRADIENT DESCENT\nDr. Diya Vadhwani\n1\n\nGradient Descent illustrated.\n\nIntuition\nGradient Descent is often compared to descending from the top of a mountain to a "
+        },
+        {
+          "rank": 4,
+          "pageNumber": 14,
+          "match": null,
+          "preview": "Gradient Descent\ngradient vector direction at particular point is\nperpendicular to contour curve\n\nGradient Descent"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 19,
+          "match": null,
+          "preview": "Gradient Descent in DL\nDifferent variant of Gradient Descent strategies used in ML\nStochastic gradient descent\nMomentum\nAdagrad\nRMSprop\nAdam\nEtc.\nWe will learn "
+        }
+      ]
+    },
+    {
+      "id": "gd-learning-rate",
+      "resourceId": "cmm9foh4j000004l12gkhil1r",
+      "resourceType": "PPT",
+      "question": "What happens if the learning rate is too large or too small?",
+      "expectedPages": [
+        18,
+        3
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 18,
+          "match": "page",
+          "preview": "Learning rate or step size\n18"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 1,
+          "match": null,
+          "preview": "GRADIENT DESCENT\nDr. Diya Vadhwani\n1\n\nGradient Descent illustrated.\n\nIntuition\nGradient Descent is often compared to descending from the top of a mountain to a "
+        },
+        {
+          "rank": 3,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "Gradient Descent\nThis procedure can be formulated as:\n6\n\nGradient Descent\nIntroduction\nGradient Descent is a mathematical optimization technique, which is used "
+        },
+        {
+          "rank": 4,
+          "pageNumber": 4,
+          "match": null,
+          "preview": "Source Link: Gradient Descent |\nGradient Descent intuition.\n4\n\nDefinition: Gradient Descent\nGradient Descent is an iterative method that aims to find the minimu"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 19,
+          "match": null,
+          "preview": "Gradient Descent in DL\nDifferent variant of Gradient Descent strategies used in ML\nStochastic gradient descent\nMomentum\nAdagrad\nRMSprop\nAdam\nEtc.\nWe will learn "
+        }
+      ]
+    },
+    {
+      "id": "gd-saddle-point",
+      "resourceId": "cmm9foh4j000004l12gkhil1r",
+      "resourceType": "PPT",
+      "question": "What is a saddle point?",
+      "expectedPages": [
+        17
+      ],
+      "firstRelevantRank": 1,
+      "reciprocalRank": 1,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 17,
+          "match": "page",
+          "preview": "Saddle Point\nSaddle Points: neither maxima nor minima but gradient is zero…"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 4,
+          "match": null,
+          "preview": "Source Link: Gradient Descent |\nGradient Descent intuition.\n4\n\nDefinition: Gradient Descent\nGradient Descent is an iterative method that aims to find the minimu"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 6,
+          "match": null,
+          "preview": "Gradient Descent\nThis procedure can be formulated as:\n6\n\nGradient Descent\nIntroduction\nGradient Descent is a mathematical optimization technique, which is used "
+        },
+        {
+          "rank": 4,
+          "pageNumber": 1,
+          "match": null,
+          "preview": "GRADIENT DESCENT\nDr. Diya Vadhwani\n1\n\nGradient Descent illustrated.\n\nIntuition\nGradient Descent is often compared to descending from the top of a mountain to a "
+        },
+        {
+          "rank": 5,
+          "pageNumber": 14,
+          "match": null,
+          "preview": "Gradient Descent\ngradient vector direction at particular point is\nperpendicular to contour curve\n\nGradient Descent"
+        }
+      ]
+    }
+  ]
+}

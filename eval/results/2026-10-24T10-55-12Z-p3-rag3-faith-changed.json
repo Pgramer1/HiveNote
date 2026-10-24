@@ -1,0 +1,184 @@
+{
+  "label": "p3-rag3-faith-changed",
+  "runAt": "2026-10-24T10:55:12.958Z",
+  "gitCommit": "e81bb2b-dirty",
+  "database": "localhost/hivenote",
+  "questionsFile": "../HiveNote-work/faith-batches/rag3-changed.jsonl",
+  "retrieval": {
+    "function": "src/lib/rag.ts getRelevantChunks",
+    "topK": 5,
+    "mode": "vector",
+    "rerank": "off",
+    "candidates": 20,
+    "embeddingModel": "@cf/baai/bge-m3"
+  },
+  "summary": {
+    "questions": 2,
+    "recall": {
+      "@1": 0,
+      "@3": 0,
+      "@5": 0.5
+    },
+    "mrr": 0.125,
+    "byResourceType": {
+      "PDF": {
+        "questions": 2,
+        "recall": {
+          "@1": 0,
+          "@3": 0,
+          "@5": 0.5
+        },
+        "mrr": 0.125
+      }
+    },
+    "errors": 0
+  },
+  "faithfulness": {
+    "pipeline": "graph",
+    "answerModel": "openai/gpt-oss-120b",
+    "helperModel": "openai/gpt-oss-20b",
+    "citedAnswers": 2,
+    "generalAnswers": 0,
+    "retried": 0,
+    "meanFaithfulnessCited": 1,
+    "judgeModel": "openai/gpt-oss-20b",
+    "judged": 2,
+    "failed": 0,
+    "meanFaithfulness": 1,
+    "withReferenceAnswer": 2,
+    "correctRate": 1
+  },
+  "questions": [
+    {
+      "id": "ae-bottleneck",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "why cant an autoencoder just copy its input straight to the output",
+      "expectedPages": [
+        9
+      ],
+      "firstRelevantRank": 4,
+      "reciprocalRank": 0.25,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 40,
+          "match": null,
+          "preview": "Autoencoder approach\n\n- Learns data-driven compression .\n\n-\n\n- How it works\n\n- Encoder converts data into latent vector Example: Original image = 10,000 numbers"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 21,
+          "match": null,
+          "preview": "- A type of autoencoder trained to reconstruct clean input from noisy data\n\n- Learns robust and noise-invariant representations\n\n- Improves generalization by pr"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 2,
+          "match": null,
+          "preview": "What is an Autoencoder? Autoencoders are unsupervised neural networks Learn to: •Compress data •Reconstruct original input Used for: •Feature learning •Dimensio"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 9,
+          "match": "page",
+          "preview": "Working of Autoencoder\n\n• Pipeline:\n\n- Input → Encoder → Latent → Decoder → Output\n\n- • Learns compressed representation\n\n• Reconstruction forces feature learni"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 43,
+          "match": null,
+          "preview": "Summary\n\n• Autoencoder learns compressed representation of data. • That representation enables:\n\nCapability Compression Representation learning Reconstruction e"
+        }
+      ],
+      "faithfulness": {
+        "answer": "An autoencoder can’t simply copy the input because the **bottleneck (latent vector) forces it to compress the data**, so it must learn a compact representation before reconstruction [p. 9]. This limited‑size latent space prevents a trivial identity mapping and makes the network discover useful features rather than memorising the raw input [p. 21]; the encoder reduces the original 10,000 numbers to, e.g., 50, and only this compressed vector is stored or transmitted [p. 40].",
+        "graph": {
+          "route": "cited",
+          "attempts": 1,
+          "query": "why cant an autoencoder just copy its input straight to the output",
+          "sourcePages": [
+            40,
+            21,
+            2,
+            9,
+            43
+          ]
+        },
+        "verdict": {
+          "supported": 6,
+          "total": 6,
+          "faithfulness": 1,
+          "correct": true,
+          "unsupportedClaims": []
+        }
+      }
+    },
+    {
+      "id": "ae-denoising-loss",
+      "resourceId": "cmowjxpqf000004l495c284q8",
+      "resourceType": "PDF",
+      "question": "When training a denoising autoencoder, is the loss computed against the noisy input or the clean input?",
+      "expectedPages": [
+        22,
+        23
+      ],
+      "firstRelevantRank": null,
+      "reciprocalRank": 0,
+      "retrieved": [
+        {
+          "rank": 1,
+          "pageNumber": 39,
+          "match": null,
+          "preview": "Image Denoising\n\n- Images often contain noise:\n\n- Low light\n\n- Sensor noise\n\n- Transmission errors\n\n• Training Trick\n\n- Instead of normal training:\n\n- Input = N"
+        },
+        {
+          "rank": 2,
+          "pageNumber": 21,
+          "match": null,
+          "preview": "Denoising Autoencoder (DAE)\n\n- ෤𝑥= 𝑥+ _noise_\n\n- Train model to recover original 𝑥\n\n- “Learn to remove noise and recover true signal”"
+        },
+        {
+          "rank": 3,
+          "pageNumber": 21,
+          "match": null,
+          "preview": "- A type of autoencoder trained to reconstruct clean input from noisy data\n\n- Learns robust and noise-invariant representations\n\n- Improves generalization by pr"
+        },
+        {
+          "rank": 4,
+          "pageNumber": 21,
+          "match": null,
+          "preview": "Latent Space:\n\n- Captures robust features unaffected by noise\n\n- Decoder:\n\n- Reconstructs clean output ො𝑥≈𝑥\n\nPipeline:\n\nNoisy Input → Encoder → Latent → Decod"
+        },
+        {
+          "rank": 5,
+          "pageNumber": 46,
+          "match": null,
+          "preview": "Methodology – Autoencoder Approach\n\nCore Idea\n\n- Train model using:\n\n- Noisy input ෤𝑥\n\n- Clean target 𝑥\n\nLearn mapping: Noisy → Clean"
+        }
+      ],
+      "faithfulness": {
+        "answer": "The loss is measured against the **clean (target) input**, not the noisy one.  \nDuring training the model receives a noisy sample as input and is asked to output the original, noise‑free signal, so the error is computed between the decoder’s output and the clean ground‑truth \\(\\mathbf{x}\\) [p. 39][p. 21][p. 21][p. 46].  \n\n*Notes do not specify the exact loss function (e.g., MSE, cross‑entropy); they only state that the target for the loss is the clean data.*",
+        "graph": {
+          "route": "cited",
+          "attempts": 1,
+          "query": "When training a denoising autoencoder, is the loss computed against the noisy input or the clean input?",
+          "sourcePages": [
+            39,
+            21,
+            21,
+            21,
+            46
+          ]
+        },
+        "verdict": {
+          "supported": 5,
+          "total": 5,
+          "faithfulness": 1,
+          "correct": true,
+          "unsupportedClaims": []
+        }
+      }
+    }
+  ]
+}

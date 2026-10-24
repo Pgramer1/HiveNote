@@ -79,7 +79,7 @@ Newest first.
 
 | Date | Change | Where | Status |
 | --- | --- | --- | --- |
-| 2026-10-23 | PDF chunking fix found by the `kanban-principles` eval question: a bullet line that pymupdf4llm marks as a heading stays body text, a heading with nothing under it joins the next text on its page, and PDF chunks under 30 characters merge with a neighbour on the same page (`MIN_CHUNK_CHARS`); `PARSER_VERSION` `rag-3` (D-026) | `services/rag/app/parsing/pdf.py`, `chunking.py`, `config.py`, `pipeline.py` | Tested (13 new test cases; 56 Python tests pass, 11 skipped here); on the 11 test-copy resources that parse here, heading-only chunks 44 → 7 and chunks under 30 characters 38 → 16; committed `6560df4` on `feature/phase3-ocr`, production not re-indexed |
+| 2026-10-23 | PDF chunking fix found by the `kanban-principles` eval question: a bullet line that pymupdf4llm marks as a heading stays body text, a heading with nothing under it joins the next text on its page, and PDF chunks under 30 characters merge with a neighbour on the same page (`MIN_CHUNK_CHARS`); `PARSER_VERSION` `rag-3` (D-026) | `services/rag/app/parsing/pdf.py`, `chunking.py`, `config.py`, `pipeline.py` | Tested (13 new test cases; 56 Python tests pass, 11 skipped here); on the 11 test-copy resources that parse here, heading-only chunks 44 → 7 and chunks under 30 characters 38 → 16; committed `6560df4` on `feature/phase3-ocr`; test copy re-indexed 2026-10-24 (OCR off): recall@1 82.4% → 83.8%, MRR 0.880 → 0.887, recall@5 97.1% → 95.6% (one borderline hit lost), `kanban-principles` faithfulness 0.00 → 1.00; production not re-indexed |
 | 2026-10-18 | OCR on Groq tested (D-023): Llama 4 Scout is gone from Groq (HTTP 404); its Qwen 3.8 27B vision model repeats output on 9 of 22 pages (handwriting CER 0.322 vs Scout's 0.079), so Cloudflare stays. The `groq` provider's default model in `app/ocr.py` is stale | `ocr_compare.py` (outside the repo), D-023 | Measured; code not changed yet |
 | 2026-10-18 | Phase 3: OCR for text-less PDF pages and picture slides in decks (decks rendered with LibreOffice; Llama 4 Scout via Cloudflare, Groq optional), with a daily page budget and a per-document cap; resources over budget wait in the queue; workflow passes the OCR settings; `PARSER_VERSION` `rag-2` | Branch `feature/phase3-ocr` (`services/rag/app/ocr.py`, `pipeline.py`, `db.py`, `config.py`) | Tested locally (45 Python tests, local end-to-end run on a handwritten assignment); not merged, production not re-indexed |
 | 2026-10-17 | Phase 1 merged into `main` (fast-forward to `2347507`), pushed, and deployed on Vercel with `RAG_INDEX_GITHUB_TOKEN`/`RAG_INDEX_GITHUB_REPO`. First manual workflow run and first real upload both indexed successfully (timings in Speed and cost). Workflow moved to `actions/checkout@v5` and `astral-sh/setup-uv@v7` (Node 24; the first run warned that Node 20 is deprecated) | `main`, `.github/workflows/rag-index.yml` | Done; the chat answering from the new upload is checked by hand |
@@ -274,7 +274,7 @@ Dry run on the 4 production decks (no database writes; real LibreOffice and Clou
 Next: the owner checks the handwriting references; fix or remove the `groq` provider's stale default model; then re-index production. Its 107 text-less pages need about 9,000 neurons, so the budget guard spreads them over about two days.
 
 ### D-026 · A PDF heading stays in one chunk with the text under it
-**2026-10-23 · Built on top of `feature/phase3-ocr`; nothing re-indexed**
+**2026-10-23 · On `feature/phase3-ocr`; measured on the re-indexed test copy 2026-10-24, production not re-indexed**
 Found by the Phase 2 faithfulness eval (`kanban-principles`, D-022). Page 43 of "Lean Dev" was stored as 2 chunks: the bare heading "Kanban Principles" (17 characters) and the bullets, whose own line had become their section title. Retrieval returned only the heading chunk, which holds no answer.
 
 **Cause.** pymupdf4llm marks every line set in a font larger than the document's most common size as a heading. This PDF is a slide deck exported to PDF, and its bullets (32 pt) are larger than its body text, so page 43 came out as `# Kanban Principles` followed by `## • Visualize … • Limit … • Enhance flow`. The parser started a new block at every heading, so the title was stored alone and the bullet line became a section.
@@ -298,7 +298,28 @@ Found by the Phase 2 faithfulness eval (`kanban-principles`, D-022). Page 43 of 
 - **What remains in the PDFs:** 16 chunks are still under 30 characters or only a heading. 15 are the only text on their page: section-divider slides such as "Sparse Autoencoder (SAE)", and one 158-character exercise question. The last is a heading at the bottom of a page whose text starts on the next page ("Task 2: Drawing shapes …", 45 characters). It stays alone because chunks never cross pages; joining it to the next page is a possible follow-up.
 - **Tests:** 13 new test cases. The parser tests replay pymupdf4llm's real output for pages 42–43 (a synthetic PDF did not reproduce the heading reliably, because font fallback changes the bullet glyph). They also cover 6 bullet styles, a heading followed directly by a sub-heading, and headings that do have body text. The chunker tests cover page 43 as `rag-2` stored it, a tiny fragment at the end of a page, no merging across pages, and several tiny fragments on one page. 56 Python tests pass; 11 are skipped here (9 database tests without `TEST_DATABASE_URL`, 2 that need LibreOffice).
 
-**Not measured yet:** retrieval and faithfulness. Both need the test copy re-indexed with `rag-3`, which waits until the Phase 2 batch 3 comparison is done and the owner approves it.
+**Measured on the re-indexed test copy, 2026-10-24.** After the Phase 2 batch 3 run, the local test database (13 resources, `rag-1`) was backed up (`pg_dump`, kept outside the repo) and re-indexed with `reindex --all` in the `rag-3` service image, with `OCR_PROVIDER=off` so the comparison isolates the chunking change (`rag-2` only added OCR). 13 of 13 READY in 1.0–11.7 s each; the 2 legacy `.ppt` files converted in the image.
+
+| Test copy, 13 resources | `rag-1` (Phase 1) | `rag-3`, OCR off |
+| --- | --- | --- |
+| Chunks (text / slide) | 569 (444 / 125) | 532 (407 / 125) |
+| Text chunks under 30 characters | 35 | 13 |
+| Text chunks that are only their section title | 41 | 4 |
+| Section titles starting with a bullet | 5 | 0 |
+
+Retrieval on all 68 questions (run `2026-10-24T10-52-41Z-p3-rag3-chunking-local.json`, vector top 5, eval and chat graph from `feature/phase2-chat` at `e81bb2b`, whose default vector retrieval reproduced Phase 1's numbers exactly on `rag-1` in the D-022 batches):
+
+| 68 questions | recall@1 | recall@3 | recall@5 | MRR |
+| --- | --- | --- | --- | --- |
+| `rag-1` (Phase 1 local run) | 82.4% | 92.6% | 97.1% | 0.880 |
+| `rag-3` | **83.8%** | 92.6% | 95.6% | **0.887** |
+
+Only 3 questions changed rank:
+- **`kanban-principles`, rank 3 → 1.** The retrieved chunk now holds the bullets, not just the heading. Graph faithfulness on it (run `2026-10-24T10-55-35Z-p3-rag3-faith-kanban.json`): **0.00 → 1.00, a cited answer from p. 43 instead of the labelled general answer**, no retry, correct.
+- **`ae-bottleneck`, rank 5 → 4.**
+- **`ae-denoising-loss`, rank 5 → miss.** Pages 22–23 are stored identically in both versions; what changed is page 21, whose 12-character "Architecture" chunk merged into the Encoder chunk. Page 21 now fills 3 of the top 5 slots, pushing page 22 to rank 6. The graph still answered it correctly from page 21's text (faithfulness 1.00, correct; run `2026-10-24T10-55-12Z-p3-rag3-faith-changed.json`, which also scored `ae-bottleneck` 1.00 and correct).
+
+So the fix gains one question at rank 1 and loses a borderline rank-5 hit, with no answer text lost. The `ae-denoising-loss` miss points at a separate retrieval issue: several chunks of one page can crowd the top 5 (a per-page cap or merging same-page hits would address it). The test copy now holds `rag-3` without OCR; a full 68-question faithfulness re-run on it is not done (it takes 3 days of `gpt-oss-20b` quota).
 
 ### Open decisions
 
