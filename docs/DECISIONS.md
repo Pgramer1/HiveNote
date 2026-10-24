@@ -79,7 +79,8 @@ Newest first.
 
 | Date | Change | Where | Status |
 | --- | --- | --- | --- |
-| 2026-10-23 | PDF chunking fix found by the `kanban-principles` eval question: a bullet line that pymupdf4llm marks as a heading stays body text, a heading with nothing under it joins the next text on its page, and PDF chunks under 30 characters merge with a neighbour on the same page (`MIN_CHUNK_CHARS`); `PARSER_VERSION` `rag-3` (D-026) | `services/rag/app/parsing/pdf.py`, `chunking.py`, `config.py`, `pipeline.py` | Tested (13 new test cases; 56 Python tests pass, 11 skipped here); on the 11 test-copy resources that parse here, heading-only chunks 44 → 7 and chunks under 30 characters 38 → 16; not committed, nothing re-indexed |
+| 2026-10-23 | PDF chunking fix found by the `kanban-principles` eval question: a bullet line that pymupdf4llm marks as a heading stays body text, a heading with nothing under it joins the next text on its page, and PDF chunks under 30 characters merge with a neighbour on the same page (`MIN_CHUNK_CHARS`); `PARSER_VERSION` `rag-3` (D-026) | `services/rag/app/parsing/pdf.py`, `chunking.py`, `config.py`, `pipeline.py` | Tested (13 new test cases; 56 Python tests pass, 11 skipped here); on the 11 test-copy resources that parse here, heading-only chunks 44 → 7 and chunks under 30 characters 38 → 16; committed `6560df4` on `feature/phase3-ocr`, production not re-indexed |
+| 2026-10-18 | OCR on Groq tested (D-023): Llama 4 Scout is gone from Groq (HTTP 404); its Qwen 3.8 27B vision model repeats output on 9 of 22 pages (handwriting CER 0.322 vs Scout's 0.079), so Cloudflare stays. The `groq` provider's default model in `app/ocr.py` is stale | `ocr_compare.py` (outside the repo), D-023 | Measured; code not changed yet |
 | 2026-10-18 | Phase 3: OCR for text-less PDF pages and picture slides in decks (decks rendered with LibreOffice; Llama 4 Scout via Cloudflare, Groq optional), with a daily page budget and a per-document cap; resources over budget wait in the queue; workflow passes the OCR settings; `PARSER_VERSION` `rag-2` | Branch `feature/phase3-ocr` (`services/rag/app/ocr.py`, `pipeline.py`, `db.py`, `config.py`) | Tested locally (45 Python tests, local end-to-end run on a handwritten assignment); not merged, production not re-indexed |
 | 2026-10-17 | Phase 1 merged into `main` (fast-forward to `2347507`), pushed, and deployed on Vercel with `RAG_INDEX_GITHUB_TOKEN`/`RAG_INDEX_GITHUB_REPO`. First manual workflow run and first real upload both indexed successfully (timings in Speed and cost). Workflow moved to `actions/checkout@v5` and `astral-sh/setup-uv@v7` (Node 24; the first run warned that Node 20 is deprecated) | `main`, `.github/workflows/rag-index.yml` | Done; the chat answering from the new upload is checked by hand |
 | 2026-10-17 | Indexing runs on GitHub Actions: `rag-index.yml` (per-upload `workflow_dispatch` + daily PENDING retry), Next.js `queueIndexing()` picks the HTTP service or the workflow, chat copy says "within a few minutes"; service refuses API calls while its secret is unset, CLI exits 1 on failures | `.github/workflows/rag-index.yml`, `src/lib/rag-service.ts`, `services/rag/app/{main,config,cli}.py` | Merged and live (see the row above) |
@@ -216,7 +217,7 @@ Related changes:
 Neon connection strings now carry `sslmode=verify-full`. In the service image libpq then looks for `~/.postgresql/root.crt` and refuses to connect. `sslrootcert=system` also failed ("certificate verify failed"), because the `psycopg[binary]` wheel bundles its own OpenSSL, which doesn't know where Debian keeps its CA certificates. `db.connection_params` now sets `sslrootcert` to certifi's bundle whenever the URL asks for verification and names no root certificate. This works on any host, Windows included. Rejected: downgrading to `sslmode=require` (it drops server verification) and setting `SSL_CERT_FILE` in the Dockerfile (it fixes only the image).
 
 ### D-023 · Reading text-less pages: Llama 4 Scout vision, compared on 22 real pages
-**2026-10-18 · Built on `feature/phase3-ocr` (Cloudflare by default); Groq not tested yet**
+**2026-10-18 · Built on `feature/phase3-ocr` (Cloudflare by default); Groq no longer offers Llama 4 Scout, and its one vision model (Qwen) is worse for this job**
 A comparison on 22 pages: 10 handwritten pages from the repo owner's three assignments (phone photos with formulas, tables and binary strings), 6 production slide diagrams, 2 code screenshots, and 4 decorative slides (a photo, an illustration, a logo, a QR code). The reference transcriptions were drafted by reading each page and still need the owner's check, so treat the handwriting numbers as provisional. The test pages, references and outputs stay outside the repo; the harness is `ocr_compare.py` in the session scratchpad.
 
 Metrics:
@@ -230,6 +231,7 @@ Metrics:
 | Tesseract 5.3 (`--psm 11`, sparse text) | 0.775 | 8.6% | 36.2% | 0.370 / 79.4% | 3 | 0.9 s | 0 |
 | **Llama 4 Scout 17B (Cloudflare)** | **0.079** | **90.8%** | **82.2%** | 0.050 / 97.1% | 6 | 20 s (handwriting), 6 s (slides) | 88 (handwriting), 55–72 (slides) |
 | Mistral Small 3.1 24B (Cloudflare) | 0.081 | 89.9% | 72.0% | 0.049 / 100% | 5 | 14 s, 5 s | 92, 69–73 |
+| Qwen 3.8 27B (Groq) | 0.322 (0.193 with repeated lines dropped) | 95.6% | 85.6% | 0.950 / 100% | 11 | 0.8 s of model time; about 3 pages a minute under the rate limit | 1,888 Groq tokens, no neurons |
 
 Not usable:
 - **Gemma 4 26B:** spent its whole 2,000-token budget on hidden reasoning and returned no text.
@@ -241,7 +243,14 @@ What this shows:
 - **Llama 4 Scout is clearly better on diagrams** (82% vs 72% word recall), ties on handwriting and code, and is a little cheaper.
 - **Decorative slides produce no junk.** Both models output only the visible words (5–6 per page), so these pages won't pollute the index.
 
-**The Cloudflare account is on the Workers Free plan** (confirmed by the GLM refusal): 10,000 neurons a day, shared with production's embeddings. At about 70–90 neurons per page, OCR is roughly 110–140 pages a day if nothing else ran. The comparison itself used 3,451 neurons (plus 78 for a first probe). Production indexing therefore needs a daily OCR budget, or a provider with its own quota. Groq hosts the same Llama 4 Scout model with separate per-model limits; it has not been tested yet (deferred so it doesn't compete with the Phase 2 eval run).
+**The Cloudflare account is on the Workers Free plan** (confirmed by the GLM refusal): 10,000 neurons a day, shared with production's embeddings. At about 70–90 neurons per page, OCR is roughly 110–140 pages a day if nothing else ran. The comparison itself used 3,451 neurons (plus 78 for a first probe). Production indexing therefore needs a daily OCR budget, or a provider with its own quota.
+
+**Groq, tested 2026-10-18:** `meta-llama/llama-4-scout-17b-16e-instruct` returns HTTP 404 ("does not exist or you do not have access to it"), and `GET /openai/v1/models` on this key lists no Llama 4 model. The only listed model that accepts images is `qwen/qwen3.8-27b`, so the harness (new `groq:<model>` engine, same prompt, temperature 0, 2,000-token cap) ran it on the same 22 pages:
+- **It reads more, but often writes it twice.** Word recall is the best measured (handwriting 95.6%, diagrams 85.6%), but on 9 of the 22 pages it transcribes the page and then repeats most of it, emitting 1.9–2.9× the reference's length (Scout: none). That drives CER to 0.322 on handwriting and 0.950 on code. Dropping repeated lines brings handwriting CER to 0.193, still more than twice Scout's 0.079, because on 2 handwriting pages the repeats are near-copies that an exact line match misses. On the 7 handwriting pages without repeats, its CER is 0.2–6.4%.
+- **One decorative slide (the QR code) produced 16× the reference's length.** Scout produced 6× on the same slide.
+- **Cost:** 41,540 tokens for the 22 pages (1,888 per page). Its 8,000 tokens a minute allow about 3–4 pages a minute; every page after the first waited 2–36 s for the limit.
+- **Conclusion:** Cloudflare's Llama 4 Scout stays the OCR model. Duplicated text would weaken chunks and citations, so Qwen would need a repetition guard (a frequency penalty or deduplication) and a re-run before it could replace it.
+- **Consequence for the indexer:** the `groq` provider's default model in `app/ocr.py` no longer exists on Groq. Since a page whose OCR call fails is skipped, `OCR_PROVIDER=groq` would currently index no OCR text without failing. Production uses the `cloudflare` default, so it isn't affected.
 
 **Built into the indexer** (`services/rag/app/ocr.py`, `PARSER_VERSION` `rag-2`):
 - **What gets read:** PDF pages with fewer than 20 letters are rendered to a JPEG (longer side at most 1,600 px), transcribed with the prompt used in the comparison, and saved as `chunkType = 'ocr'` chunks in page order.
@@ -262,7 +271,7 @@ Dry run on the 4 production decks (no database writes; real LibreOffice and Clou
 - **Cost:** 575 neurons. One slide returned PowerPoint's empty-placeholder prompt ("Click to add Title"), which the cleanup now strips.
 - **Tests:** 8 new (slide selection, title replacement with notes kept, no merging, slide labels, the page-count guard, conversion failure, a DB end-to-end deck, and real LibreOffice rendering of a deck with a hidden slide). That makes 54 Python tests: 52 run anywhere, and the 2 LibreOffice tests run in the Docker image.
 
-Next: the owner checks the handwriting references; test Llama 4 Scout on Groq; then re-index production. Its 107 text-less pages need about 9,000 neurons, so the budget guard spreads them over about two days.
+Next: the owner checks the handwriting references; fix or remove the `groq` provider's stale default model; then re-index production. Its 107 text-less pages need about 9,000 neurons, so the budget guard spreads them over about two days.
 
 ### D-026 · A PDF heading stays in one chunk with the text under it
 **2026-10-23 · Built on top of `feature/phase3-ocr`; nothing re-indexed**
@@ -294,4 +303,4 @@ Found by the Phase 2 faithfulness eval (`kanban-principles`, D-022). Page 43 of 
 ### Open decisions
 
 - [x] Indexing without a host (D-018): GitHub Actions. Hosting for Phase 2 chat is still open
-- [ ] Which vision model or OCR provider for handwriting, and what per-page budget? Measured (D-023): Llama 4 Scout; host (Cloudflare vs Groq) and daily budget still open
+- [ ] Which vision model or OCR provider for handwriting, and what per-page budget? Measured (D-023): Llama 4 Scout on Cloudflare (Groq no longer hosts it; Groq's Qwen repeats output); daily budget still open
