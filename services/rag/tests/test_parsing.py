@@ -1,9 +1,11 @@
 import shutil
 
+import pymupdf
 import pytest
 
 from app.cleaning import normalize_whitespace, remove_repeated_edges
 from app.parsing import UnsupportedDocument, parse_document
+from app.parsing import pdf as pdf_module
 from tests.conftest import LEFT, RIGHT
 
 
@@ -64,6 +66,53 @@ class TestPdf:
     def test_rejects_a_file_that_is_not_a_pdf(self):
         with pytest.raises(UnsupportedDocument):
             parse_document(b"PK\x03\x04 not a pdf", "PDF")
+
+
+def parse_markdown(monkeypatch, pages: list[str]):
+    """parse_pdf on the given pymupdf4llm output, one Markdown string per page of a blank PDF."""
+    monkeypatch.setattr(pdf_module.pymupdf4llm, "to_markdown", lambda *a, **k: [{"text": t} for t in pages])
+    doc = pymupdf.open()
+    for _ in pages:
+        doc.new_page()
+    return parse_document(doc.tobytes(), "PDF")
+
+
+class TestPdfHeadings:
+    # pymupdf4llm's output for pages 42-43 of the "Lean Dev" slides exported as PDF: the bullets are in a
+    # larger font than the body text, so they come out as a level-2 heading (eval question kanban-principles).
+    LEAN_DEV = [
+        "# Kanban – Lean Methodology \n\nKanban is a method for managing the creation of products with an "
+        "emphasis on continual delivery while not overburdening the development team \n\n\n\n",
+        "# Kanban Principles \n\n## • Visualize what you do today (workflow) • Limit the amount of work in "
+        "progress (WIP) • Enhance flow \n\n\n\n",
+    ]
+
+    def test_bullet_line_in_heading_font_stays_with_its_heading(self, monkeypatch):
+        doc = parse_markdown(monkeypatch, self.LEAN_DEV)
+        page = [b for b in doc.blocks if b.page == 2]
+        assert len(page) == 1
+        assert page[0].section == "Kanban Principles"
+        assert page[0].text.startswith("Kanban Principles\n")
+        assert "Limit the amount of work in progress (WIP)" in page[0].text
+        assert "#" not in page[0].text
+
+    @pytest.mark.parametrize("bullet", ["•", "▪", "", "- ", "* ", "– "])
+    def test_line_starting_with_a_bullet_is_never_a_section(self, monkeypatch, bullet):
+        doc = parse_markdown(monkeypatch, [f"# Agile Methods\n\nIntroduction to agile.\n\n## {bullet}Scrum uses sprints\n"])
+        assert [b.section for b in doc.blocks] == ["Agile Methods"]
+        assert doc.blocks[0].text.endswith(f"{bullet}Scrum uses sprints")
+
+    def test_heading_with_nothing_under_it_joins_the_next_heading(self, monkeypatch):
+        doc = parse_markdown(monkeypatch, ["# Unit 5: Scrum\n\n## Roles\n\nThe product owner orders the backlog.\n"])
+        assert len(doc.blocks) == 1
+        assert doc.blocks[0].section == "Roles"
+        assert doc.blocks[0].text == "Unit 5: Scrum\n\nRoles\n\nThe product owner orders the backlog."
+
+    def test_headings_with_body_text_still_start_new_blocks(self, monkeypatch):
+        doc = parse_markdown(monkeypatch, ["# Scrum\n\nA framework.\n\n## Roles\n\nProduct owner, team.\n"])
+        assert [(b.section, b.text) for b in doc.blocks] == [
+            ("Scrum", "Scrum\n\nA framework."), ("Roles", "Roles\n\nProduct owner, team."),
+        ]
 
 
 class TestPptx:

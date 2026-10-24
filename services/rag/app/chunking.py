@@ -14,12 +14,16 @@ class Chunk:
     content: str  # stored and shown to the model
     page: int  # first page/slide the chunk covers
     section: str | None
-    kind: str  # text | slide | notes | table
+    kind: str  # text | slide | notes | table | ocr
     embed_text: str  # content with its context header, used only for the embedding
 
 
 def _is_slides(doc: ParsedDocument) -> bool:
-    return any(b.kind in ("slide", "notes") for b in doc.blocks)
+    return doc.slides or any(b.kind in ("slide", "notes") for b in doc.blocks)
+
+
+def _has_ocr(blocks: list[Block]) -> bool:
+    return any(b.kind == "ocr" for b in blocks)
 
 
 def _group_pdf(blocks: list[Block], chunk_size: int, pack_pages: bool = True) -> list[list[Block]]:
@@ -39,9 +43,40 @@ def _group_pdf(blocks: list[Block], chunk_size: int, pack_pages: bool = True) ->
     return groups
 
 
+def _merge_tiny(groups: list[list[Block]], min_chars: int) -> list[list[Block]]:
+    """A group shorter than `min_chars` (a stray heading, a lone label) joins the next group on
+    its page, or else the previous one; it stays alone only when its page has nothing else."""
+    def size(group: list[Block]) -> int:
+        return sum(len(b.text) for b in group)
+
+    forward: list[list[Block]] = []
+    pending: list[Block] | None = None
+    for group in groups:
+        if pending and pending[-1].page == group[0].page:
+            group = pending + group
+        elif pending:
+            forward.append(pending)
+        pending = None
+        if size(group) < min_chars:
+            pending = group
+        else:
+            forward.append(group)
+    if pending:
+        forward.append(pending)
+
+    merged: list[list[Block]] = []
+    for group in forward:
+        if merged and size(group) < min_chars and merged[-1][-1].page == group[0].page:
+            merged[-1] = merged[-1] + group
+        else:
+            merged.append(group)
+    return merged
+
+
 def _group_slides(blocks: list[Block], chunk_size: int, min_chars: int) -> list[list[Block]]:
     """One group per slide (with its notes); a short slide is merged with the next slide
-    when that slide continues the same title (or the short slide has none)."""
+    when that slide continues the same title (or the short slide has none). Slides read by OCR
+    are never merged, so each stays one 'ocr' chunk that the daily OCR budget can count."""
     per_slide: dict[int, list[Block]] = {}
     for block in blocks:
         per_slide.setdefault(block.page, []).append(block)
@@ -50,7 +85,7 @@ def _group_slides(blocks: list[Block], chunk_size: int, min_chars: int) -> list[
     groups: list[list[Block]] = []
     for slide in slides:
         current = groups[-1] if groups else None
-        if current:
+        if current and not _has_ocr(current) and not _has_ocr(slide):
             size = sum(len(b.text) for b in current)
             same_topic = current[0].section is None or current[0].section == slide[0].section
             if size < min_chars and same_topic and size + sum(len(b.text) for b in slide) <= chunk_size:
@@ -76,12 +111,13 @@ def build_chunks(
     min_slide_chars: int = 200,
     pdf_pack_pages: bool = False,
     context_header: bool = True,
+    min_chunk_chars: int = 30,
 ) -> list[Chunk]:
     slides = _is_slides(doc)
     groups = (
         _group_slides(doc.blocks, chunk_size, min_slide_chars)
         if slides
-        else _group_pdf(doc.blocks, chunk_size, pdf_pack_pages)
+        else _merge_tiny(_group_pdf(doc.blocks, chunk_size, pdf_pack_pages), min_chunk_chars)
     )
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size, chunk_overlap=chunk_overlap, separators=["\n\n", "\n", ". ", " ", ""]
@@ -90,9 +126,10 @@ def build_chunks(
     chunks: list[Chunk] = []
     for group in groups:
         first = group[0]
-        kind = "slide" if slides else first.kind
+        kind = "ocr" if _has_ocr(group) else "slide" if slides else first.kind
         text = "\n\n".join(b.text for b in group)
-        # A group can only exceed the size when a single block does (packing stops before).
+        # A group exceeds the size only when a single block does (packing stops before) or a tiny
+        # group was merged into it; the splitter then cuts it at paragraph and sentence boundaries.
         pieces = splitter.split_text(text) if len(text) > chunk_size else [text]
         for piece in pieces:
             piece = piece.strip()

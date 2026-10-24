@@ -36,9 +36,12 @@ def main() -> None:
 
     for r in results:
         detail = r.error or f"{r.chunks} chunks, {r.pages} pages ({r.empty_pages} without text)"
+        if r.ocr_pages:
+            detail += f"; OCR read {r.ocr_pages} pages ({r.ocr_neurons:.0f} neurons)"
         print(f"{r.status:8} {r.resource_id}  {r.seconds:6.1f}s  {detail}")
     ok = sum(r.status == "READY" for r in results)
-    print(f"\n{ok}/{len(results)} indexed")
+    deferred = sum(r.status == "DEFERRED" for r in results)
+    print(f"\n{ok}/{len(results)} indexed" + (f", {deferred} waiting for the OCR budget" if deferred else ""))
     # Non-zero exit marks the GitHub Actions run as failed, so a broken indexer gets noticed.
     if any(r.status == "FAILED" for r in results):
         sys.exit(1)

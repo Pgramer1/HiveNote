@@ -20,7 +20,7 @@ export function indexingConfigured(): boolean {
 
 export type IndexingResult = {
   resource_id: string;
-  status: "READY" | "FAILED" | "SKIPPED";
+  status: "READY" | "FAILED" | "SKIPPED" | "DEFERRED"; // DEFERRED: waiting for the daily OCR budget
   chunks: number;
   pages: number;
   empty_pages: number;

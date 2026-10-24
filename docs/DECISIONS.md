@@ -79,8 +79,11 @@ Newest first.
 
 | Date | Change | Where | Status |
 | --- | --- | --- | --- |
+| 2026-10-23 | PDF chunking fix found by the `kanban-principles` eval question: a bullet line that pymupdf4llm marks as a heading stays body text, a heading with nothing under it joins the next text on its page, and PDF chunks under 30 characters merge with a neighbour on the same page (`MIN_CHUNK_CHARS`); `PARSER_VERSION` `rag-3` (D-026) | `services/rag/app/parsing/pdf.py`, `chunking.py`, `config.py`, `pipeline.py` | Tested (13 new test cases; 56 Python tests pass, 11 skipped here); on the 11 test-copy resources that parse here, heading-only chunks 44 → 7 and chunks under 30 characters 38 → 16; committed `6560df4` on `feature/phase3-ocr`; test copy re-indexed 2026-10-24 (OCR off): recall@1 82.4% → 83.8%, MRR 0.880 → 0.887, recall@5 97.1% → 95.6% (one borderline hit lost), `kanban-principles` faithfulness 0.00 → 1.00; production not re-indexed |
 | 2026-10-18 | Page-aware chat on `main`: questions naming pages or slides fetch those pages, whole-document questions get passages spread across it, and the prompt says the assistant can read the document (D-025) | `src/lib/page-refs.ts`, `page-retrieval.ts`, `chat-system-prompt.ts`, `src/app/api/chat/route.ts`, `scripts/eval-retrieval.ts` | Tested (105 JS tests incl. pgvector, tsc, build; live replay of 4 questions) |
 | 2026-10-18 | Readability hotfix on `main`, ahead of Phase 2: assistant answers render as Markdown (tables, lists, KaTeX math via `ChatMarkdown.tsx`) instead of raw `**`, pipes and LaTeX; the live prompt labels sources `[p. 12]` instead of "Excerpt N" and adds layout rules for the narrow panel (the eval's copy kept in sync). Write-up: D-024 on `feature/phase2-chat` | `ChatMarkdown.tsx`, `ResourceChatBot.tsx`, `src/app/api/chat/route.ts`, `scripts/eval-retrieval.ts` | Tested (63 JS tests, tsc, build; one live answer on the local copy: direct answer, displayed formula, `[p. 32]` citation, no excerpt numbers) |
+| 2026-10-18 | OCR on Groq tested (D-023): Llama 4 Scout is gone from Groq (HTTP 404); its Qwen 3.8 27B vision model repeats output on 9 of 22 pages (handwriting CER 0.322 vs Scout's 0.079), so Cloudflare stays. The `groq` provider's default model in `app/ocr.py` is stale | `ocr_compare.py` (outside the repo), D-023 | Measured; code not changed yet |
+| 2026-10-18 | Phase 3: OCR for text-less PDF pages and picture slides in decks (decks rendered with LibreOffice; Llama 4 Scout via Cloudflare, Groq optional), with a daily page budget and a per-document cap; resources over budget wait in the queue; workflow passes the OCR settings; `PARSER_VERSION` `rag-2` | Branch `feature/phase3-ocr` (`services/rag/app/ocr.py`, `pipeline.py`, `db.py`, `config.py`) | Tested locally (45 Python tests, local end-to-end run on a handwritten assignment); not merged, production not re-indexed |
 | 2026-10-17 | Phase 1 merged into `main` (fast-forward to `2347507`), pushed, and deployed on Vercel with `RAG_INDEX_GITHUB_TOKEN`/`RAG_INDEX_GITHUB_REPO`. First manual workflow run and first real upload both indexed successfully (timings in Speed and cost). Workflow moved to `actions/checkout@v5` and `astral-sh/setup-uv@v7` (Node 24; the first run warned that Node 20 is deprecated) | `main`, `.github/workflows/rag-index.yml` | Done; the chat answering from the new upload is checked by hand |
 | 2026-10-17 | Indexing runs on GitHub Actions: `rag-index.yml` (per-upload `workflow_dispatch` + daily PENDING retry), Next.js `queueIndexing()` picks the HTTP service or the workflow, chat copy says "within a few minutes"; service refuses API calls while its secret is unset, CLI exits 1 on failures | `.github/workflows/rag-index.yml`, `src/lib/rag-service.ts`, `services/rag/app/{main,config,cli}.py` | Merged and live (see the row above) |
 | 2026-10-17 | Phase 1 retrieval measured on production (read-only): recall@5 97.1%, MRR 0.880, slide decks 100%, identical to the local run | `eval/results/2026-10-17T12-25-36Z-phase1-prod.json` | Done |
@@ -145,6 +148,16 @@ Avoids a vector-column migration and a re-embed caused only by a model change. E
 **2026-10-17 · Planned**
 Tesseract is poor at handwriting. Routing only text-less pages keeps cost down. Accuracy has to be measured on 10–20 real pages before the feature is promised.
 
+Findings, 2026-10-18 (no code changed):
+- **What production's text-less pages are.** The indexer counts a page as empty when its text layer has fewer than 20 letters. 59 of the 107 were inspected: all of Lean Dev (30), Process models (15), Module-2 (6), Module-3 (4) and RNN (4). **None is handwritten.** They are lecture slides whose only text is a short title, with the content as a picture:
+  - diagrams with labels (process-model flows, the RUP iteration chart, feed-forward vs recurrent networks, an LSTM cell with its equations as images);
+  - screenshots of code (Matplotlib examples);
+  - decorative photos, illustrations and logos.
+
+  Not inspected: `cmm53pse9` (21 empty pages; not in the local copy), two apparent duplicates of Process models and Module-3 (19 pages), and a few single pages elsewhere.
+- **Handwritten samples.** The repo owner supplied 3 of their own assignments: 37 pages, phone photos of notebook pages with formulas, tables and binary strings. Every page is an image with no text layer, so today's indexer would mark all three files FAILED. These samples stay outside the repo.
+- **What this means for Phase 3.** The job is wider than handwriting: describing diagrams and reading code screenshots in lecture slides, plus reading whole scanned or photographed documents. A vision model can do all of these. Tesseract can read clean code screenshots, but it can't describe diagrams and is weak on handwriting.
+
 ### D-012 · Prisma stays the only owner of the database schema
 **2026-10-17 · Planned**
 Python reads and writes the tables but never migrates them. LangGraph checkpoint tables, if used, live in a separate `langgraph` Postgres schema so Prisma never tries to drop them.
@@ -205,6 +218,63 @@ Related changes:
 **2026-10-17 · Done**
 Neon connection strings now carry `sslmode=verify-full`. In the service image libpq then looks for `~/.postgresql/root.crt` and refuses to connect. `sslrootcert=system` also failed ("certificate verify failed"), because the `psycopg[binary]` wheel bundles its own OpenSSL, which doesn't know where Debian keeps its CA certificates. `db.connection_params` now sets `sslrootcert` to certifi's bundle whenever the URL asks for verification and names no root certificate. This works on any host, Windows included. Rejected: downgrading to `sslmode=require` (it drops server verification) and setting `SSL_CERT_FILE` in the Dockerfile (it fixes only the image).
 
+### D-023 · Reading text-less pages: Llama 4 Scout vision, compared on 22 real pages
+**2026-10-18 · Built on `feature/phase3-ocr` (Cloudflare by default); Groq no longer offers Llama 4 Scout, and its one vision model (Qwen) is worse for this job**
+A comparison on 22 pages: 10 handwritten pages from the repo owner's three assignments (phone photos with formulas, tables and binary strings), 6 production slide diagrams, 2 code screenshots, and 4 decorative slides (a photo, an illustration, a logo, a QR code). The reference transcriptions were drafted by reading each page and still need the owner's check, so treat the handwriting numbers as provisional. The test pages, references and outputs stay outside the repo; the harness is `ocr_compare.py` in the session scratchpad.
+
+Metrics:
+- **CER:** edit distance divided by reference length, on letters and digits only, so layout and punctuation choices don't count. It is capped at 1 per page.
+- **Recall:** share of the reference's words found anywhere in the output. Diagrams have no single reading order, so CER overstates their errors.
+- **Words:** mean words emitted per page. On decorative slides, lower is better.
+
+| Engine | Handwriting CER | Handwriting recall | Diagram recall | Code CER / recall | Decorative words | Time per page | Neurons per page |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Tesseract 5.3 (default layout) | 0.910 | 4.5% | 21.6% | 0.302 / 91.5% | 3 | 0.8 s | 0 (local) |
+| Tesseract 5.3 (`--psm 11`, sparse text) | 0.775 | 8.6% | 36.2% | 0.370 / 79.4% | 3 | 0.9 s | 0 |
+| **Llama 4 Scout 17B (Cloudflare)** | **0.079** | **90.8%** | **82.2%** | 0.050 / 97.1% | 6 | 20 s (handwriting), 6 s (slides) | 88 (handwriting), 55–72 (slides) |
+| Mistral Small 3.1 24B (Cloudflare) | 0.081 | 89.9% | 72.0% | 0.049 / 100% | 5 | 14 s, 5 s | 92, 69–73 |
+| Qwen 3.8 27B (Groq) | 0.322 (0.193 with repeated lines dropped) | 95.6% | 85.6% | 0.950 / 100% | 11 | 0.8 s of model time; about 3 pages a minute under the rate limit | 1,888 Groq tokens, no neurons |
+
+Not usable:
+- **Gemma 4 26B:** spent its whole 2,000-token budget on hidden reasoning and returned no text.
+- **GLM-5.3 Flash:** HTTP 403, not available on the Workers Free plan.
+
+What this shows:
+- **Tesseract can't do this job.** It is free and fast, but reads almost none of the handwriting and misses most diagram labels. Its default layout mode skips text on coloured backgrounds entirely.
+- **Both vision models read the handwriting well**, with about 8% character errors overall: 1.5–7.6% on 8 of the 10 pages, and 18–21% on the two hardest. Both struggle most on the same page, a binary-string table whose 1s look like Z (Llama 0.215, Mistral 0.185).
+- **Llama 4 Scout is clearly better on diagrams** (82% vs 72% word recall), ties on handwriting and code, and is a little cheaper.
+- **Decorative slides produce no junk.** Both models output only the visible words (5–6 per page), so these pages won't pollute the index.
+
+**The Cloudflare account is on the Workers Free plan** (confirmed by the GLM refusal): 10,000 neurons a day, shared with production's embeddings. At about 70–90 neurons per page, OCR is roughly 110–140 pages a day if nothing else ran. The comparison itself used 3,451 neurons (plus 78 for a first probe). Production indexing therefore needs a daily OCR budget, or a provider with its own quota.
+
+**Groq, tested 2026-10-18:** `meta-llama/llama-4-scout-17b-16e-instruct` returns HTTP 404 ("does not exist or you do not have access to it"), and `GET /openai/v1/models` on this key lists no Llama 4 model. The only listed model that accepts images is `qwen/qwen3.8-27b`, so the harness (new `groq:<model>` engine, same prompt, temperature 0, 2,000-token cap) ran it on the same 22 pages:
+- **It reads more, but often writes it twice.** Word recall is the best measured (handwriting 95.6%, diagrams 85.6%), but on 9 of the 22 pages it transcribes the page and then repeats most of it, emitting 1.9–2.9× the reference's length (Scout: none). That drives CER to 0.322 on handwriting and 0.950 on code. Dropping repeated lines brings handwriting CER to 0.193, still more than twice Scout's 0.079, because on 2 handwriting pages the repeats are near-copies that an exact line match misses. On the 7 handwriting pages without repeats, its CER is 0.2–6.4%.
+- **One decorative slide (the QR code) produced 16× the reference's length.** Scout produced 6× on the same slide.
+- **Cost:** 41,540 tokens for the 22 pages (1,888 per page). Its 8,000 tokens a minute allow about 3–4 pages a minute; every page after the first waited 2–36 s for the limit.
+- **Conclusion:** Cloudflare's Llama 4 Scout stays the OCR model. Duplicated text would weaken chunks and citations, so Qwen would need a repetition guard (a frequency penalty or deduplication) and a re-run before it could replace it.
+- **Consequence for the indexer:** the `groq` provider's default model in `app/ocr.py` no longer exists on Groq. Since a page whose OCR call fails is skipped, `OCR_PROVIDER=groq` would currently index no OCR text without failing. Production uses the `cloudflare` default, so it isn't affected.
+
+**Built into the indexer** (`services/rag/app/ocr.py`, `PARSER_VERSION` `rag-2`):
+- **What gets read:** PDF pages with fewer than 20 letters are rendered to a JPEG (longer side at most 1,600 px), transcribed with the prompt used in the comparison, and saved as `chunkType = 'ocr'` chunks in page order.
+- **Provider:** set by `OCR_PROVIDER`: `cloudflare` (default), `groq` (same model, needs `GROQ_API_KEY`) or `off`.
+- **Budget guard:** `OCR_DAILY_PAGE_BUDGET` (default 60 pages, about 5,000 neurons, half the free allowance) is counted from today's `ocr` chunks, so it needs no new table or migration. A document that doesn't fit today's budget goes back to PENDING with the reason in `indexError` and keeps its previous chunks. The same run doesn't claim it again; the daily `--pending` run retries it. `OCR_MAX_PAGES_PER_DOCUMENT` (default 40, clamped to the budget) stops one file from taking the whole day.
+- **Failures:** a page whose OCR call fails is skipped, so it can't fail the document.
+- **Tests:** 11 new (provider requests and errors, cleanup, rendering, page skipping, OCR chunks saved, budget counting, deferral, and no re-claim within a run); 45 Python tests pass.
+- **End to end, local database, real Cloudflare calls:** the 13-page handwritten assignment 1 went from no text to READY. OCR read all 13 pages into 13 chunks, using 1,072 neurons in 189 s (about 14.5 s a page, one page at a time). Two questions whose answers are on known pages retrieved the right page first.
+
+**Decks too (same branch).** python-pptx reads slide text but can't draw a slide, so slides that need OCR are rendered by converting the deck to PDF with LibreOffice (already in the image and the workflow, for legacy `.ppt`):
+- **Which slides:** fewer than 20 letters of text and at least one picture. The old rule was fewer than 3 letters, which missed title-plus-picture slides. Short text-only slides like "Thank you" never use the budget.
+- **Conversion:** only decks that have such slides are converted. Hidden slides are exported too, so PDF page N is slide N; if the page count still doesn't match, OCR is skipped for that deck.
+- **Result:** the OCR text replaces the slide's parsed title, which becomes the section, and speaker notes stay. OCR'd slides are never merged with neighbouring slides, so the budget counts each one.
+
+Dry run on the 4 production decks (no database writes; real LibreOffice and Cloudflare calls):
+- **Slides found:** 11 picture slides, against 4 under the old rule: RBAC 5, Gradient Descent 3, DAC/MAC/RBAC 1, Kerberos 1.
+- **Content recovered:** the bank role hierarchy, the RBAC role trees, the six-step Kerberos ticket flow, the MAC clearance levels and the contour-plot axes, all previously invisible to search.
+- **Cost:** 575 neurons. One slide returned PowerPoint's empty-placeholder prompt ("Click to add Title"), which the cleanup now strips.
+- **Tests:** 8 new (slide selection, title replacement with notes kept, no merging, slide labels, the page-count guard, conversion failure, a DB end-to-end deck, and real LibreOffice rendering of a deck with a hidden slide). That makes 54 Python tests: 52 run anywhere, and the 2 LibreOffice tests run in the Docker image.
+
+Next: the owner checks the handwriting references; fix or remove the `groq` provider's stale default model; then re-index production. Its 107 text-less pages need about 9,000 neurons, so the budget guard spreads them over about two days.
+
 ### D-025 · Page questions fetch pages; the chat knows it can read the document
 **2026-10-18 · Done (on `main`, ahead of Phase 2)**
 Reported by the repo owner from the live site: "explain 3rd page of this pdf" got "I don't have the text from the third page", and "do you have pdf context?" got "I don't have the PDF itself". There were two causes:
@@ -237,7 +307,55 @@ Changes:
 
 Phase 2's chat graph should use `planRetrieval` in its retrieve step when it is merged.
 
+### D-026 · A PDF heading stays in one chunk with the text under it
+**2026-10-23 · On `feature/phase3-ocr`; measured on the re-indexed test copy 2026-10-24, production not re-indexed**
+Found by the Phase 2 faithfulness eval (`kanban-principles`, D-022). Page 43 of "Lean Dev" was stored as 2 chunks: the bare heading "Kanban Principles" (17 characters) and the bullets, whose own line had become their section title. Retrieval returned only the heading chunk, which holds no answer.
+
+**Cause.** pymupdf4llm marks every line set in a font larger than the document's most common size as a heading. This PDF is a slide deck exported to PDF, and its bullets (32 pt) are larger than its body text, so page 43 came out as `# Kanban Principles` followed by `## • Visualize … • Limit … • Enhance flow`. The parser started a new block at every heading, so the title was stored alone and the bullet line became a section.
+
+**Fix** (`PARSER_VERSION` `rag-3`):
+- **Bullets are never headings.** A heading line that starts with a bullet glyph (•, ▪, ●, Symbol/Wingdings bullets in the private use area, and similar) or a list marker (`- `, `* `, `– `) stays body text under the current section.
+- **A heading with nothing under it waits for its text.** It is kept with the next text on the page instead of being stored as its own block. When a second heading follows directly ("Unit 5: Scrum", then "Roles"), both stay in one block and the nearer heading becomes the section.
+- **Tiny PDF chunks are merged** (`MIN_CHUNK_CHARS`, default 30). A chunk shorter than 30 characters joins the next chunk on its page, or else the previous one. It stays alone only when its page has no other text, and never merges across pages. Slides keep their own rule (`MIN_SLIDE_CHARS`).
+
+**Measured** by parsing and chunking the 13 resources of the local test copy with the `rag-2` and `rag-3` code (no embeddings, no database writes, OCR off). 11 parse here: 9 PDFs and 2 `.pptx`. The 2 legacy `.ppt` files need LibreOffice, which this machine lacks.
+
+| 11 resources | `rag-2` | `rag-3` |
+| --- | --- | --- |
+| Chunks | 483 | 446 |
+| Chunks that are only their section title | 44 | 7 |
+| Chunks under 30 characters | 38 | 16 |
+| Section titles starting with a bullet | 5 | 0 |
+
+- **"Lean Dev" page 43:** 2 chunks (17 and 100 characters) became 1 chunk of 119 characters with the section "Kanban Principles".
+- **Decks:** unchanged (39 chunks; 3 under 30 characters, all in one deck), since this changes only the PDF path.
+- **What remains in the PDFs:** 16 chunks are still under 30 characters or only a heading. 15 are the only text on their page: section-divider slides such as "Sparse Autoencoder (SAE)", and one 158-character exercise question. The last is a heading at the bottom of a page whose text starts on the next page ("Task 2: Drawing shapes …", 45 characters). It stays alone because chunks never cross pages; joining it to the next page is a possible follow-up.
+- **Tests:** 13 new test cases. The parser tests replay pymupdf4llm's real output for pages 42–43 (a synthetic PDF did not reproduce the heading reliably, because font fallback changes the bullet glyph). They also cover 6 bullet styles, a heading followed directly by a sub-heading, and headings that do have body text. The chunker tests cover page 43 as `rag-2` stored it, a tiny fragment at the end of a page, no merging across pages, and several tiny fragments on one page. 56 Python tests pass; 11 are skipped here (9 database tests without `TEST_DATABASE_URL`, 2 that need LibreOffice).
+
+**Measured on the re-indexed test copy, 2026-10-24.** After the Phase 2 batch 3 run, the local test database (13 resources, `rag-1`) was backed up (`pg_dump`, kept outside the repo) and re-indexed with `reindex --all` in the `rag-3` service image, with `OCR_PROVIDER=off` so the comparison isolates the chunking change (`rag-2` only added OCR). 13 of 13 READY in 1.0–11.7 s each; the 2 legacy `.ppt` files converted in the image.
+
+| Test copy, 13 resources | `rag-1` (Phase 1) | `rag-3`, OCR off |
+| --- | --- | --- |
+| Chunks (text / slide) | 569 (444 / 125) | 532 (407 / 125) |
+| Text chunks under 30 characters | 35 | 13 |
+| Text chunks that are only their section title | 41 | 4 |
+| Section titles starting with a bullet | 5 | 0 |
+
+Retrieval on all 68 questions (run `2026-10-24T10-52-41Z-p3-rag3-chunking-local.json`, vector top 5, eval and chat graph from `feature/phase2-chat` at `e81bb2b`, whose default vector retrieval reproduced Phase 1's numbers exactly on `rag-1` in the D-022 batches):
+
+| 68 questions | recall@1 | recall@3 | recall@5 | MRR |
+| --- | --- | --- | --- | --- |
+| `rag-1` (Phase 1 local run) | 82.4% | 92.6% | 97.1% | 0.880 |
+| `rag-3` | **83.8%** | 92.6% | 95.6% | **0.887** |
+
+Only 3 questions changed rank:
+- **`kanban-principles`, rank 3 → 1.** The retrieved chunk now holds the bullets, not just the heading. Graph faithfulness on it (run `2026-10-24T10-55-35Z-p3-rag3-faith-kanban.json`): **0.00 → 1.00, a cited answer from p. 43 instead of the labelled general answer**, no retry, correct.
+- **`ae-bottleneck`, rank 5 → 4.**
+- **`ae-denoising-loss`, rank 5 → miss.** Pages 22–23 are stored identically in both versions; what changed is page 21, whose 12-character "Architecture" chunk merged into the Encoder chunk. Page 21 now fills 3 of the top 5 slots, pushing page 22 to rank 6. The graph still answered it correctly from page 21's text (faithfulness 1.00, correct; run `2026-10-24T10-55-12Z-p3-rag3-faith-changed.json`, which also scored `ae-bottleneck` 1.00 and correct).
+
+So the fix gains one question at rank 1 and loses a borderline rank-5 hit, with no answer text lost. The `ae-denoising-loss` miss points at a separate retrieval issue: several chunks of one page can crowd the top 5 (a per-page cap or merging same-page hits would address it). The test copy now holds `rag-3` without OCR; a full 68-question faithfulness re-run on it is not done (it takes 3 days of `gpt-oss-20b` quota).
+
 ### Open decisions
 
 - [x] Indexing without a host (D-018): GitHub Actions. Hosting for Phase 2 chat is still open
-- [ ] Which vision model or OCR provider for handwriting, and what per-page budget?
+- [ ] Which vision model or OCR provider for handwriting, and what per-page budget? Measured (D-023): Llama 4 Scout on Cloudflare (Groq no longer hosts it; Groq's Qwen repeats output); daily budget still open
